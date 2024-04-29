@@ -1,0 +1,6 @@
+.idea
+.vscode
+output
+**.bat
+**.lnk
+**_pycache__**
