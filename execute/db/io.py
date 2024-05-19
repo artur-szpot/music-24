@@ -5,6 +5,15 @@ A set of utilitarian functions to facilitate cooperation with the file system.
 import os
 
 
+def get_all_files(directory):
+    """ Return a list of file names inside a given directory. """
+    file_paths = []
+    for root, directories, files in os.walk(directory):
+        for filename in files:
+            file_paths.append(filename)
+    return file_paths
+
+
 def get_all_file_paths(directory):
     """ Return a list of full file paths inside a given directory. """
     file_paths = []
