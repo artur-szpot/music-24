@@ -5,7 +5,20 @@ class CommandEnum:
     View = 3  # set how the list view is presented
     # view lAt = length author(sort by) title
     ImportFiles = 4  # look through the files in the directory set for importing from, add them to db and move to proper storage folder
-    EditFile = 5 # change whatever values for the file
+    EditFile = 5  # change whatever values for the file
+    # query for files with given properties (can give return size, then random)
+    # save query results as albums or playlists
+    # export query results/albums/playlists in different formats (win, car, ?)
+    # save info about what has been exported (i.e. listened to)
+    AnalyzeImport = 6  # analyze files before importing them
+    # organize files (compile files, dictify artists, genres)
+    # create indexes for faster access?
+    # continuous command mode (ls -> next; edit -> author)
+    # stats
+    # set artist/genre alt-names
+    # set artist/genre misspellings and use them to correct saved data
+    # rewrite artist/genre from one value to another
+
 
 def get_command_dictionary():
     command_registry = {
@@ -15,6 +28,7 @@ def get_command_dictionary():
         CommandEnum.View: ['view', 'v'],
         CommandEnum.ImportFiles: ['import-files', 'if'],
         CommandEnum.EditFile: ['edit-file', 'ef'],
+        CommandEnum.AnalyzeImport: ['analyze-import', 'ai'],
     }
 
     command_dictionary = {}

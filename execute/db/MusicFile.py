@@ -8,6 +8,7 @@ class MusicFile:
     is_mlp = False
     is_dad = False
     is_ready = False
+    errors = []
 
     def __init__(self, source) -> None:
         self.authors = source.get('authors')
@@ -19,6 +20,7 @@ class MusicFile:
         self.is_mlp = source.get('is_mlp')
         self.is_dad = source.get('is_dad')
         self.is_ready = source.get('is_ready')
+        self.errors = source.get('errors')
 
     def to_dict(self):
         return {
