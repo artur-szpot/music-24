@@ -2,9 +2,13 @@ from typing import List
 
 from mutagen import File
 
+from enums.function_categories import FunctionCategoryEnum
+from functions.execute.ArgsDict import ArgsDict
+from functions.execute.ArgsExtractor import ArgsExtractor
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.RatingMapper import RatingMapper
 from functions.file_management.file_operations import save_new_file
+from functions.help.FunctionHelp import FunctionHelp
 from functions.querying.list_files import list_files
 from libs.io import get_all_file_paths, create_directory
 
@@ -61,11 +65,29 @@ def analyze_files() -> List[MusicFile]:
     return files
 
 
-def print_file_analysis() -> List[str]:
+def print_file_analysis_help() -> FunctionHelp:
+    return FunctionHelp(
+        ["analyze-import", "ai"],
+        "Analyze files from the import directory before importing.",
+        FunctionCategoryEnum.IngestingFiles,
+    )
+
+
+def print_file_analysis(args_dict: ArgsDict) -> List[str]:
+    ArgsExtractor.no_args(args_dict)
     return list_files(analyze_files())
 
 
-def import_files() -> List[str]:
+def import_files_help() -> FunctionHelp:
+    return FunctionHelp(
+        ["import-files", "if"],
+        "Import all files from the import directory.",
+        FunctionCategoryEnum.IngestingFiles,
+    )
+
+
+def import_files(args_dict: ArgsDict) -> List[str]:
+    ArgsExtractor.no_args(args_dict)
     files = read_files()
     # move files
     # NOW create file_management files

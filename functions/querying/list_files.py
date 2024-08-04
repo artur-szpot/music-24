@@ -1,11 +1,21 @@
 from typing import List
 
+from enums.function_categories import FunctionCategoryEnum
 from functions.execute.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
+from functions.help.FunctionHelp import FunctionHelp
 from functions.querying.View import standard_view
 from libs.io import get_all_files
+
+
+def list_all_files_help() -> FunctionHelp:
+    return FunctionHelp(
+        ["list-files", "ls"],
+        "Lists all files currently in the database.",
+        FunctionCategoryEnum.ViewingFiles,
+    )
 
 
 def list_all_files(args_dict: ArgsDict):

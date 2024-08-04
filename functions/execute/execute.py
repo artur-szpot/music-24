@@ -1,3 +1,5 @@
+from typing import List
+
 from enums.commands import get_command_dictionary, CommandEnum
 from enums.results import ResultEnum
 from functions.execute.ArgsDict import ArgsDict
@@ -10,12 +12,18 @@ from functions.file_management.edit_db_file import edit_db_file
 from functions.file_management.import_files import import_files, print_file_analysis
 from functions.file_management.update_from_database import update_from_database
 from functions.file_management.update_from_mp3 import update_from_mp3
+from functions.help.help import print_help
 from functions.querying.list_files import list_all_files
 
 command_dictionary = get_command_dictionary()
 
 
 class ExecutionResult:
+    action: ResultEnum
+    message: str
+    header: List[str]
+    paginable: List[str]
+
     def __init__(self, action, message=None):
         self.action = action
         self.message = message
@@ -119,6 +127,7 @@ def execute_command(input_command):
     }
 
     message_dict = {
+        CommandEnum.Help: print_help,
         CommandEnum.ListFiles: list_all_files,
         CommandEnum.ImportFiles: import_files,
         CommandEnum.AnalyzeImport: print_file_analysis,

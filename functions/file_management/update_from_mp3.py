@@ -1,10 +1,11 @@
+from functions.execute.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
 from functions.file_management.MusicFile import MusicFileDbProps
 from functions.file_management.file_operations import open_file, save_file
 from functions.file_management.import_files import read_file
 
 
-def update_from_mp3(args_dict):
+def update_from_mp3(args_dict: ArgsDict):
     filename = ArgsExtractor.filename(args_dict)
     return update_from_mp3_exe(filename)
 
