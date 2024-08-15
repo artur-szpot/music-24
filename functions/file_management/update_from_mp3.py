@@ -1,4 +1,4 @@
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
 from functions.file_management.MusicFile import MusicFileDbProps
 from functions.file_management.file_operations import open_file, save_file

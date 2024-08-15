@@ -1,37 +1,45 @@
 from typing import List
 
-from enums.function_categories import FunctionCategoryEnum
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
-from functions.help.FunctionHelp import FunctionHelp
-from functions.querying.View import standard_view
+from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.querying.View import View
+from functions.querying.standard_views import STANDARD_VIEW
 from libs.io import get_all_files
 
 
-def list_all_files_help() -> FunctionHelp:
-    return FunctionHelp(
-        ["list-files", "ls"],
-        "Lists all files currently in the database.",
-        FunctionCategoryEnum.ViewingFiles,
+def list_all_files_definition() -> FunctionDefinition:
+    return FunctionDefinition(
+        function=list_all_files,
+        verbs=["list-files", "ls"],
+        description="Lists all files currently in the database.",
+        category=FunctionCategoryEnum.ViewingFiles,
     )
 
 
-def list_all_files(args_dict: ArgsDict):
+def list_all_files(args_dict: ArgsDict) -> ExecutionResult:
     ArgsExtractor.no_args(args_dict)
     all_paths = get_all_files("db/music_files")
     files = [open_file(path) for path in all_paths]
-    return list_files(files)
+    return ExecutionResult.table(header=list_files_header(), items=list_files(files))
 
 
-def list_files(files: List[MusicFile]):
-    view = standard_view
-    lines: List[str] = [
+def list_files_header(view: View = None) -> List[str]:
+    view = view or STANDARD_VIEW
+    return [
         view.print_separator_line(),
         view.print_title_line(),
         view.print_separator_line(),
     ]
+
+
+def list_files(files: List[MusicFile], view: View = None) -> List[str]:
+    view = view or STANDARD_VIEW
+    lines: List[str] = []
     index = 1
     for music_file in files:
         music_file.set_view_props(index)

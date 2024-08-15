@@ -2,14 +2,16 @@ from typing import List
 
 from mutagen import File
 
-from enums.function_categories import FunctionCategoryEnum
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.RatingMapper import RatingMapper
 from functions.file_management.file_operations import save_new_file
-from functions.help.FunctionHelp import FunctionHelp
-from functions.querying.list_files import list_files
+from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.querying.list_files import list_files, list_files_header
+from functions.querying.standard_views import ANALYZE_VIEW
 from libs.io import get_all_file_paths, create_directory
 
 
@@ -62,37 +64,43 @@ def analyze_files() -> List[MusicFile]:
             errors.append(f"MLP flag not set")
         if file.is_ready is None:
             errors.append(f"Ready flag not set")
+        file.errors = errors
     return files
 
 
-def print_file_analysis_help() -> FunctionHelp:
-    return FunctionHelp(
-        ["analyze-import", "ai"],
-        "Analyze files from the import directory before importing.",
-        FunctionCategoryEnum.IngestingFiles,
+def print_file_analysis_definition() -> FunctionDefinition:
+    return FunctionDefinition(
+        function=print_file_analysis,
+        verbs=["analyze-import", "ai"],
+        description="Analyze files from the import directory before importing.",
+        category=FunctionCategoryEnum.IngestingFiles,
     )
 
 
-def print_file_analysis(args_dict: ArgsDict) -> List[str]:
+def print_file_analysis(args_dict: ArgsDict) -> ExecutionResult:
     ArgsExtractor.no_args(args_dict)
-    return list_files(analyze_files())
-
-
-def import_files_help() -> FunctionHelp:
-    return FunctionHelp(
-        ["import-files", "if"],
-        "Import all files from the import directory.",
-        FunctionCategoryEnum.IngestingFiles,
+    return ExecutionResult.table(
+        header=list_files_header(ANALYZE_VIEW),
+        items=list_files(analyze_files(), ANALYZE_VIEW),
     )
 
 
-def import_files(args_dict: ArgsDict) -> List[str]:
+def import_files_definition() -> FunctionDefinition:
+    return FunctionDefinition(
+        function=import_files,
+        verbs=["import-files", "if"],
+        description="Import all files from the import directory.",
+        category=FunctionCategoryEnum.IngestingFiles,
+    )
+
+
+def import_files(args_dict: ArgsDict) -> ExecutionResult:
     ArgsExtractor.no_args(args_dict)
     files = read_files()
     # move files
     # NOW create file_management files
     create_db_files(files)
-    return [f"Successfully imported {len(files)} files"]
+    return ExecutionResult.message(f"Successfully imported {len(files)} files")
     # return [f'added files: {len(files)}']
 
 

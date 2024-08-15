@@ -1,6 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Callable, Optional, NewType
 
-from enums.function_categories import FunctionCategoryEnum
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.definition.ArgsDict import ArgsDict
+from functions.execute.ExecutionResult import ExecutionResult
+
+MusicFunction = Callable[[ArgsDict], ExecutionResult]
 
 
 class ParameterHelp:
@@ -12,20 +16,26 @@ class ParameterHelp:
         self.types = types
 
 
-class FunctionHelp:
+class FunctionDefinition:
     description: str
+    function: MusicFunction
     category: FunctionCategoryEnum
     parameters: Dict[str, ParameterHelp]
     verbs: List[str]
+    returns_result: bool
 
     def __init__(
         self,
+        function: MusicFunction,
         verbs: List[str],
         description: str,
         category: FunctionCategoryEnum,
         parameters: Dict[str, ParameterHelp] = None,
+        returns_result: bool = True,
     ):
+        self.function = function
         self.verbs = verbs
         self.description = description
         self.category = category
         self.parameters = parameters
+        self.returns_result = returns_result

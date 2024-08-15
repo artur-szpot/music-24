@@ -24,4 +24,6 @@ def get_new_id() -> int:
     all_paths = [
         int(filename.split(".")[0]) for filename in get_all_files("db/music_files")
     ]
+    if not all_paths:
+        return 0
     return max(all_paths) + 1

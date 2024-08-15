@@ -1,24 +1,26 @@
-from typing import List, Dict
+from typing import Dict
 
-from enums.function_categories import FunctionCategoryEnum
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
 from functions.execute.validate_args import AllowedKwarg
 from functions.file_management.MusicFile import MusicFileDbProps
 from functions.file_management.file_operations import open_file, save_file
-from functions.help.FunctionHelp import FunctionHelp
+from functions.definition.FunctionDefinition import FunctionDefinition
 
 
-def edit_db_file_help() -> FunctionHelp:
-    return FunctionHelp(
-        ["edit-file", "ef"],
-        "Edit the selected properties of a file in the database.",
-        FunctionCategoryEnum.EditingFiles,
+def edit_db_file_definition() -> FunctionDefinition:
+    return FunctionDefinition(
+        function=edit_db_file,
+        verbs=["edit-file", "ef"],
+        description="Edit the selected properties of a file in the database.",
+        category=FunctionCategoryEnum.EditingFiles,
     )
 
 
-def edit_db_file(args_dict: ArgsDict) -> List[str]:
+def edit_db_file(args_dict: ArgsDict) -> ExecutionResult:
     filename = ArgsExtractor.filename(
         args_dict,
         allowed_kwargs={
@@ -89,7 +91,7 @@ def edit_db_file(args_dict: ArgsDict) -> List[str]:
     return edit_db_file_exe(filename, music_file)
 
 
-def edit_db_file_exe(filename: str, music_file: Dict) -> List[str]:
+def edit_db_file_exe(filename: str, music_file: Dict) -> ExecutionResult:
     if not music_file:
         raise ArgumentValidationError("No values to update provided")
 
@@ -128,4 +130,4 @@ def edit_db_file_exe(filename: str, music_file: Dict) -> List[str]:
         db_file.is_ready = bool(music_file["is_ready"])
     db_file.set_db_prop(MusicFileDbProps.Desynced, True)
     save_file(filename, db_file)
-    return ["ok"]
+    return ExecutionResult.message("ok")

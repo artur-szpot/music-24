@@ -1,8 +1,9 @@
-from enums.commands import CommandEnum, command_registry
-from enums.function_categories import FunctionCategoryEnum
-from functions.execute.ArgsDict import ArgsDict
+from functions.commands.CommandEnum import CommandEnum
+from functions.definition.ArgsDict import ArgsDict
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.ArgsExtractor import ArgsExtractor
-from functions.help.help_help import mock_help
+from functions.help.mock_definition import mock_definition
 
 categories = {
     FunctionCategoryEnum.AppManagement: "App management",
@@ -15,11 +16,12 @@ categories = {
 }
 
 
-def print_help(args_dict: ArgsDict):
+def print_help(args_dict: ArgsDict) -> ExecutionResult:
     ArgsExtractor.no_args(args_dict)
+    command_registry = args_dict.system["command_registry"]
     help_contents = []
     all_commands = [
-        command_registry.get(command, mock_help()) for command in CommandEnum
+        command_registry.get(command, mock_definition()) for command in CommandEnum
     ]
     for category in FunctionCategoryEnum:
         commands = list(
@@ -30,4 +32,4 @@ def print_help(args_dict: ArgsDict):
         help_contents.append(f"====== {categories.get(category)} ======")
         for command in commands:
             help_contents.append(f"{', '.join(command.verbs)}: {command.description}")
-    return help_contents
+    return ExecutionResult.table(header=[], items=help_contents)

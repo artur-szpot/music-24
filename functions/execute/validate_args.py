@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import ArgumentValidationError
 
 
@@ -50,18 +50,22 @@ def validate_args(
     allowed_kwargs: Dict[str, AllowedKwarg] = None,
     allowed_flags: List[str] = None,
 ):
+    required_kwargs = required_kwargs or {}
+    allowed_kwargs = allowed_kwargs or {}
+    allowed_flags = allowed_flags or []
+
     args = args_dict.args
     if len(args) < min_args:
         raise ArgumentValidationError(
             f"Not enough arguments provided - expected at least {min_args}, got {len(args)}"
         )
-    if len(args) > max_args:
+    if max_args and len(args) > max_args:
         raise ArgumentValidationError(
             f"Too many arguments provided - expected at most {max_args}, got {len(args)}"
         )
     if exact_args and len(args) != exact_args:
         raise ArgumentValidationError(
-            f"Wrong number of arguments provided - expected {exact_args}, got {len(args)}"
+            f"Wrong number of arguments provided - expected {exact_args}, got {len(args)}."
         )
 
     kwargs = args_dict.kwargs

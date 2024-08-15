@@ -1,8 +1,14 @@
 import os
+from typing import Dict, List
 
 from constants.debug import debug_tools
-from enums.results import ResultEnum
+from functions.definition.ActionEnum import ActionEnum
+from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.FullExecutionResult import FullExecutionResult
 from functions.execute.execute import execute_command
+from functions.result_scrolling.current_position import current_position
+
+result_cache: Dict[str, ExecutionResult] = {}
 
 
 def clear():
@@ -10,7 +16,7 @@ def clear():
         os.system("cls")
 
 
-def main_loop(last_command=None, message=None):
+def main_loop(last_command: str = None, message: List[str] = None):
     clear()
     if last_command:
         print(f">_ {last_command}")
@@ -20,14 +26,24 @@ def main_loop(last_command=None, message=None):
             print(line)
         print()
     command = input(">_ ")
-    result = execute_command(command)
-    if result.action == ResultEnum.Return:
+    new_result: FullExecutionResult = execute_command(command)
+    if new_result.command is not None and new_result.command.returns_result:
+        result_cache["last"] = new_result.result
+        current_position.new_result(new_result.result.get_total_items())
+    result = result_cache.get("last") or new_result.result
+    if new_result.result:
+        error_message = new_result.result.get_error_message()
+    render = result.render(current_position, error_message)
+    action = new_result.result.get_action()
+    if action == ActionEnum.Return:
         clear()
         return
-    elif result.action == ResultEnum.Repeat:
-        main_loop(command, result.message)
+    elif action == ActionEnum.Repeat:
+        main_loop(last_command=command, message=render)
+    elif action == ActionEnum.Refresh:
+        main_loop(last_command=last_command, message=render)
     else:
-        main_loop(f"Unknown result: {result}")
+        main_loop(last_command=f"Unknown result: {result}")
 
 
 if __name__ == "__main__":

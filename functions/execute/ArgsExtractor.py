@@ -1,4 +1,4 @@
-from functions.execute.ArgsDict import ArgsDict
+from functions.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
     NoArgumentsExpectedError,
     ComplexArgumentValidationError,
@@ -17,7 +17,19 @@ class ArgsExtractor:
             raise NoArgumentsExpectedError()
 
     @staticmethod
-    def filename(args_dict: ArgsDict, required_kwargs=None, allowed_kwargs=None):
+    def single_arg(
+        args_dict: ArgsDict, required_kwargs=None, allowed_kwargs=None
+    ) -> str:
+        validate_args(
+            args_dict,
+            exact_args=1,
+            required_kwargs=required_kwargs,
+            allowed_kwargs=allowed_kwargs,
+        )
+        return args_dict.args[0]
+
+    @staticmethod
+    def filename(args_dict: ArgsDict, required_kwargs=None, allowed_kwargs=None) -> str:
         try:
             validate_args(
                 args_dict,
