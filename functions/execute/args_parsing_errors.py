@@ -1,0 +1,2 @@
+class ArgsParsingError(ValueError):
+    pass

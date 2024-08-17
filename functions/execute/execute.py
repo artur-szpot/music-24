@@ -8,6 +8,7 @@ from functions.execute.arg_validation_errors import (
     ComplexArgumentValidationError,
     ArgumentValidationError,
 )
+from functions.execute.args_parsing_errors import ArgsParsingError
 from functions.execute.parse_args import parse_args
 from libs.error_handling import error_message_to_string
 
@@ -27,13 +28,16 @@ def execute_command(input_command: str) -> FullExecutionResult:
     result: Optional[ExecutionResult] = None
     try:
         args_dict = parse_args(input_command)
+        args_dict = command_definition.args_validator.validate(args_dict)
         result = command_definition.function(args_dict)
     except NoArgumentsExpectedError:
-        error_message = f"Command {actual_command} accepts no arguments."  # todo!
+        error_message = f"Command {actual_command} accepts no arguments."
     except ComplexArgumentValidationError:
         error_message = f"Incorrect arguments for command {actual_command} provided. Use the help command to see details."
-        # todo!
+        # todo! give correct input for help
     except ArgumentValidationError as error:
+        error_message = error_message_to_string(error)
+    except ArgsParsingError as error:
         error_message = error_message_to_string(error)
 
     if error_message is not None:

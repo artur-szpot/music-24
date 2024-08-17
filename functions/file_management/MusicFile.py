@@ -1,32 +1,33 @@
-from typing import List, Dict, Any
+from enum import Enum
+from typing import List, Dict, Any, Optional
 
 
-class MusicFileDbProps:
+class MusicFileDbProps(Enum):
     Desynced = 0
 
 
-class MusicFileViewProps:
+class MusicFileViewProps(Enum):
     OrdinalNumber = 0
     Highlighted = 1
 
 
 class MusicFile:
-    authors: List[str] = []
-    genres: List[str] = []
-    title: str = ""
-    path: str = ""
-    length: int = 0
-    rating: int = 0
-    is_mlp: bool = False
-    is_dad: bool = False
-    is_ready: bool = False
-    errors: List[str] = []
-    db_props: Dict[int, Any] = {}
-    view_props: Dict[int, Any] = {}
+    authors: List[str]
+    genres: List[str]
+    title: Optional[str]
+    path: str
+    length: Optional[int]
+    rating: Optional[int]
+    is_mlp: Optional[bool]
+    is_dad: Optional[bool]
+    is_ready: Optional[bool]
+    errors: List[str]
+    db_props: Dict[MusicFileDbProps, Any]
+    view_props: Dict[MusicFileViewProps, Any]
 
     def __init__(self, source) -> None:
-        self.authors = source.get("authors")
-        self.genres = source.get("genres")
+        self.authors = source.get("authors", [])
+        self.genres = source.get("genres", [])
         self.title = source.get("title")
         self.path = source.get("path")
         self.length = source.get("length")
@@ -34,7 +35,7 @@ class MusicFile:
         self.is_mlp = source.get("is_mlp")
         self.is_dad = source.get("is_dad")
         self.is_ready = source.get("is_ready")
-        self.errors = source.get("errors")
+        self.errors = source.get("errors", [])
 
     def to_dict(self):
         return {

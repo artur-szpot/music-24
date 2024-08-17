@@ -17,8 +17,8 @@ reverse_rating_registry = {value: key for (key, value) in rating_registry.items(
 class RatingMapper:
     @staticmethod
     def from_mp3_tags(rating):
-        return rating_registry.get(rating)
+        return rating_registry.get(rating, -1)
 
     @staticmethod
     def to_mp3_tags(rating):
-        return reverse_rating_registry.get(rating)
+        return reverse_rating_registry.get(rating, 0)

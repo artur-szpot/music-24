@@ -2,11 +2,11 @@ from typing import Dict
 
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.ExitCommand import exit_definition
+from functions.file_import.print_file_analysis import print_file_analysis_definition
 from functions.file_management.clear_db import clear_db_definition
 from functions.file_management.edit_db_file import edit_db_file_definition
-from functions.file_management.import_files import (
+from functions.file_import.import_files import (
     import_files_definition,
-    print_file_analysis_definition,
 )
 from functions.definition.FunctionDefinition import FunctionDefinition
 from functions.help.help_definition import help_definition

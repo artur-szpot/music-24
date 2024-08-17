@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 from functions.file_management.MusicFile import MusicFile
 from libs.io import get_all_files
@@ -27,3 +28,8 @@ def get_new_id() -> int:
     if not all_paths:
         return 0
     return max(all_paths) + 1
+
+
+def create_db_files(music_files: List[MusicFile]) -> None:
+    for music_file in music_files:
+        save_new_file(music_file)

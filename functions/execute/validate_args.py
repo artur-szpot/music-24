@@ -1,7 +1,10 @@
 from typing import List, Dict
 
 from functions.definition.ArgsDict import ArgsDict
-from functions.execute.arg_validation_errors import ArgumentValidationError
+from functions.execute.arg_validation_errors import (
+    ArgumentValidationError,
+    NoArgumentsExpectedError,
+)
 
 
 class AllowedKwarg:
@@ -67,6 +70,8 @@ def validate_args(
         raise ArgumentValidationError(
             f"Wrong number of arguments provided - expected {exact_args}, got {len(args)}."
         )
+    if not min_args and not max_args and not exact_args and len(args):
+        raise NoArgumentsExpectedError()
 
     kwargs = args_dict.kwargs
     for name, values in required_kwargs.items():
@@ -89,5 +94,5 @@ def validate_args(
 
     if len(disallowed_args):
         raise ArgumentValidationError(
-            f'Unexpected arguments and/or flags provided: {", ".join(disallowed_args)}'
+            f'Unexpected keyword arguments and/or flags provided: {", ".join(disallowed_args)}'
         )

@@ -2,6 +2,7 @@ from typing import Dict, List, Callable, Optional, NewType
 
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.ArgsDict import ArgsDict
+from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 
 MusicFunction = Callable[[ArgsDict], ExecutionResult]
@@ -23,6 +24,7 @@ class FunctionDefinition:
     parameters: Dict[str, ParameterHelp]
     verbs: List[str]
     returns_result: bool
+    args_validator: ArgsValidator
 
     def __init__(
         self,
@@ -32,6 +34,7 @@ class FunctionDefinition:
         category: FunctionCategoryEnum,
         parameters: Dict[str, ParameterHelp] = None,
         returns_result: bool = True,
+        args_validator: ArgsValidator = ArgsValidator.no_args(),
     ):
         self.function = function
         self.verbs = verbs
@@ -39,3 +42,4 @@ class FunctionDefinition:
         self.category = category
         self.parameters = parameters
         self.returns_result = returns_result
+        self.args_validator = args_validator

@@ -2,7 +2,7 @@ from functions.definition.ActionEnum import ActionEnum
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.FunctionDefinition import FunctionDefinition
-from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 
 from functions.result_scrolling.current_position import current_position
@@ -12,6 +12,7 @@ def set_page_number_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=set_page_number,
         verbs=["page", "p"],
+        args_validator=ArgsValidator.args(exact=1),
         description="Move to a given page of the results",
         category=FunctionCategoryEnum.ViewingFiles,
         returns_result=False,
@@ -19,7 +20,7 @@ def set_page_number_definition() -> FunctionDefinition:
 
 
 def set_page_number(args_dict: ArgsDict) -> ExecutionResult:
-    page_number = int(ArgsExtractor.single_arg(args_dict))
+    page_number = int(args_dict.get_arg())
     if current_position.total_pages == 0:
         return ExecutionResult(
             error_message="No result to paginate.", action=ActionEnum.Refresh

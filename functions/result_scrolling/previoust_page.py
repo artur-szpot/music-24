@@ -2,7 +2,7 @@ from functions.definition.ActionEnum import ActionEnum
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.FunctionDefinition import FunctionDefinition
-from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 
 from functions.result_scrolling.current_position import current_position
@@ -12,6 +12,7 @@ def previous_page_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=previous_page,
         verbs=["previous-page", "previous", "pp"],
+        args_validator=ArgsValidator.no_args(),
         description="Move to the previous page of the results",
         category=FunctionCategoryEnum.ViewingFiles,
         returns_result=False,
@@ -19,7 +20,6 @@ def previous_page_definition() -> FunctionDefinition:
 
 
 def previous_page(args_dict: ArgsDict) -> ExecutionResult:
-    ArgsExtractor.no_args(args_dict)
     if current_position.total_pages == 0:
         return ExecutionResult(
             error_message="No result to paginate.", action=ActionEnum.Refresh

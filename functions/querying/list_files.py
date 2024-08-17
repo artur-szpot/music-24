@@ -1,12 +1,11 @@
 from typing import List
 
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.ArgsDict import ArgsDict
-from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
-from functions.definition.FunctionDefinition import FunctionDefinition
 from functions.querying.View import View
 from functions.querying.standard_views import STANDARD_VIEW
 from libs.io import get_all_files
@@ -22,7 +21,6 @@ def list_all_files_definition() -> FunctionDefinition:
 
 
 def list_all_files(args_dict: ArgsDict) -> ExecutionResult:
-    ArgsExtractor.no_args(args_dict)
     all_paths = get_all_files("db/music_files")
     files = [open_file(path) for path in all_paths]
     return ExecutionResult.table(header=list_files_header(), items=list_files(files))

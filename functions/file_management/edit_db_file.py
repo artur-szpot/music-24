@@ -2,7 +2,7 @@ from typing import Dict
 
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.ArgsDict import ArgsDict
-from functions.execute.ArgsExtractor import ArgsExtractor
+from functions.execute.ArgsValidator import ArgsValidator, ArgsValidatorSpecial
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
 from functions.execute.validate_args import AllowedKwarg
@@ -10,36 +10,37 @@ from functions.file_management.MusicFile import MusicFileDbProps
 from functions.file_management.file_operations import open_file, save_file
 from functions.definition.FunctionDefinition import FunctionDefinition
 
+args_validator = ArgsValidator.filename_and_no_args().kwargs(
+    allowed_kwargs={
+        "add-authors": AllowedKwarg.any(),
+        "remove-authors": AllowedKwarg.any(),
+        "add-genres": AllowedKwarg.any(),
+        "remove-genres": AllowedKwarg.any(),
+        "authors": AllowedKwarg.single(),
+        "genres": AllowedKwarg.single(),
+        "title": AllowedKwarg.single(),
+        "rating": AllowedKwarg.single(),
+        "is_mlp": AllowedKwarg.single(),
+        "is_dad": AllowedKwarg.single(),
+        "is_ready": AllowedKwarg.single(),
+    }
+)
+
 
 def edit_db_file_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=edit_db_file,
         verbs=["edit-file", "ef"],
+        args_validator=args_validator,
         description="Edit the selected properties of a file in the database.",
         category=FunctionCategoryEnum.EditingFiles,
     )
 
 
 def edit_db_file(args_dict: ArgsDict) -> ExecutionResult:
-    filename = ArgsExtractor.filename(
-        args_dict,
-        allowed_kwargs={
-            "add-authors": AllowedKwarg.any(),
-            "remove-authors": AllowedKwarg.any(),
-            "add-genres": AllowedKwarg.any(),
-            "remove-genres": AllowedKwarg.any(),
-            "authors": AllowedKwarg.single(),
-            "genres": AllowedKwarg.single(),
-            "title": AllowedKwarg.single(),
-            "rating": AllowedKwarg.single(),
-            "is_mlp": AllowedKwarg.single(),
-            "is_dad": AllowedKwarg.single(),
-            "is_ready": AllowedKwarg.single(),
-        },
-    )
+    filename = args_validator.get_filename(args_dict)
 
     music_file = {}
-
     add = {}
     add_authors = args_dict.get_kwarg("add-authors")
     add_genres = args_dict.get_kwarg("add-genres")

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from functions.file_management.MusicFile import MusicFile
 from functions.querying.SpecialColumn import SpecialColumn
 from functions.querying.View import ViewColumn
@@ -22,7 +24,9 @@ def format_property(music_file: MusicFile, column: ViewColumn) -> str:
     return format_value(value, column)
 
 
-def format_value(value: str, column: ViewColumn) -> str:
+def format_value(value: Optional[str], column: ViewColumn) -> str:
+    if value is None:
+        value = ""
     width = column.width
     trimmed_value = value[:width]
     padded_value = (
@@ -33,7 +37,9 @@ def format_value(value: str, column: ViewColumn) -> str:
     return padded_value
 
 
-def format_length(length: int) -> str:
+def format_length(length: Optional[int]) -> str:
+    if length is None:
+        length = 0
     hours = length // 3600
     minutes = (length - hours * 3600) // 60
     seconds = length - hours * 3600 - minutes * 60

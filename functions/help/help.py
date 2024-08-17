@@ -2,7 +2,6 @@ from functions.commands.CommandEnum import CommandEnum
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.execute.ArgsExtractor import ArgsExtractor
 from functions.help.mock_definition import mock_definition
 
 categories = {
@@ -17,7 +16,6 @@ categories = {
 
 
 def print_help(args_dict: ArgsDict) -> ExecutionResult:
-    ArgsExtractor.no_args(args_dict)
     command_registry = args_dict.system["command_registry"]
     help_contents = []
     all_commands = [
