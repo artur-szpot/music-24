@@ -3,6 +3,7 @@ from typing import List
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.execute.Line import Line
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
@@ -26,7 +27,7 @@ def list_all_files(args_dict: ArgsDict) -> ExecutionResult:
     return ExecutionResult.table(header=list_files_header(), items=list_files(files))
 
 
-def list_files_header(view: View = None) -> List[str]:
+def list_files_header(view: View = None) -> List[Line]:
     view = view or STANDARD_VIEW
     return [
         view.print_separator_line(),
@@ -35,9 +36,9 @@ def list_files_header(view: View = None) -> List[str]:
     ]
 
 
-def list_files(files: List[MusicFile], view: View = None) -> List[str]:
+def list_files(files: List[MusicFile], view: View = None) -> List[Line]:
     view = view or STANDARD_VIEW
-    lines: List[str] = []
+    lines: List[Line] = []
     index = 1
     for music_file in files:
         music_file.set_view_props(index)

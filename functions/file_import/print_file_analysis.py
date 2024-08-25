@@ -11,10 +11,11 @@ from functions.querying.standard_views import ANALYZE_VIEW
 
 
 class Flags(Enum):
-    ShowErrorsOnly = 0
+    ShowIfError = 0
+    ShowIfWarning = 1
 
 
-flags = {Flags.ShowErrorsOnly: ["e", "errors-only"]}
+flags = {Flags.ShowIfError: ["e", "errors"], Flags.ShowIfWarning: ['w','warnings']}
 
 
 def print_file_analysis_definition() -> FunctionDefinition:
@@ -28,8 +29,11 @@ def print_file_analysis_definition() -> FunctionDefinition:
 
 
 def print_file_analysis(args_dict: ArgsDict) -> ExecutionResult:
-    show_errors_only = args_dict.has_flag(flags[Flags.ShowErrorsOnly])
+    show_if_error = args_dict.has_flag(flags[Flags.ShowIfError])
+    show_if_warning = args_dict.has_flag(flags[Flags.ShowIfWarning])
+    files = analyze_files(show_if_error=show_if_error, show_if_warning=show_if_warning)
     return ExecutionResult.table(
         header=list_files_header(ANALYZE_VIEW),
-        items=list_files(analyze_files(show_errors_only), ANALYZE_VIEW),
+        items=list_files(files, ANALYZE_VIEW),
+        files=files
     )

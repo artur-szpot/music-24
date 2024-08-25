@@ -5,3 +5,5 @@ class SpecialColumn(Enum):
     ORDINAL_NUMBER = 0
     LENGTH = 1
     ERRORS = 2
+    WARNINGS=3
+

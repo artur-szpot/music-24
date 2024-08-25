@@ -10,6 +10,7 @@ from functions.file_import.import_files import (
 )
 from functions.definition.FunctionDefinition import FunctionDefinition
 from functions.help.help_definition import help_definition
+from functions.querying.detail_view import print_detail_view_definition
 from functions.querying.list_files import list_all_files_definition
 from functions.result_scrolling.next_page import next_page_definition
 from functions.result_scrolling.previoust_page import previous_page_definition
@@ -28,6 +29,7 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.NextPage: next_page_definition(),
     CommandEnum.PreviousPage: previous_page_definition(),
     CommandEnum.ClearDatabase: clear_db_definition(),
+    CommandEnum.FileDetails: print_detail_view_definition(),
     # CommandEnum.UpdateFromDatabase: update_from_database,
     # CommandEnum.UpdateFromMp3: update_from_mp3,
 }

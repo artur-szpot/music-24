@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 
+from functions.execute.Line import Line
 from functions.file_management.MusicFile import MusicFile
 from functions.querying.ViewColumn import ViewColumn
 from functions.querying.ViewColumnSort import ViewColumnSort
@@ -29,8 +30,8 @@ class View:
             "sort": [column.to_dict() for column in self.sort],
         }
 
-    def print_file(self, music_file: MusicFile) -> str:
-        return "  ".join(
+    def print_file(self, music_file: MusicFile) -> Line:
+        return Line.space_separated(
             [format_property(music_file, column) for column in self.columns]
         )
 
@@ -39,10 +40,10 @@ class View:
             sum(column.width for column in self.columns) + (len(self.columns) - 1) * 2
         )
 
-    def print_separator_line(self) -> str:
-        return self.line_length() * "="
+    def print_separator_line(self) -> Line:
+        return Line.simple( self.line_length() * "=")
 
-    def print_title_line(self) -> str:
-        return "  ".join(
+    def print_title_line(self) -> Line:
+        return Line.space_separated(
             [format_value(column.label, column) for column in self.columns]
         )

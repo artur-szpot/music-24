@@ -4,6 +4,7 @@ from enum import Enum
 class CommandEnum(Enum):
     Exit = 0  # close the app
     ListFiles = 2  # list the files in the file_management
+    FileDetails = 15  # List all the info about a chosen file
     # View = 3  # set how the list view is presented
     # view lAt = length author(sort by) title
     # ["view", "v"],

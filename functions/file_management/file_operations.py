@@ -17,7 +17,9 @@ def save_file(filename: str, music_file: MusicFile) -> None:
 
 
 def save_new_file(music_file: MusicFile) -> None:
-    with open(f"db/music_files/{get_new_id()}.json", mode="w") as current_file:
+    filename = f"{get_new_id()}.json"
+    with open(f"db/music_files/{filename}", mode="w") as current_file:
+        music_file.filename = filename
         current_file.write(json.dumps(music_file.to_dict()))
 
 

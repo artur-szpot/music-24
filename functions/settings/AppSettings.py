@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict
 
+from libs.io import create_directory
+
 default_settings = {"page_size": 6, "some_setting": 0}
 
 
@@ -29,7 +31,8 @@ class AppSettings:
             for key, value in current_settings.items()
             if default_settings.get(key) != value
         }
-        with open(f"db/settings/settings.json", mode="w") as current_file:
+        create_directory("db/settings")
+        with open("db/settings/settings.json", mode="w") as current_file:
             current_file.write(json.dumps(new_settings))
 
     def set(self, name: str, value: Any) -> None:

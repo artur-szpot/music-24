@@ -1,14 +1,15 @@
 import os
 from typing import Dict, List
+from termcolor import cprint
 
 from constants.debug import debug_tools
 from functions.definition.ActionEnum import ActionEnum
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.FullExecutionResult import FullExecutionResult
+from functions.execute.Line import Line
 from functions.execute.execute import execute_command
+from functions.result_cache.result_cache import result_cache
 from functions.result_scrolling.current_position import current_position
-
-result_cache: Dict[str, ExecutionResult] = {}
 
 
 def clear():
@@ -16,14 +17,14 @@ def clear():
         os.system("cls")
 
 
-def main_loop(last_command: str = None, message: List[str] = None):
+def main_loop(last_command: str = None, message: List[Line] = None):
     clear()
     if last_command:
         print(f">_ {last_command}")
         print()
     if message:
         for line in message:
-            print(line)
+            line.render()
         print()
     command = input(">_ ")
     new_result: FullExecutionResult = execute_command(command)
@@ -31,6 +32,7 @@ def main_loop(last_command: str = None, message: List[str] = None):
         result_cache["last"] = new_result.result
         current_position.new_result(new_result.result.get_total_items())
     result = result_cache.get("last") or new_result.result
+    error_message=None
     if new_result.result:
         error_message = new_result.result.get_error_message()
     render = result.render(current_position, error_message)

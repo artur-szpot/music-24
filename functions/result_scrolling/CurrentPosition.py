@@ -1,5 +1,6 @@
 from math import ceil
 
+from functions.execute.Line import Line, LineElement
 from functions.settings.app_settings import app_settings
 
 
@@ -15,12 +16,23 @@ class CurrentPosition:
         self.total_items = total_items
         self.total_pages = ceil(self.total_items / app_settings.page_size)
 
-    def render(self) -> str:
+    def render(self) -> Line:
         self.first_item = self.page_number * app_settings.page_size
         self.last_item = min(
             (self.page_number + 1) * app_settings.page_size, self.total_items
         )
-        return f"Items {self.first_item + 1} to {self.last_item} of {self.total_items} - page {self.page_number + 1} of {self.total_pages}"
+        return Line([
+            LineElement("Items "),
+            LineElement.bold(self.first_item + 1),
+            LineElement(" to "),
+            LineElement.bold(self.last_item),
+            LineElement(" of "),
+            LineElement.bold(self.total_items),
+            LineElement(" - page "),
+            LineElement.bold(self.page_number+1),
+            LineElement(" of "),
+            LineElement.bold(self.total_pages),
+        ])
 
     def set_page_size(self, page_size: int) -> None:
         app_settings.set("page_size", page_size)

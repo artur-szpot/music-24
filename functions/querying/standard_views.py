@@ -1,5 +1,5 @@
 from functions.querying.View import View
-from functions.querying.standard_columns import ORDINAL, LENGTH, standard, ERRORS
+from functions.querying.standard_columns import ORDINAL, LENGTH, standard, ERRORS, WARNINGS
 
 STANDARD_VIEW = View(
     [
@@ -17,5 +17,6 @@ ANALYZE_VIEW = View(
         standard("authors", 70),
         standard("title", 30),
         ERRORS,
+        WARNINGS,
     ]
 )

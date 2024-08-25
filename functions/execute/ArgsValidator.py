@@ -11,10 +11,11 @@ from functions.execute.validate_args import (
     ArgumentValidationError,
     AllowedKwarg,
 )
+from functions.result_cache.result_cache import result_cache
 
 
 class ArgsValidatorSpecial(Enum):
-    FILENAME_AND_NO_ARGS = 0
+    FILE_AND_NO_ARGS = 0
 
 
 class ArgsValidator:
@@ -47,8 +48,8 @@ class ArgsValidator:
     def validate(self, args_dict: ArgsDict) -> ArgsDict:
         do_validate_args = True
         if self._special is not None:
-            if self._special == ArgsValidatorSpecial.FILENAME_AND_NO_ARGS:
-                args_dict.system["filename"] = self.validate_filename(args_dict)
+            if self._special == ArgsValidatorSpecial.FILE_AND_NO_ARGS:
+                args_dict = self.validate_filename(args_dict)
         if do_validate_args:
             validate_args(
                 args_dict,
@@ -70,8 +71,8 @@ class ArgsValidator:
         return ArgsValidator()
 
     @staticmethod
-    def filename_and_no_args():
-        return ArgsValidator(special=ArgsValidatorSpecial.FILENAME_AND_NO_ARGS)
+    def file_and_no_args():
+        return ArgsValidator(special=ArgsValidatorSpecial.FILE_AND_NO_ARGS)
 
     def kwargs(
         self,
@@ -88,28 +89,23 @@ class ArgsValidator:
         ]
         return self
 
-    def validate_filename(self, args_dict: ArgsDict) -> str:
+    def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
+        query_index = None
         try:
             validate_args(
                 args_dict,
                 exact_args=1,
-            )
-            return args_dict.args[0]
-        except ArgumentValidationError:
-            pass
-
-        try:
-            required_kwargs_temp = {
-                "query": AllowedKwarg.single(),
-                "pos": AllowedKwarg.single(),
-            }
-            required_kwargs_temp.update(self._required_kwargs or {})
-            validate_args(
-                args_dict,
-                required_kwargs=required_kwargs_temp,
+                required_kwargs=self._required_kwargs,
                 allowed_kwargs=self._allowed_kwargs,
+                allowed_flags=self._allowed_flags
             )
-            return "abc"  # todo reading from queries
+            arg = args_dict.args[0]
+            args_dict.args = []
+            if arg.isnumeric():
+                query_index = int(arg)
+            else:
+                args_dict.system["filename"] = arg
+                return args_dict
         except ArgumentValidationError:
             pass
 
@@ -120,7 +116,35 @@ class ArgsValidator:
                 args_dict,
                 required_kwargs=required_kwargs_temp,
                 allowed_kwargs=self._allowed_kwargs,
+                allowed_flags=self._allowed_flags
             )
-            return args_dict.get_kwarg("filename")[0]
+            args_dict.kwargs.pop("filename", None)
+            args_dict.system["filename"] = args_dict.get_kwarg("filename")[0]
+            return args_dict
+        except ArgumentValidationError:
+            pass
+
+        try:
+            allowed_kwargs_temp = {
+                "query": AllowedKwarg.single(),
+                "pos": AllowedKwarg.single(),
+            }
+            allowed_kwargs_temp.update(self._allowed_kwargs or {})
+            validate_args(
+                args_dict,
+                required_kwargs=self._required_kwargs,
+                allowed_kwargs=allowed_kwargs_temp,
+                allowed_flags=self._allowed_flags
+            )
+            args_dict.kwargs.pop("query", None)
+            args_dict.kwargs.pop("pos", None)
+            if args_dict.kwargs.get("query") is not None:
+                args_dict.system["filename"] = "abc"  # todo reading from queries
+                return args_dict
+            else:
+                last_result= result_cache.get("last")
+                if last_result:
+                    args_dict.system["file"] = last_result.get_file(args_dict.kwargs.get("pos", query_index))
+                return args_dict
         except ArgumentValidationError:
             raise ComplexArgumentValidationError()

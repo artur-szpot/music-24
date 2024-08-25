@@ -8,7 +8,7 @@ def read_file(path: str) -> MusicFile:
     if not path.endswith(".mp3"):
         return MusicFile({"path": path, "errors": ["File in a wrong format"]})
     mutagen_file = File(path)
-    tag = lambda value: None if value is None else bool(value)
+    tag = lambda value: None if value is None else bool(int(str(value)))
     rating_tag = mutagen_file.tags.get("POPM:no@email")
     music_file = MusicFile(
         {

@@ -30,5 +30,15 @@ ERRORS = ViewColumn(
 )
 
 
+WARNINGS = ViewColumn(
+    {
+        "label": "warnings",
+        "width": 9,
+        "right_align": True,
+        "special": SpecialColumn.WARNINGS,
+    }
+)
+
+
 def standard(name: str, width: int, label: str = None) -> ViewColumn:
     return ViewColumn({"label": name, "width": width, "property_name": label or name})

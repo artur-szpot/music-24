@@ -16,12 +16,14 @@ class MusicFile:
     genres: List[str]
     title: Optional[str]
     path: str
+    filename: Optional[ str]
     length: Optional[int]
     rating: Optional[int]
     is_mlp: Optional[bool]
     is_dad: Optional[bool]
     is_ready: Optional[bool]
     errors: List[str]
+    warnings: List[str]
     db_props: Dict[MusicFileDbProps, Any]
     view_props: Dict[MusicFileViewProps, Any]
 
@@ -30,12 +32,14 @@ class MusicFile:
         self.genres = source.get("genres", [])
         self.title = source.get("title")
         self.path = source.get("path")
+        self.filename = source.get("filename")
         self.length = source.get("length")
         self.rating = source.get("rating")
         self.is_mlp = source.get("is_mlp")
         self.is_dad = source.get("is_dad")
         self.is_ready = source.get("is_ready")
         self.errors = source.get("errors", [])
+        self.warnings = source.get("warnings", [])
 
     def to_dict(self):
         return {
@@ -43,6 +47,7 @@ class MusicFile:
             "genres": self.genres,
             "title": self.title,
             "path": self.path,
+            "filename": self.filename,
             "length": self.length,
             "rating": self.rating,
             "is_mlp": self.is_mlp,

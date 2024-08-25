@@ -6,11 +6,11 @@ from functions.execute.ArgsValidator import ArgsValidator, ArgsValidatorSpecial
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
 from functions.execute.validate_args import AllowedKwarg
-from functions.file_management.MusicFile import MusicFileDbProps
+from functions.file_management.MusicFile import MusicFileDbProps, MusicFile
 from functions.file_management.file_operations import open_file, save_file
 from functions.definition.FunctionDefinition import FunctionDefinition
 
-args_validator = ArgsValidator.filename_and_no_args().kwargs(
+args_validator = ArgsValidator.file_and_no_args().kwargs(
     allowed_kwargs={
         "add-authors": AllowedKwarg.any(),
         "remove-authors": AllowedKwarg.any(),
@@ -38,7 +38,7 @@ def edit_db_file_definition() -> FunctionDefinition:
 
 
 def edit_db_file(args_dict: ArgsDict) -> ExecutionResult:
-    filename = args_validator.get_filename(args_dict)
+    file = args_validator.get_file(args_dict)
 
     music_file = {}
     add = {}
@@ -89,14 +89,13 @@ def edit_db_file(args_dict: ArgsDict) -> ExecutionResult:
     if is_ready:
         music_file["is_ready"] = is_ready[0]
 
-    return edit_db_file_exe(filename, music_file)
+    return edit_db_file_exe(file, music_file)
 
 
-def edit_db_file_exe(filename: str, music_file: Dict) -> ExecutionResult:
+def edit_db_file_exe(db_file: MusicFile, music_file: Dict) -> ExecutionResult:
     if not music_file:
         raise ArgumentValidationError("No values to update provided")
 
-    db_file = open_file(filename)
     add = music_file.get("add")
     remove = music_file.get("remove")
     if add is not None:

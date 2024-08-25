@@ -2,18 +2,17 @@ from mutagen import File
 from mutagen.id3 import TPE1, TCON, TIT2, POPM, COMM
 
 from functions.execute.ArgsValidator import ArgsValidator
-from functions.file_management.MusicFile import MusicFileDbProps
+from functions.file_management.MusicFile import MusicFileDbProps, MusicFile
 from functions.file_management.RatingMapper import RatingMapper
 from functions.file_management.file_operations import open_file, save_file
 
 
 def update_from_database(args_dict):
-    filename = ArgsValidator.get_filename(args_dict)
-    return update_from_database_exe(filename)
+    file = ArgsValidator.get_file(args_dict)
+    return update_from_database_exe(file)
 
 
-def update_from_database_exe(filename):
-    db_file = open_file(filename)
+def update_from_database_exe(db_file: MusicFile):
     mutagen_file = File(db_file.path)
     mutagen_file.tags["TPE1"] = TPE1(encoding=3, text=db_file.authors)
     mutagen_file.tags["TCON"] = TCON(encoding=3, text=db_file.genres)
@@ -41,5 +40,5 @@ def update_from_database_exe(filename):
     )
     mutagen_file.save()
     db_file.set_db_prop(MusicFileDbProps.Desynced, False)
-    save_file(filename, db_file)
+    save_file(db_file.filename, db_file)
     return ["ok"]
