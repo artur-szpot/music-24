@@ -1,5 +1,6 @@
 from typing import List
 
+from functions.data_types.author_registry import author_registry
 from functions.file_import.read_files_to_import import read_files_to_import
 from functions.file_management.MusicFile import MusicFile
 
@@ -14,7 +15,7 @@ def analyze_files(show_if_error: bool = False, show_if_warning: bool = False) ->
             if not len(file.authors):
                 errors.append("No authors in tags")
             for author in file.authors:
-                if "," in author:
+                if "," in author or "[" in author or "]" in author:
                     errors.append(
                         f"Author with illegal symbols in their name: {author}"
                     )
@@ -27,12 +28,17 @@ def analyze_files(show_if_error: bool = False, show_if_warning: bool = False) ->
                 errors.append("No title set")
             if file.rating is None or file.rating < 0 or file.rating > 10:
                 errors.append(f"Invalid file rating: {file.rating}")
+            if file.rating == 0:
+                errors.append("File rating not set")
             if file.is_dad is None:
-                errors.append(f"Dad flag not set")
+                errors.append("Dad flag not set")
             if file.is_mlp is None:
-                errors.append(f"MLP flag not set")
+                errors.append("MLP flag not set")
             if file.is_ready is None:
-                errors.append(f"Ready flag not set")
+                errors.append("Ready flag not set")
+            # todo check for additional leftover tags
+            # todo check for comments (including allowed ones)
+            # todo record edit needed tag
             file.errors = errors
             file.warnings = warnings
         if not (show_if_error or show_if_warning) or (show_if_error and len(file.errors)) or (show_if_warning and len(file.warnings)):

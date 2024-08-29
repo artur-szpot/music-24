@@ -1,6 +1,7 @@
 from math import ceil
+from typing import List
 
-from functions.execute.Line import Line, LineElement
+from functions.execute.Line import Line, LineElement, TextColor
 from functions.settings.app_settings import app_settings
 
 
@@ -16,7 +17,20 @@ class CurrentPosition:
         self.total_items = total_items
         self.total_pages = ceil(self.total_items / app_settings.page_size)
 
-    def render(self) -> Line:
+    def render_page_header(self) -> List[LineElement]:
+        self.first_item = self.page_number * app_settings.page_size
+        self.last_item = min(
+            (self.page_number + 1) * app_settings.page_size, self.total_items
+        )
+        return Line([
+            LineElement(" (page "),
+            LineElement.bold(self.page_number+1),
+            LineElement(" of "),
+            LineElement.bold(self.total_pages),
+            LineElement(")"),
+        ], color=TextColor.YELLOW).elements
+
+    def render_table_header(self) -> Line:
         self.first_item = self.page_number * app_settings.page_size
         self.last_item = min(
             (self.page_number + 1) * app_settings.page_size, self.total_items
@@ -32,7 +46,7 @@ class CurrentPosition:
             LineElement.bold(self.page_number+1),
             LineElement(" of "),
             LineElement.bold(self.total_pages),
-        ])
+        ], color=TextColor.YELLOW)
 
     def set_page_size(self, page_size: int) -> None:
         app_settings.set("page_size", page_size)

@@ -22,8 +22,14 @@ class MusicFile:
     is_mlp: Optional[bool]
     is_dad: Optional[bool]
     is_ready: Optional[bool]
+
+    predicted_authors: Optional[List[str]]
+    predicted_title: Optional[str]
+    new_genres: Optional[List[str]]
+
     errors: List[str]
     warnings: List[str]
+
     db_props: Dict[MusicFileDbProps, Any]
     view_props: Dict[MusicFileViewProps, Any]
 
@@ -40,6 +46,9 @@ class MusicFile:
         self.is_ready = source.get("is_ready")
         self.errors = source.get("errors", [])
         self.warnings = source.get("warnings", [])
+        self.predicted_authors = source.get("predicted_authors", [])
+        self.predicted_title = source.get("predicted_title", [])
+        self.new_genres = source.get("new_genres", [])
 
     def to_dict(self):
         return {

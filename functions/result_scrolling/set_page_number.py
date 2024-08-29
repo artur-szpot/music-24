@@ -15,7 +15,6 @@ def set_page_number_definition() -> FunctionDefinition:
         args_validator=ArgsValidator.args(exact=1),
         description="Move to a given page of the results",
         category=FunctionCategoryEnum.ViewingFiles,
-        returns_result=False,
     )
 
 

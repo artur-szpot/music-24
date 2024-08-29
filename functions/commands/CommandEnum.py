@@ -22,7 +22,7 @@ class CommandEnum(Enum):
     # continuous command mode (ls -> next; edit -> author)
     # stats
     # set artist/genre alt-names
-    # set artist/genre misspellings and use them to correct saved data
+    # set artist/genre misspellings and use them to correct saved data_types
     # rewrite artist/genre from one value to another
     Help = 9
 

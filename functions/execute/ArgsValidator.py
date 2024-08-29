@@ -11,7 +11,8 @@ from functions.execute.validate_args import (
     ArgumentValidationError,
     AllowedKwarg,
 )
-from functions.result_cache.result_cache import result_cache
+from functions.query_cache.query_cache import query_cache
+from libs.error_handling import error_message_to_string
 
 
 class ArgsValidatorSpecial(Enum):
@@ -142,9 +143,17 @@ class ArgsValidator:
                 args_dict.system["filename"] = "abc"  # todo reading from queries
                 return args_dict
             else:
-                last_result= result_cache.get("last")
+                last_result= query_cache.get("last")
                 if last_result:
-                    args_dict.system["file"] = last_result.get_file(args_dict.kwargs.get("pos", query_index))
+                    index = args_dict.kwargs.get("pos", query_index)
+                    if index < 1 or index > last_result.get_total_items():
+                        raise KeyError(f"Index outside of range. Use a value between 1 and {last_result.get_total_items()}.")
+                    if index is not None:
+                        args_dict.system["file"] = last_result.get_file(index-1)
+                    else:
+                        raise ArgumentValidationError()
                 return args_dict
         except ArgumentValidationError:
             raise ComplexArgumentValidationError()
+        except KeyError as error:
+            raise ArgumentValidationError(error_message_to_string (error))

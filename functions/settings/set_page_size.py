@@ -16,7 +16,6 @@ def set_page_size_definition() -> FunctionDefinition:
         args_validator=ArgsValidator.args(exact=1),
         description="Set the number of results to appear on a page",
         category=FunctionCategoryEnum.AppSettings,
-        returns_result=False,
     )
 
 

@@ -23,7 +23,6 @@ class FunctionDefinition:
     category: FunctionCategoryEnum
     parameters: Dict[str, ParameterHelp]
     verbs: List[str]
-    returns_result: bool
     args_validator: ArgsValidator
 
     def __init__(
@@ -33,7 +32,6 @@ class FunctionDefinition:
         description: str,
         category: FunctionCategoryEnum,
         parameters: Dict[str, ParameterHelp] = None,
-        returns_result: bool = True,
         args_validator: ArgsValidator = ArgsValidator.no_args(),
     ):
         self.function = function
@@ -41,5 +39,4 @@ class FunctionDefinition:
         self.description = description
         self.category = category
         self.parameters = parameters
-        self.returns_result = returns_result
         self.args_validator = args_validator

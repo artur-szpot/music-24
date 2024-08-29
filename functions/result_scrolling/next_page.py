@@ -15,7 +15,6 @@ def next_page_definition() -> FunctionDefinition:
         args_validator=ArgsValidator.no_args(),
         description="Move to the next page of the results",
         category=FunctionCategoryEnum.ViewingFiles,
-        returns_result=False,
     )
 
 

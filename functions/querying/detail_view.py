@@ -4,7 +4,7 @@ from typing import List
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.FunctionDefinition import FunctionDefinition
-from functions.execute.Line import Line, TextColor
+from functions.execute.Line import Line, TextColor, LineList, LineElement
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.file_management.MusicFile import MusicFile
@@ -31,17 +31,19 @@ def print_detail_view_definition() -> FunctionDefinition:
 def detail_view(args_dict: ArgsDict) -> ExecutionResult:
     file = args_dict.get_file()
     skip_info = args_dict.has_flag(flags[Flags.ErrorsAndWarningsOnly])
-    return ExecutionResult.paginable(items=detail_view_exe(file, skip_info))
+    return ExecutionResult.paginable(items=detail_view_exe(file, skip_info), header=[detail_view_header(file)])
 
 
 def check_or_x(value:bool)->str:
-    return  '✓' if value else '✗'
+    return '?' if value is None else '✓' if value else '✗'
+
+
+def detail_view_header(file: MusicFile)->Line:
+    return Line.key_value("File name",file.filename)
 
 
 def detail_view_exe(file: MusicFile,skip_info:bool=False)->List[Line]:
     details = []
-    filename = file.path.split('\\')[-1]
-    details.append(Line.key_value("File name",filename))
     if not skip_info:
         details.append(Line.key_value("Title",file.title))
         details.append(Line.key_value("Authors", ', '.join(file.authors)))
@@ -52,11 +54,11 @@ def detail_view_exe(file: MusicFile,skip_info:bool=False)->List[Line]:
         details.append(Line.key_value("MLP-related?",check_or_x(file.is_mlp)))
         details.append(Line.key_value("Suitable for Dad?",check_or_x(file.is_dad)))
     if file.errors:
-        details.append(Line.bold("Errors:",color=TextColor.RED))
-        for error in file.errors:
-            details.append(Line.simple(f" • {error}"))
+        header = LineElement.bold("Errors:",color=TextColor.RED)
+        details.extend(LineList.list([Line.simple(error) for error in file.errors], header))
     if file.warnings:
-        details.append(Line.bold("Warnings:",color=TextColor.LIGHT_RED))
-        for warning in file.warnings:
-            details.append(Line.simple( f" • {warning}"))
+        header = LineElement.bold("Warnings:",color=TextColor.LIGHT_RED)
+        details.extend(LineList.list([Line.simple(warning) for warning in file.warnings], header))
+    if not file.errors and not  file.warnings:
+        details.append(Line.bold("No errors or warnings",color=TextColor.GREEN))
     return details

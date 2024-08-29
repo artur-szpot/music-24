@@ -52,10 +52,18 @@ class LineElement:
 class Line:
     elements: List[LineElement]
     space_separated:bool
+    header: Optional[LineElement]
 
-    def __init__(self, elements: List[LineElement],space_separated=False):
+    def __init__(self, elements: List[LineElement],space_separated=False, header: LineElement=None, color:TextColor=None, bold:bool=None):
+        if color:
+            for element in elements:
+                element.color = color
+        if bold is not None:
+            for element in elements:
+                element.bold = bold
         self.elements =elements
         self.space_separated=space_separated
+        self.header=header
 
     def render(self):
         for element in self.elements:
@@ -84,3 +92,15 @@ class Line:
     @staticmethod
     def space_separated(elements: List[LineElement]):
         return Line(elements,space_separated=True)
+
+class LineList:
+    @staticmethod
+    def list(lines: List[Line], header: LineElement):
+        retval = [Line( elements=[ header])]
+        for line in lines:
+            elements_with_bullet = [                LineElement(" • ")]
+            elements_with_bullet.extend(line.elements)
+            line.elements = elements_with_bullet
+            line.header = header
+            retval.append(line)
+        return retval
