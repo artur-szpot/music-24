@@ -6,35 +6,35 @@ from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult, ExecutionResultCategory
 from functions.lines.Line import Line
 
-from functions.result_scrolling.current_position import current_position
+from functions.settings.ColorScheme import ColorScheme
 from functions.settings.app_settings import app_settings
 
 
-def set_page_size_definition() -> FunctionDefinition:
+def set_color_scheme_definition() -> FunctionDefinition:
     return FunctionDefinition(
-        function=set_page_size,
-        verbs=["page-size", "ps"],
+        function=set_color_scheme,
+        verbs=["color-scheme", "cs"],
         args_validator=ArgsValidator.args(exact=1),
-        description="Set the number of results to appear on a page",
+        description="Set the color scheme of the application",
         category=FunctionCategoryEnum.AppSettings,
     )
 
 
-def set_page_size(args_dict: ArgsDict) -> ExecutionResult:
-    page_size = int(args_dict.get_arg())
-    if app_settings.page_size == page_size:
+def set_color_scheme(args_dict: ArgsDict) -> ExecutionResult:
+    color_scheme = args_dict.get_arg()
+    try:
+        new_scheme = ColorScheme(color_scheme.lower())
+    except ValueError:
         return ExecutionResult(
-            message=Line.simple(f"Page size was already set to {page_size}."),
+            message=Line.simple(f'Unknown color scheme: "{color_scheme}".'),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
         )
-    if page_size < 1 or page_size > 100:
+    if app_settings.color_scheme == new_scheme:
         return ExecutionResult(
-            message=Line.simple(
-                f"Wrong page size: {page_size}. Use a value between 1 and 100."
-            ),
+            message=Line.simple(f'Color scheme was already set to "{color_scheme}".'),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
         )
-    current_position.set_page_size(page_size)
+    app_settings.set("color_scheme", new_scheme.value)
     return ExecutionResult.action(ActionEnum.Refresh)

@@ -1,9 +1,7 @@
-import json
 from enum import Enum
 from typing import Optional, List, Dict, Any
 
 from functions.data_types.DataType import DataType
-from functions.data_types.genre_registry import genre_registry
 
 
 class GenreCategory(Enum):
@@ -15,14 +13,16 @@ class GenreCategory(Enum):
 class Genre(DataType):
     category: GenreCategory
 
-    def __init__(self,
-    name: str,
-    index: int,
-    category: GenreCategory,
-    aliases: Optional[List[str]]=None,
-    misspellings: Optional[List[str]]=None):
-        DataType.__init__(self,name,index,aliases,misspellings)
-        self.category=category
+    def __init__(
+        self,
+        name: str,
+        index: int,
+        category: GenreCategory,
+        aliases: Optional[List[str]] = None,
+        misspellings: Optional[List[str]] = None,
+    ):
+        DataType.__init__(self, name, index, aliases, misspellings)
+        self.category = category
 
     @staticmethod
     def from_dict(values: Dict[str, Any]):
@@ -34,14 +34,11 @@ class Genre(DataType):
             misspellings=values.get("misspellings"),
         )
 
-
-    def to_dict(self)->Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         super_dict = super().to_dict()
-        super_dict.update({
-            'category':self.category.value,
-        })
+        super_dict.update(
+            {
+                "category": self.category.value,
+            }
+        )
         return super_dict
-
-
-
-

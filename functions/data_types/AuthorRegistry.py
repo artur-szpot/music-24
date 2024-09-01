@@ -1,10 +1,7 @@
 import json
-from enum import Enum
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 
 from functions.data_types.Author import Author
-from functions.data_types.author_registry import author_registry
-from functions.data_types.author import author
 
 
 class AuthorRegistry:
@@ -13,21 +10,23 @@ class AuthorRegistry:
     def __init__(self):
         try:
             with open(f"db/data/authors.json", mode="r") as current_file:
-                self.authors = [Author.from_dict(value) for value in json.loads(current_file.read())]
+                self.authors = [
+                    Author.from_dict(value) for value in json.loads(current_file.read())
+                ]
         except:
             self.authors = []
 
-    def find_author(self, name: str)->Optional[Author]:
+    def find_author(self, name: str) -> Optional[Author]:
         for author in self.authors:
             if author.name == name or name in author.aliases:
                 return author
 
-    def add_author(self, new_author: Author)->None:
+    def add_author(self, new_author: Author) -> None:
         self.authors.append(new_author)
         self.save_authors()
 
-    def add_alias(self, alias:str, index:int=None, name:str=None):
-        author: Optional[ Author] = None
+    def add_alias(self, alias: str, index: int = None, name: str = None):
+        author: Optional[Author] = None
         if index is not None:
             author = self.authors[index]
         elif name is not None:
@@ -35,7 +34,7 @@ class AuthorRegistry:
         if author is None:
             raise KeyError()
         author.aliases.append(alias)
-        self.save_authors() # todo make sure it works (modifies self.authors)
+        self.save_authors()  # todo make sure it works (modifies self.authors)
 
     def save_authors(self):
         with open(f"db/data/authors.json", mode="w") as current_file:

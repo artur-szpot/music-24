@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from functions.execute.Line import Line
+from functions.lines.Line import Line
 from functions.file_management.MusicFile import MusicFile
 from functions.querying.ViewColumn import ViewColumn
 from functions.querying.ViewColumnSort import ViewColumnSort
@@ -36,12 +36,10 @@ class View:
         )
 
     def line_length(self) -> int:
-        return (
-            sum(column.width for column in self.columns) + (len(self.columns) - 1) * 2
-        )
+        return sum(column.width for column in self.columns) + len(self.columns) - 1
 
     def print_separator_line(self) -> Line:
-        return Line.simple( self.line_length() * "=")
+        return Line.simple(self.line_length() * "=")
 
     def print_title_line(self) -> Line:
         return Line.space_separated(

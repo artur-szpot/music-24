@@ -1,7 +1,8 @@
 from typing import Optional
 
-from functions.execute.Line import LineElement, TextColor
+from functions.lines.Line import LineElement
 from functions.file_management.MusicFile import MusicFile
+from functions.lines.SchemeColor import SchemeColor
 from functions.querying.SpecialColumn import SpecialColumn
 from functions.querying.View import ViewColumn
 
@@ -14,12 +15,12 @@ def format_special(music_file: MusicFile, column: ViewColumn) -> LineElement:
     if column.special == SpecialColumn.ERRORS:
         value = format_value(str(len(music_file.errors)), column)
         if len(music_file.errors):
-            value.set(color=TextColor.RED,bold=True)
+            value.set(color=SchemeColor.BAD, bold=True)
         return value
     if column.special == SpecialColumn.WARNINGS:
         value = format_value(str(len(music_file.warnings)), column)
         if len(music_file.warnings):
-            value.set(color=TextColor.LIGHT_RED,bold=True)
+            value.set(color=SchemeColor.BAD, bold=True)
         return value
     raise KeyError(f"Special column formatting not handled: {column.special.value}")
 
@@ -43,7 +44,7 @@ def format_value(value: Optional[str], column: ViewColumn) -> LineElement:
         if not column.right_align
         else trimmed_value.rjust(width)
     )
-    return LineElement( padded_value)
+    return LineElement(padded_value)
 
 
 def format_length(length: Optional[int], column: ViewColumn = None) -> LineElement:

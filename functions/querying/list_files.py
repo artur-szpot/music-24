@@ -3,7 +3,7 @@ from typing import List
 from functions.definition.ArgsDict import ArgsDict
 from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.definition.FunctionDefinition import FunctionDefinition
-from functions.execute.Line import Line
+from functions.lines.Line import Line
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file

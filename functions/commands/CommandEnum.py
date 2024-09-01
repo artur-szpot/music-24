@@ -5,9 +5,6 @@ class CommandEnum(Enum):
     Exit = 0  # close the app
     ListFiles = 2  # list the files in the file_management
     FileDetails = 15  # List all the info about a chosen file
-    # View = 3  # set how the list view is presented
-    # view lAt = length author(sort by) title
-    # ["view", "v"],
     ImportFiles = 4  # look through the files in the directory set for importing from, add them to file_management and move to proper storage folder
     EditDatabaseFile = 5  # change whatever values for the file in database
     UpdateFromMp3 = 6  # set database values from mp3 file
@@ -34,3 +31,9 @@ class CommandEnum(Enum):
 
     # Mostly for debug. TODO: Make this safe or remove.
     ClearDatabase = 14
+
+    # How to display stuff
+    SetColorScheme = 16
+    # View = 3  # set how the list view is presented
+    # view lAt = length author(sort by) title
+    # ["view", "v"],

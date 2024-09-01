@@ -8,15 +8,24 @@ from functions.file_management.RatingMapper import RatingMapper
 from libs.io import extract_filename_from_path
 
 
+def tag(value: str) -> bool:
+    if value is None:
+        return value
+    else:
+        try:
+            return bool(int(str(value)))
+        except:
+            return False
+
+
 def read_file(path: str) -> MusicFile:
     if not path.lower().endswith(".mp3"):
         return MusicFile({"path": path, "errors": ["File in a wrong format"]})
     filename = extract_filename_from_path(path)
     mutagen_file = File(path)
-    tag = lambda value: None if value is None else bool(int(str(value)))
     rating_tag = mutagen_file.tags.get("POPM:no@email")
     authors = [str(author) for author in mutagen_file.tags.get("TPE1", [])]
-    predicted_title, predicted_authors = predicted_authors_and_title(filename, authors)
+    predicted_title, predicted_authors = predicted_authors_and_title(filename[:-4], authors)
     music_file = MusicFile(
         {
             "authors": authors,
@@ -37,44 +46,61 @@ def read_file(path: str) -> MusicFile:
     )
     return music_file
 
-def predicted_authors_and_title(filename:str, ampersand_authors:Optional[List[str]]=None)->[List[str], Optional[str]]:
-    blocks = filename.split(' - ')
+
+def predicted_authors_and_title(
+    filename: str, ampersand_authors: Optional[List[str]] = None
+) -> [List[str], Optional[str]]:
+    blocks = filename.split(" - ")
     if len(blocks) == 1:
         return [None, []]
-    authors = authors_from_string(blocks[0],ampersand_authors)
-    title_block = ' - '.join(blocks[1:])
-    title_blocks = title_block.split('[')
+    authors = authors_from_string(blocks[0], ampersand_authors)
+    title_block = " - ".join(blocks[1:])
+    title_blocks = title_block.split(" [")
     if len(title_blocks) == 1:
         return [title_block, authors]
     if len(title_blocks) > 2:
         return [None, authors]
-    original_authors = authors_from_string(title_blocks[1][:-1],ampersand_authors)
+    original_authors = authors_from_string(title_blocks[1].split(']')[0], ampersand_authors)
     return title_blocks[0], authors + original_authors
 
-def authors_from_string(value:str, ampersand_authors:Optional[List[str]]=None)->List[str]:
-    comma_split = value.split(', ')
+
+def authors_from_string(
+    value: str, ampersand_authors: Optional[List[str]] = None
+) -> List[str]:
+    comma_split = value.split(", ")
     if len(comma_split) == 1:
         return [value]
-    ampersand_split = comma_split[-1].split(' & ')
+    ampersand_split = comma_split[-1].split(" & ")
     if len(ampersand_split) == 1:
         return comma_split
-    feat_split = ampersand_split[-1].split(' feat. ')
+    feat_split = ampersand_split[-1].split(" feat. ")
     if len(feat_split) == 1:
         return comma_split[:-1] + ampersand_split
-    return comma_split[:-1] + reconnect_ampersand_authors(ampersand_split[:-1], ampersand_authors) + [feat_split[0]] + authors_from_string(feat_split[1])
+    return (
+        comma_split[:-1]
+        + reconnect_ampersand_authors(ampersand_split[:-1], ampersand_authors)
+        + [feat_split[0]]
+        + authors_from_string(feat_split[1])
+    )
 
-def reconnect_ampersand_authors(authors:List[str], ampersand_authors:Optional[List[str]]=None)->List[str]:
+
+def reconnect_ampersand_authors(
+    authors: List[str], ampersand_authors: Optional[List[str]] = None
+) -> List[str]:
     return_authors = []
     skip = False
-    for index in len(authors):
+    for index in range(len(authors)):
         if skip:
-            skip=False
+            skip = False
             continue
-        if index < len(authors)-1 :
-            potential_author = f'{authors[index]} & {authors[index+1]}'
-            if author_registry.find_author(potential_author) or potential_author in ampersand_authors:
+        if index < len(authors) - 1:
+            potential_author = f"{authors[index]} & {authors[index + 1]}"
+            if (
+                author_registry.find_author(potential_author)
+                or potential_author in ampersand_authors
+            ):
                 return_authors.append(potential_author)
-                skip=True
+                skip = True
             else:
                 return_authors.append(authors[index])
     return return_authors

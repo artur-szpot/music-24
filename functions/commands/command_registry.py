@@ -15,6 +15,7 @@ from functions.querying.list_files import list_all_files_definition
 from functions.result_scrolling.next_page import next_page_definition
 from functions.result_scrolling.previoust_page import previous_page_definition
 from functions.result_scrolling.set_page_number import set_page_number_definition
+from functions.settings.set_color_scheme import set_color_scheme_definition
 from functions.settings.set_page_size import set_page_size_definition
 
 command_registry: Dict[CommandEnum, FunctionDefinition] = {
@@ -26,6 +27,7 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.EditDatabaseFile: edit_db_file_definition(),
     CommandEnum.SetPageSize: set_page_size_definition(),
     CommandEnum.SetPageNumber: set_page_number_definition(),
+    CommandEnum.SetColorScheme: set_color_scheme_definition(),
     CommandEnum.NextPage: next_page_definition(),
     CommandEnum.PreviousPage: previous_page_definition(),
     CommandEnum.ClearDatabase: clear_db_definition(),

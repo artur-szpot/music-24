@@ -52,6 +52,7 @@ def validate_args(
     required_kwargs: Dict[str, AllowedKwarg] = None,
     allowed_kwargs: Dict[str, AllowedKwarg] = None,
     allowed_flags: List[str] = None,
+    variants: List[List[str]] = None,
 ):
     required_kwargs = required_kwargs or {}
     allowed_kwargs = allowed_kwargs or {}

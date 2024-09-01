@@ -1,9 +1,8 @@
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union, Any
 
 from functions.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
-    NoArgumentsExpectedError,
     ComplexArgumentValidationError,
 )
 from functions.execute.validate_args import (
@@ -19,31 +18,29 @@ class ArgsValidatorSpecial(Enum):
     FILE_AND_NO_ARGS = 0
 
 
+SYSTEM_KWARGS = ["query", "pos", "filename"]
+
+
 class ArgsValidator:
     _min_args: int
     _max_args: int
     _exact_args: int
-    _required_kwargs: Dict[str, AllowedKwarg]
-    _allowed_kwargs: Dict[str, AllowedKwarg]
-    _allowed_flags: List[str]
+    _required_kwargs: Dict[str, AllowedKwarg] = {}
+    _allowed_kwargs: Dict[str, AllowedKwarg] = {}
+    _allowed_flags: List[str] = []
     _special: Optional[ArgsValidatorSpecial]
+    _variants: List[List[str]] = []
 
     def __init__(
         self,
         min_args: int = 0,
         max_args: int = 0,
         exact_args: int = 0,
-        required_kwargs: Dict[str, AllowedKwarg] = None,
-        allowed_kwargs: Dict[str, AllowedKwarg] = None,
-        allowed_flags: List[str] = None,
         special: ArgsValidatorSpecial = None,
     ):
         self._min_args = min_args
         self._max_args = max_args
         self._exact_args = exact_args
-        self._required_kwargs = required_kwargs
-        self._allowed_kwargs = allowed_kwargs
-        self._allowed_flags = allowed_flags
         self._special = special
 
     def validate(self, args_dict: ArgsDict) -> ArgsDict:
@@ -60,6 +57,7 @@ class ArgsValidator:
                 required_kwargs=self._required_kwargs,
                 allowed_kwargs=self._allowed_kwargs,
                 allowed_flags=self._allowed_flags,
+                variants=self._variants,
             )
         return args_dict
 
@@ -77,18 +75,53 @@ class ArgsValidator:
 
     def kwargs(
         self,
-        required_kwargs: Dict[str, AllowedKwarg] = None,
-        allowed_kwargs: Dict[str, AllowedKwarg] = None,
+        required_kwargs: Dict[Union[str, List[str]], AllowedKwarg] = None,
+        allowed_kwargs: Dict[Union[str, List[str]], AllowedKwarg] = None,
     ):
-        self._required_kwargs = required_kwargs
-        self._allowed_kwargs = allowed_kwargs
+        if required_kwargs:
+            for kwarg, definition in required_kwargs.items():
+                if kwarg is list:
+                    self._variants.append(kwarg)
+                    for sub_kwarg in kwarg:
+                        self.check_argument(sub_kwarg)
+                        self._required_kwargs.update({sub_kwarg: definition})
+                        # todo do not throw if only one variant of required kwarg present!
+                else:
+                    self.check_argument(kwarg)
+                    self._required_kwargs.update({kwarg: definition})
+        if allowed_kwargs:
+            for kwarg, definition in allowed_kwargs.items():
+                if kwarg is list:
+                    self._variants.append(kwarg)
+                    for sub_kwarg in kwarg:
+                        self.check_argument(sub_kwarg)
+                        self._allowed_kwargs.update({sub_kwarg: definition})
+                else:
+                    self.check_argument(kwarg)
+                    self._allowed_kwargs.update({kwarg: definition})
         return self
 
-    def flags(self, allowed_flags: Dict):
-        self._allowed_flags = [
-            item for variants in allowed_flags.values() for item in variants
-        ]
+    def flags(self, allowed_flags: Dict[Any, Union[str, List[str]]]):
+        for flags in allowed_flags.values():
+            if flags is list:
+                for flag in flags:
+                    self.check_argument(flag)
+                self._allowed_flags.extend(flags)
+                self._variants.append(flags)
+            else:
+                self.check_argument(flags)
+                self._allowed_flags.append(flags)
         return self
+
+    def check_argument(self, value: str) -> None:
+        if value in SYSTEM_KWARGS:
+            raise KeyError(f'"{value}" is reserved and cannot be used as an argument.')
+        if (
+            value in self._allowed_kwargs
+            or value in self._required_kwargs
+            or value in self._allowed_flags
+        ):
+            raise KeyError(f'Argument "{value}" used more than once.')
 
     def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
         query_index = None
@@ -98,7 +131,8 @@ class ArgsValidator:
                 exact_args=1,
                 required_kwargs=self._required_kwargs,
                 allowed_kwargs=self._allowed_kwargs,
-                allowed_flags=self._allowed_flags
+                allowed_flags=self._allowed_flags,
+                variants=self._variants,
             )
             arg = args_dict.args[0]
             args_dict.args = []
@@ -117,7 +151,8 @@ class ArgsValidator:
                 args_dict,
                 required_kwargs=required_kwargs_temp,
                 allowed_kwargs=self._allowed_kwargs,
-                allowed_flags=self._allowed_flags
+                allowed_flags=self._allowed_flags,
+                variants=self._variants,
             )
             args_dict.kwargs.pop("filename", None)
             args_dict.system["filename"] = args_dict.get_kwarg("filename")[0]
@@ -135,7 +170,8 @@ class ArgsValidator:
                 args_dict,
                 required_kwargs=self._required_kwargs,
                 allowed_kwargs=allowed_kwargs_temp,
-                allowed_flags=self._allowed_flags
+                allowed_flags=self._allowed_flags,
+                variants=self._variants,
             )
             args_dict.kwargs.pop("query", None)
             args_dict.kwargs.pop("pos", None)
@@ -143,17 +179,19 @@ class ArgsValidator:
                 args_dict.system["filename"] = "abc"  # todo reading from queries
                 return args_dict
             else:
-                last_result= query_cache.get("last")
+                last_result = query_cache.get("last")
                 if last_result:
                     index = args_dict.kwargs.get("pos", query_index)
                     if index < 1 or index > last_result.get_total_items():
-                        raise KeyError(f"Index outside of range. Use a value between 1 and {last_result.get_total_items()}.")
+                        raise KeyError(
+                            f"Index outside of range. Use a value between 1 and {last_result.get_total_items()}."
+                        )
                     if index is not None:
-                        args_dict.system["file"] = last_result.get_file(index-1)
+                        args_dict.system["file"] = last_result.get_file(index - 1)
                     else:
                         raise ArgumentValidationError()
                 return args_dict
         except ArgumentValidationError:
             raise ComplexArgumentValidationError()
         except KeyError as error:
-            raise ArgumentValidationError(error_message_to_string (error))
+            raise ArgumentValidationError(error_message_to_string(error))

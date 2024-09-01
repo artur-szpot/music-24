@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from functions.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.execute.Line import Line
+from functions.lines.Line import Line
 from functions.result_scrolling.CurrentPosition import CurrentPosition
 
 
@@ -21,10 +21,9 @@ class FullExecutionResult:
         self.result = result
         self.message = message
 
-    def render(
-        self, current_position: CurrentPosition
-    ) -> List[Line]:
+    def render(self, current_position: CurrentPosition) -> List[Line]:
         retval = []
+        current_position.update()
         if self.result is not None:
             retval = self.result.render(current_position)
         if self.message is not None:

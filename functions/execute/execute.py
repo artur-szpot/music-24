@@ -16,7 +16,7 @@ command_dictionary = get_command_dictionary()
 
 
 def execute_command(input_command: str) -> FullExecutionResult:
-    user_command: str = input_command.split(" ")[0]
+    user_command: str = input_command.split()[0]
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
         return FullExecutionResult(
