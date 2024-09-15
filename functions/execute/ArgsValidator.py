@@ -25,11 +25,11 @@ class ArgsValidator:
     _min_args: int
     _max_args: int
     _exact_args: int
-    _required_kwargs: Dict[str, AllowedKwarg] = {}
-    _allowed_kwargs: Dict[str, AllowedKwarg] = {}
-    _allowed_flags: List[str] = []
+    _required_kwargs: Dict[str, AllowedKwarg]
+    _allowed_kwargs: Dict[str, AllowedKwarg]
+    _allowed_flags: List[str]
     _special: Optional[ArgsValidatorSpecial]
-    _variants: List[List[str]] = []
+    _variants: Dict[str, List[str]]
 
     def __init__(
         self,
@@ -41,7 +41,11 @@ class ArgsValidator:
         self._min_args = min_args
         self._max_args = max_args
         self._exact_args = exact_args
+        self._required_kwargs = {}
+        self._allowed_kwargs = {}
+        self._allowed_flags = []
         self._special = special
+        self._variants = {}
 
     def validate(self, args_dict: ArgsDict) -> ArgsDict:
         do_validate_args = True
@@ -80,22 +84,23 @@ class ArgsValidator:
     ):
         if required_kwargs:
             for kwarg, definition in required_kwargs.items():
-                if kwarg is list:
-                    self._variants.append(kwarg)
-                    for sub_kwarg in kwarg:
+                if isinstance(kwarg, list):
+                    self._variants[kwarg[0]] = kwarg[1:]
+                    for index, sub_kwarg in enumerate(kwarg):
                         self.check_argument(sub_kwarg)
-                        self._required_kwargs.update({sub_kwarg: definition})
-                        # todo do not throw if only one variant of required kwarg present!
+                        if not index:
+                            self._required_kwargs.update({sub_kwarg: definition})
                 else:
                     self.check_argument(kwarg)
                     self._required_kwargs.update({kwarg: definition})
         if allowed_kwargs:
             for kwarg, definition in allowed_kwargs.items():
-                if kwarg is list:
-                    self._variants.append(kwarg)
-                    for sub_kwarg in kwarg:
+                if isinstance(kwarg, list):
+                    self._variants[kwarg[0]] = kwarg[1:]
+                    for index, sub_kwarg in enumerate(kwarg):
                         self.check_argument(sub_kwarg)
-                        self._allowed_kwargs.update({sub_kwarg: definition})
+                        if not index:
+                            self._allowed_kwargs.update({sub_kwarg: definition})
                 else:
                     self.check_argument(kwarg)
                     self._allowed_kwargs.update({kwarg: definition})
@@ -103,11 +108,11 @@ class ArgsValidator:
 
     def flags(self, allowed_flags: Dict[Any, Union[str, List[str]]]):
         for flags in allowed_flags.values():
-            if flags is list:
+            if isinstance(flags, list):
                 for flag in flags:
                     self.check_argument(flag)
                 self._allowed_flags.extend(flags)
-                self._variants.append(flags)
+                self._variants[flags[0]] = flags[1:]
             else:
                 self.check_argument(flags)
                 self._allowed_flags.append(flags)
@@ -121,11 +126,15 @@ class ArgsValidator:
             or value in self._required_kwargs
             or value in self._allowed_flags
         ):
+            print(self._allowed_kwargs)
+            print(self._required_kwargs)
+            print(self._allowed_flags)
             raise KeyError(f'Argument "{value}" used more than once.')
 
     def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
         query_index = None
         try:
+            print("try 1")
             validate_args(
                 args_dict,
                 exact_args=1,
@@ -145,6 +154,7 @@ class ArgsValidator:
             pass
 
         try:
+            print("try 2")
             required_kwargs_temp = {"filename": AllowedKwarg.single()}
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
@@ -161,6 +171,7 @@ class ArgsValidator:
             pass
 
         try:
+            print("try 3")
             allowed_kwargs_temp = {
                 "query": AllowedKwarg.single(),
                 "pos": AllowedKwarg.single(),
@@ -190,6 +201,8 @@ class ArgsValidator:
                         args_dict.system["file"] = last_result.get_file(index - 1)
                     else:
                         raise ArgumentValidationError()
+                else:
+                    raise ArgumentValidationError()
                 return args_dict
         except ArgumentValidationError:
             raise ComplexArgumentValidationError()

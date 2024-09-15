@@ -10,6 +10,7 @@ from functions.execute.FullExecutionResult import FullExecutionResult
 from functions.execute.execute import execute_command
 from functions.lines.Line import Line
 from functions.query_cache.query_cache import query_cache
+from functions.result_scrolling.CurrentPosition import HeaderType
 from functions.result_scrolling.current_position import current_position
 
 from readchar import readkey, key, readchar
@@ -37,11 +38,11 @@ def main_loop(last_command: str = None, message: List[Line] = None):
     if new_result.result is not None:
         if new_result.result.category == ExecutionResultCategory.Query:
             query_cache["last"] = new_result.result
-            current_position.new_result(new_result.result.get_total_items())
+            current_position.new_result(new_result.result.get_total_items(), HeaderType.TABLE_HEADER)
             display.result = new_result.result
             display.message = None
         elif new_result.result.category == ExecutionResultCategory.Detail:
-            current_position.new_result(new_result.result.get_total_items())
+            current_position.new_result(new_result.result.get_total_items(), HeaderType.SIMPLE_PAGINATION)
             display.result = new_result.result
             display.message = None
         elif new_result.result.category == ExecutionResultCategory.Message:
@@ -67,7 +68,7 @@ def test_inputs() -> str:
     current_input = ""
     cursor_position = 0
     while True:
-        cprint("\r" + ">_ " + current_input, end="", color="black")
+        cprint("\r" + ">_ " + current_input, end=" ", color="black")
         cprint("\r" + ">_ " + current_input[:cursor_position], end="", color="black")
         k = readkey()
         if (
@@ -86,12 +87,10 @@ def test_inputs() -> str:
                 current_input[: cursor_position - 1] + current_input[cursor_position:]
             )
             cursor_position -= 1
-            print("\r" + current_input + " ", end="")
         elif k == key.DELETE:
             current_input = (
                 current_input[:cursor_position] + current_input[cursor_position + 1 :]
             )
-            print("\r" + current_input + " ", end="")
         elif k == key.LEFT:
             cursor_position = max(cursor_position - 1, 0)
         elif k == key.RIGHT:
@@ -127,8 +126,3 @@ def test_inputs() -> str:
 
 if __name__ == "__main__":
     main_loop()
-    # while True:
-    #     try:
-    #         current_input = test_inputs()
-    #     except KeyError:
-    #         exit()

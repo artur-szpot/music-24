@@ -20,7 +20,7 @@ def execute_command(input_command: str) -> FullExecutionResult:
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
         return FullExecutionResult(
-            result=ExecutionResult.message(f"Unknown command: {user_command}")
+            result=ExecutionResult.error_message(f"Unknown command: {user_command}")
         )
     actual_command = command_definition.verbs[0]
 
@@ -32,6 +32,8 @@ def execute_command(input_command: str) -> FullExecutionResult:
         result = command_definition.function(args_dict)
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."
+        print(error_message)
+        exit()
     except ComplexArgumentValidationError:
         error_message = f"Incorrect arguments provided for command {actual_command}. Use the help command to see details."
         # todo! give correct input for help
@@ -41,7 +43,7 @@ def execute_command(input_command: str) -> FullExecutionResult:
         error_message = error_message_to_string(error)
 
     if error_message is not None:
-        result = ExecutionResult.message(error_message)
+        result = ExecutionResult.error_message(error_message)
 
     return FullExecutionResult(result=result, command=command_definition)
 

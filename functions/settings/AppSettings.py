@@ -6,12 +6,21 @@ from functions.lines.TextColor import TextColor
 from functions.settings.ColorScheme import ColorScheme, color_mapper
 from libs.io import create_directory
 
-default_settings = {"page_size": 6, "color_scheme": ColorScheme.Dark.value}
+default_settings = {
+    "page_size": 10, # todo cannot set lower than 8 (and lower than 10 = compact)
+    "color_scheme": ColorScheme.Dark.value,
+    "compact_table_header": False,
+    "import_dir": "import",
+    "storage_dir": "storage",
+}
 
 
 class AppSettings:
     page_size: int
     color_scheme: ColorScheme
+    compact_table_header: bool
+    import_dir: str
+    storage_dir: str
 
     def __init__(self):
         self.apply_settings()
@@ -28,11 +37,17 @@ class AppSettings:
 
         self.page_size = get_settings("page_size")
         self.color_scheme = ColorScheme(get_settings("color_scheme"))
+        self.compact_table_header = get_settings("compact_table_header")
+        self.import_dir = get_settings("import_dir")
+        self.storage_dir = get_settings("storage_dir")
 
     def save_settings(self) -> None:
         current_settings = {
             "page_size": self.page_size,
             "color_scheme": self.color_scheme.value,
+            "compact_table_header": self.compact_table_header,
+            "import_dir": self.import_dir,
+            "storage_dir": self.storage_dir,
         }
         new_settings = {
             key: value

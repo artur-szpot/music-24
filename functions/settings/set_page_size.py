@@ -14,14 +14,22 @@ def set_page_size_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=set_page_size,
         verbs=["page-size", "ps"],
-        args_validator=ArgsValidator.args(exact=1),
-        description="Set the number of results to appear on a page",
+        args_validator=ArgsValidator.args(max=1),
+        description="Check or set the number of results to appear on a page",
         category=FunctionCategoryEnum.AppSettings,
     )
 
 
 def set_page_size(args_dict: ArgsDict) -> ExecutionResult:
-    page_size = int(args_dict.get_arg())
+    arg = args_dict.get_arg()
+    if arg is None:
+        return ExecutionResult(
+            message=Line.simple(f"Page size is set to {app_settings.page_size}."),
+            action=ActionEnum.Refresh,
+            category=ExecutionResultCategory.Message,
+        )
+    else:
+        page_size = int(arg)
     if app_settings.page_size == page_size:
         return ExecutionResult(
             message=Line.simple(f"Page size was already set to {page_size}."),

@@ -2,8 +2,9 @@ from enum import Enum
 from typing import List, Optional
 
 from functions.definition.ActionEnum import ActionEnum
-from functions.lines.Line import Line
 from functions.file_management.MusicFile import MusicFile
+from functions.lines.Line import Line
+from functions.lines.SchemeColor import SchemeColor
 from functions.result_scrolling.CurrentPosition import CurrentPosition
 
 
@@ -67,7 +68,15 @@ class ExecutionResult:
     def message(message: str):
         return ExecutionResult(
             action=ActionEnum.Repeat,
-            message=Line.simple(message),
+            message=Line.simple(message, color=SchemeColor.GOOD),
+            category=ExecutionResultCategory.Message,
+        )
+
+    @staticmethod
+    def error_message(message: str):
+        return ExecutionResult(
+            action=ActionEnum.Repeat,
+            message=Line.simple(message, color=SchemeColor.BAD),
             category=ExecutionResultCategory.Message,
         )
 
@@ -101,18 +110,18 @@ class ExecutionResult:
             return [self._message]
         if self._paginable:
             if self.is_table:
-                header = [current_position.render_table_header()]
+                header = [current_position.render_pagination()]
                 if self._header:
                     header += self._header
             else:
                 if self._header:
                     modified_header = self._header[0].clone()
                     modified_header.elements.extend(
-                        current_position.render_page_header().elements
+                        current_position.render_pagination().elements
                     )
                     header = [modified_header] + self._header[1:] + [Line.empty()]
                 else:
-                    header = [current_position.render_page_header(), Line.empty()]
+                    header = [current_position.render_pagination(), Line.empty()]
             return (
                 header
                 + self._paginable[

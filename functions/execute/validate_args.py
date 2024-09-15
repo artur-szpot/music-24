@@ -52,13 +52,16 @@ def validate_args(
     required_kwargs: Dict[str, AllowedKwarg] = None,
     allowed_kwargs: Dict[str, AllowedKwarg] = None,
     allowed_flags: List[str] = None,
-    variants: List[List[str]] = None,
+    variants: Dict[str, List[str]] = None,
 ):
     required_kwargs = required_kwargs or {}
     allowed_kwargs = allowed_kwargs or {}
     allowed_flags = allowed_flags or []
 
     args = args_dict.args
+    kwargs = args_dict.kwargs
+    flags = args_dict.flags
+
     if len(args) < min_args:
         raise ArgumentValidationError(
             f"Not enough arguments provided - expected at least {min_args}, got {len(args)}"
@@ -74,15 +77,22 @@ def validate_args(
     if not min_args and not max_args and not exact_args and len(args):
         raise NoArgumentsExpectedError()
 
-    kwargs = args_dict.kwargs
     for name, values in required_kwargs.items():
-        kwarg = kwargs.get(name)
+        kwarg_variants = variants.get(name, [name])
+        kwarg = None
+        for variant in kwarg_variants:
+            if kwarg is None:
+                kwarg = kwargs.get(variant)
         if kwarg is None:
             raise ArgumentValidationError(f'Required argument "--{kwarg}" not supplied')
         validate_kwarg(kwarg, name, values)
 
     for name, values in allowed_kwargs.items():
-        kwarg = kwargs.get(name)
+        kwarg_variants = variants.get(name, [name])
+        kwarg = None
+        for variant in kwarg_variants:
+            if kwarg is None:
+                kwarg = kwargs.get(variant)
         if kwarg is not None:
             validate_kwarg(kwarg, name, values)
 
@@ -90,10 +100,27 @@ def validate_args(
         key for key in allowed_kwargs.keys()
     ]
     disallowed_kwargs = [key for key in kwargs.keys() if key not in all_allowed_kwargs]
-    disallowed_flags = [flag for flag in args_dict.flags if flag not in allowed_flags]
+    disallowed_flags = [flag for flag in flags if flag not in allowed_flags]
     disallowed_args = disallowed_kwargs + disallowed_flags
 
     if len(disallowed_args):
         raise ArgumentValidationError(
             f'Unexpected keyword arguments and/or flags provided: {", ".join(disallowed_args)}'
+        )
+
+    repeated_kwargs_and_flags: List[str] = []
+    for main, other in variants.items():
+        occurrences = []
+        for key in [main] + other:
+            if key in kwargs.keys():
+                occurrences.append(main)
+        for key in [main] + other:
+            if key in flags:
+                occurrences.append(main)
+        if len(occurrences):
+            repeated_kwargs_and_flags.append(occurrences[0])
+
+    if len(repeated_kwargs_and_flags):
+        raise ArgumentValidationError(
+            f'Repeated use of the following arguments and/or flags: {", ".join(repeated_kwargs_and_flags)}'
         )
