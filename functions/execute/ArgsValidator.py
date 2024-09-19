@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Dict, Optional, Union, Any
 
-from functions.definition.ArgsDict import ArgsDict
+from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
     ComplexArgumentValidationError,
 )

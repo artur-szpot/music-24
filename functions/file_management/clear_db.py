@@ -1,8 +1,8 @@
 import os
 
-from functions.definition.ArgsDict import ArgsDict
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from libs.io import get_all_file_paths

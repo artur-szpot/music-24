@@ -1,14 +1,14 @@
 from typing import Dict
 
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.ArgsDict import ArgsDict
-from functions.execute.ArgsValidator import ArgsValidator, ArgsValidatorSpecial
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
 from functions.execute.validate_args import AllowedKwarg
 from functions.file_management.MusicFile import MusicFileDbProps, MusicFile
-from functions.file_management.file_operations import open_file, save_file
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.file_management.file_operations import save_file
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 
 args_validator = ArgsValidator.file_and_no_args().kwargs(
     allowed_kwargs={

@@ -23,3 +23,4 @@ class SchemeColor(Enum):
     GOOD = "GOOD"
     BAD = "BAD"
     INFO = "INFO"
+    BASE = "BASE"

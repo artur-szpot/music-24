@@ -1,7 +1,7 @@
 from enum import Enum
 
-from functions.lines.SchemeColor import SchemeColor
-from functions.lines.TextColor import TextColor
+from functions.settings.text_color.SchemeColor import SchemeColor
+from functions.settings.text_color.TextColor import TextColor
 
 
 class ColorScheme(Enum):
@@ -17,6 +17,7 @@ def color_mapper(scheme: ColorScheme, color: SchemeColor) -> TextColor:
                     SchemeColor.GOOD: TextColor.GREEN,
                     SchemeColor.BAD: TextColor.RED,
                     SchemeColor.INFO: TextColor.YELLOW,
+                    SchemeColor.BASE: TextColor.WHITE,
                 }
                 .get(color, color)
                 .value
@@ -27,6 +28,7 @@ def color_mapper(scheme: ColorScheme, color: SchemeColor) -> TextColor:
                     SchemeColor.GOOD: TextColor.GREEN,
                     SchemeColor.BAD: TextColor.RED,
                     SchemeColor.INFO: TextColor.BLUE,
+                    SchemeColor.BASE: TextColor.BLACK,
                 }
                 .get(color, color)
                 .value

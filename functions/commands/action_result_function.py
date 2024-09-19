@@ -1,6 +1,6 @@
-from functions.definition import ActionEnum
-from functions.definition.ArgsDict import ArgsDict
-from functions.definition.FunctionDefinition import MusicFunction
+from functions.commands.definition import ActionEnum
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionDefinition import MusicFunction
 from functions.execute.ExecutionResult import ExecutionResult
 
 

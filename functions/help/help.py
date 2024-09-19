@@ -1,6 +1,6 @@
 from functions.commands.CommandEnum import CommandEnum
-from functions.definition.ArgsDict import ArgsDict
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.help.mock_definition import mock_definition
 

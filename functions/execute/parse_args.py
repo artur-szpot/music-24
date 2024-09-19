@@ -1,7 +1,7 @@
 from typing import List
 
 from functions.commands.command_registry import command_registry
-from functions.definition.ArgsDict import ArgsDict
+from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.args_parsing_errors import ArgsParsingError
 from functions.help.help_definition import help_definition
 

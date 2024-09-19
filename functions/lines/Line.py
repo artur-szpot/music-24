@@ -1,7 +1,7 @@
 from typing import Optional, List, Any
 
 from functions.lines.LineElement import LineElement
-from functions.lines.SchemeColor import SchemeColor
+from functions.settings.text_color.SchemeColor import SchemeColor
 
 
 class Line:

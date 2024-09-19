@@ -8,14 +8,14 @@ from functions.file_management.edit_db_file import edit_db_file_definition
 from functions.file_import.import_files import (
     import_files_definition,
 )
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.help.help_definition import help_definition
 from functions.querying.detail_view import print_detail_view_definition
 from functions.querying.list_files import list_all_files_definition
 from functions.result_scrolling.next_page import next_page_definition
 from functions.result_scrolling.previoust_page import previous_page_definition
 from functions.result_scrolling.set_page_number import set_page_number_definition
-from functions.settings.set_color_scheme import set_color_scheme_definition
+from functions.settings.text_color.set_color_scheme import set_color_scheme_definition
 from functions.settings.set_page_size import set_page_size_definition
 
 command_registry: Dict[CommandEnum, FunctionDefinition] = {

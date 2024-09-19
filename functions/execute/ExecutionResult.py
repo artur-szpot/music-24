@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import List, Optional
 
-from functions.definition.ActionEnum import ActionEnum
+from functions.commands.definition.ActionEnum import ActionEnum
 from functions.file_management.MusicFile import MusicFile
 from functions.lines.Line import Line
-from functions.lines.SchemeColor import SchemeColor
+from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.result_scrolling.CurrentPosition import CurrentPosition
 
 
@@ -75,7 +75,7 @@ class ExecutionResult:
     @staticmethod
     def error_message(message: str):
         return ExecutionResult(
-            action=ActionEnum.Repeat,
+            action=ActionEnum.Refresh,
             message=Line.simple(message, color=SchemeColor.BAD),
             category=ExecutionResultCategory.Message,
         )
@@ -122,10 +122,11 @@ class ExecutionResult:
                     header = [modified_header] + self._header[1:] + [Line.empty()]
                 else:
                     header = [current_position.render_pagination(), Line.empty()]
-            return (
-                header
-                + self._paginable[
-                    current_position.first_item : current_position.last_item
-                ]
+            items = self._paginable[
+                current_position.first_item : current_position.last_item
+            ]
+            items.extend(
+                [Line.empty() for i in range(current_position.page_size - len(items))]
             )
+            return header + items
         return None

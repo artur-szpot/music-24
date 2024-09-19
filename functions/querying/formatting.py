@@ -2,7 +2,7 @@ from typing import Optional
 
 from functions.lines.Line import LineElement
 from functions.file_management.MusicFile import MusicFile
-from functions.lines.SchemeColor import SchemeColor
+from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.querying.SpecialColumn import SpecialColumn
 from functions.querying.View import ViewColumn
 

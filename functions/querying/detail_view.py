@@ -1,16 +1,16 @@
 from enum import Enum
 from typing import List
 
-from functions.definition.ArgsDict import ArgsDict
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_management.MusicFile import MusicFile
 from functions.lines.Line import Line
 from functions.lines.LineElement import LineElement
 from functions.lines.LineList import LineList
-from functions.lines.SchemeColor import SchemeColor
+from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.querying.formatting import format_length
 
 

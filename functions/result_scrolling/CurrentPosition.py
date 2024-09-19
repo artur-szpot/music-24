@@ -4,8 +4,8 @@ from math import ceil
 from typing import Optional
 
 from functions.lines.Line import Line, LineElement
-from functions.lines.SchemeColor import SchemeColor
 from functions.settings.app_settings import app_settings
+from functions.settings.text_color.SchemeColor import SchemeColor
 
 
 class HeaderType(Enum):
@@ -23,18 +23,22 @@ class CurrentPosition:
     page_size = 1
     max_width = 80
     terminal_size = 10
-    header_type: HeaderType
+    header_type = HeaderType.NONE
 
-    def new_result(self, total_items: int, header_type: HeaderType) -> None:
+    def new_result(
+        self, total_items: int, header_type: Optional[HeaderType] = None
+    ) -> None:
         self.page_number = 0
         self.total_items = total_items
-        self.header_type = header_type
+        self.header_type = header_type or self.header_type
         self.update_pages()
 
     def update_pages(self):
         self.total_pages = ceil(self.total_items / self.page_size)
 
     def render_pagination(self) -> Optional[Line]:
+        self.first_item = self.page_number * self.page_size
+        self.last_item = min((self.page_number + 1) * self.page_size, self.total_items)
         if self.header_type == HeaderType.SIMPLE_PAGINATION:
             return self.render_simple_pagination()
         elif self.header_type == HeaderType.TABLE_HEADER:
@@ -42,8 +46,6 @@ class CurrentPosition:
         return None
 
     def render_simple_pagination(self) -> Line:
-        self.first_item = self.page_number * self.page_size
-        self.last_item = min((self.page_number + 1) * self.page_size, self.total_items)
         return Line(
             [
                 LineElement(" (page "),
@@ -56,8 +58,6 @@ class CurrentPosition:
         )
 
     def render_table_pagination(self) -> Line:
-        self.first_item = self.page_number * self.page_size
-        self.last_item = min((self.page_number + 1) * self.page_size, self.total_items)
         return Line(
             [
                 LineElement("Items "),
@@ -84,14 +84,14 @@ class CurrentPosition:
         self.terminal_size = min(app_settings.page_size, terminal_size.lines)
         # 3 for last command, break, pagination
         # 1 or 3 for table header
-        # 2 for break, input
+        # 2 for break, message, break, input
         pagination_size = 1
         if (
             not app_settings.compact_table_header
             and self.header_type == HeaderType.TABLE_HEADER
         ):
             pagination_size = 3
-        self.page_size = self.terminal_size - 3 - pagination_size - 2
+        self.page_size = self.terminal_size - 3 - pagination_size - 4
         if self.page_size < 2:
             raise ValueError(
                 "Terminal is too small to display the application. Increase terminal height or enable compact table "

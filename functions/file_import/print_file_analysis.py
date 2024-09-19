@@ -1,8 +1,8 @@
 from enum import Enum
 
-from functions.definition.ArgsDict import ArgsDict
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_import.analyze_files import analyze_files
@@ -15,7 +15,7 @@ class Flags(Enum):
     ShowIfWarning = 1
 
 
-flags = {Flags.ShowIfError: ["e", "errors"], Flags.ShowIfWarning: ['w','warnings']}
+flags = {Flags.ShowIfError: ["e", "errors"], Flags.ShowIfWarning: ["w", "warnings"]}
 
 
 def print_file_analysis_definition() -> FunctionDefinition:
@@ -35,5 +35,5 @@ def print_file_analysis(args_dict: ArgsDict) -> ExecutionResult:
     return ExecutionResult.table(
         header=list_files_header(ANALYZE_VIEW),
         items=list_files(files, ANALYZE_VIEW),
-        files=files
+        files=files,
     )

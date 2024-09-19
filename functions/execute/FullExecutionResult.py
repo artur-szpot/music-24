@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.lines.Line import Line
 from functions.result_scrolling.CurrentPosition import CurrentPosition
@@ -22,12 +22,15 @@ class FullExecutionResult:
         self.message = message
 
     def render(self, current_position: CurrentPosition) -> List[Line]:
-        retval = []
         current_position.update()
+        retval = [
+            Line.empty(),
+            (Line.empty() if self.message is None else self.message),
+        ]
         if self.result is not None:
-            retval = self.result.render(current_position)
-        if self.message is not None:
-            if retval:
-                retval.append(Line.empty())
-            retval.append(self.message)
+            retval.extend(self.result.render(current_position))
+        else:
+            retval.extend(
+                [Line.empty() for i in range(current_position.terminal_size - 2)]
+            )
         return retval

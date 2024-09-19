@@ -1,13 +1,13 @@
 import json
 from typing import Any, Dict
 
-from functions.lines.SchemeColor import SchemeColor
-from functions.lines.TextColor import TextColor
-from functions.settings.ColorScheme import ColorScheme, color_mapper
+from functions.settings.text_color.SchemeColor import SchemeColor
+from functions.settings.text_color.TextColor import TextColor
+from functions.settings.text_color.ColorScheme import ColorScheme, color_mapper
 from libs.io import create_directory
 
 default_settings = {
-    "page_size": 10, # todo cannot set lower than 8 (and lower than 10 = compact)
+    "page_size": 12,  # todo cannot set lower than 10 (and lower than 12 = compact)
     "color_scheme": ColorScheme.Dark.value,
     "compact_table_header": False,
     "import_dir": "import",

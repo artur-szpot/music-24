@@ -1,5 +1,5 @@
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.help.help import print_help
 
 

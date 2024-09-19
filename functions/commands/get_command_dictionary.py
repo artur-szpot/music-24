@@ -1,7 +1,7 @@
 from typing import Dict
 
 from functions.commands.command_registry import command_registry
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 
 
 def get_command_dictionary() -> Dict[str, FunctionDefinition]:

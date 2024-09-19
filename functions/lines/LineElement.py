@@ -3,7 +3,7 @@ from typing import Optional, Any
 import colorama
 from termcolor import cprint
 
-from functions.lines.SchemeColor import SchemeColor
+from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.settings.app_settings import app_settings
 
 colorama.init()

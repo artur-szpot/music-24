@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from functions.definition.ArgsDict import ArgsDict
+from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
     ArgumentValidationError,
     NoArgumentsExpectedError,

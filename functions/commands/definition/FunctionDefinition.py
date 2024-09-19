@@ -1,7 +1,7 @@
-from typing import Dict, List, Callable, Optional, NewType
+from typing import Dict, List, Callable
 
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.ArgsDict import ArgsDict
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 

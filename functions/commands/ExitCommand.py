@@ -1,6 +1,6 @@
-from functions.definition.ActionEnum import ActionEnum
-from functions.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.ActionEnum import ActionEnum
+from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.commands.action_result_function import action_result_function
 
 
