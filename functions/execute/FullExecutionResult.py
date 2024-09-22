@@ -24,8 +24,8 @@ class FullExecutionResult:
     def render(self, current_position: CurrentPosition) -> List[Line]:
         current_position.update()
         retval = [
-            Line.empty(),
             (Line.empty() if self.message is None else self.message),
+            Line.empty(),
         ]
         if self.result is not None:
             retval.extend(self.result.render(current_position))

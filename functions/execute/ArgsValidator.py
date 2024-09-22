@@ -134,7 +134,6 @@ class ArgsValidator:
     def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
         query_index = None
         try:
-            print("try 1")
             validate_args(
                 args_dict,
                 exact_args=1,
@@ -154,7 +153,6 @@ class ArgsValidator:
             pass
 
         try:
-            print("try 2")
             required_kwargs_temp = {"filename": AllowedKwarg.single()}
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
@@ -171,7 +169,6 @@ class ArgsValidator:
             pass
 
         try:
-            print("try 3")
             allowed_kwargs_temp = {
                 "query": AllowedKwarg.single(),
                 "pos": AllowedKwarg.single(),

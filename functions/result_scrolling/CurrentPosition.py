@@ -4,8 +4,13 @@ from math import ceil
 from typing import Optional
 
 from functions.lines.Line import Line, LineElement
+from functions.settings.AppSettings import PAGE_SIZE_AUTO
 from functions.settings.app_settings import app_settings
 from functions.settings.text_color.SchemeColor import SchemeColor
+
+
+class TerminalSizeError(ValueError):
+    pass
 
 
 class HeaderType(Enum):
@@ -31,7 +36,7 @@ class CurrentPosition:
         self.page_number = 0
         self.total_items = total_items
         self.header_type = header_type or self.header_type
-        self.update_pages()
+        self.update()
 
     def update_pages(self):
         self.total_pages = ceil(self.total_items / self.page_size)
@@ -81,19 +86,22 @@ class CurrentPosition:
     def update(self) -> None:
         terminal_size = shutil.get_terminal_size()
         self.max_width = terminal_size.columns
-        self.terminal_size = min(app_settings.page_size, terminal_size.lines)
-        # 3 for last command, break, pagination
+        if app_settings.page_size == PAGE_SIZE_AUTO:
+            self.terminal_size = terminal_size.lines
+        else:
+            self.terminal_size = min(app_settings.page_size, terminal_size.lines)
+        # 3 for last command/message, break, pagination
         # 1 or 3 for table header
-        # 2 for break, message, break, input
+        # 2 for break, input
         pagination_size = 1
         if (
             not app_settings.compact_table_header
             and self.header_type == HeaderType.TABLE_HEADER
         ):
             pagination_size = 3
-        self.page_size = self.terminal_size - 3 - pagination_size - 4
+        self.page_size = self.terminal_size - 3 - pagination_size - 2
         if self.page_size < 2:
-            raise ValueError(
+            raise TerminalSizeError(
                 "Terminal is too small to display the application. Increase terminal height or enable compact table "
                 f"headers. Terminal size: {self.terminal_size}, page size: {self.page_size}"
             )

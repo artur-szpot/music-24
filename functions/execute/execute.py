@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 
+from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.FullExecutionResult import FullExecutionResult
@@ -10,18 +11,33 @@ from functions.execute.arg_validation_errors import (
 )
 from functions.execute.args_parsing_errors import ArgsParsingError
 from functions.execute.parse_args import parse_args
+from functions.settings.app_settings import app_settings
 from libs.error_handling import error_message_to_string
 
 command_dictionary = get_command_dictionary()
 
 
-def execute_command(input_command: str) -> FullExecutionResult:
+class DisallowedCommandError(ValueError):
+    pass
+
+
+def execute_command(
+    input_command_raw: str, allowed_commands: List[CommandEnum] = None
+) -> FullExecutionResult:
+    if not input_command_raw:
+        return FullExecutionResult()
+    input_command = app_settings.aliases.get(input_command_raw, input_command_raw)
     user_command: str = input_command.split()[0]
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
         return FullExecutionResult(
             result=ExecutionResult.error_message(f"Unknown command: {user_command}")
         )
+    if (
+        allowed_commands is not None
+        and command_definition.command not in allowed_commands
+    ):
+        raise DisallowedCommandError(f"Command disallowed at this time: {user_command}")
     actual_command = command_definition.verbs[0]
 
     error_message: Optional[str] = None

@@ -11,6 +11,6 @@ def get_command_dictionary() -> Dict[str, FunctionDefinition]:
         for code in command_registry[command].verbs:
             if code in command_dictionary:
                 raise KeyError(f"Repeated code {code} detected")
-            command_dictionary[code] = command_registry[command]
+            command_dictionary[code] = command_registry[command].with_command(command)
 
     return command_dictionary

@@ -16,7 +16,7 @@ class ExecutionResultCategory(Enum):
 
 
 class ExecutionResult:
-    action: ActionEnum
+    _action: ActionEnum
     category: ExecutionResultCategory
     is_table: bool
 
@@ -35,7 +35,7 @@ class ExecutionResult:
         files: List[MusicFile] = None,
         is_table: bool = False,
     ):
-        self.action = action
+        self._action = action
         self.category = category
         self._message = message
         self._header = header
@@ -44,8 +44,11 @@ class ExecutionResult:
         self._files = files
         self.is_table = is_table
 
+    def get_action(self) -> ActionEnum:
+        return self._action
+
     def get_message(self) -> Line:
-        return self._message
+        return self._message or Line.empty()
 
     def get_total_items(self) -> int:
         return len(self._paginable or [])

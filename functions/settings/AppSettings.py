@@ -6,12 +6,15 @@ from functions.settings.text_color.TextColor import TextColor
 from functions.settings.text_color.ColorScheme import ColorScheme, color_mapper
 from libs.io import create_directory
 
+PAGE_SIZE_AUTO = -1
+
 default_settings = {
     "page_size": 12,  # todo cannot set lower than 10 (and lower than 12 = compact)
     "color_scheme": ColorScheme.Dark.value,
     "compact_table_header": False,
     "import_dir": "import",
     "storage_dir": "storage",
+    "aliases": {"psa": "page-size --auto"},
 }
 
 
@@ -21,6 +24,7 @@ class AppSettings:
     compact_table_header: bool
     import_dir: str
     storage_dir: str
+    aliases: Dict[str, str]
 
     def __init__(self):
         self.apply_settings()
@@ -40,6 +44,7 @@ class AppSettings:
         self.compact_table_header = get_settings("compact_table_header")
         self.import_dir = get_settings("import_dir")
         self.storage_dir = get_settings("storage_dir")
+        self.aliases = get_settings("aliases")
 
     def save_settings(self) -> None:
         current_settings = {
@@ -48,6 +53,7 @@ class AppSettings:
             "compact_table_header": self.compact_table_header,
             "import_dir": self.import_dir,
             "storage_dir": self.storage_dir,
+            "aliases": self.aliases,
         }
         new_settings = {
             key: value

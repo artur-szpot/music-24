@@ -117,7 +117,7 @@ def validate_args(
         for key in [main] + other:
             if key in flags:
                 occurrences.append(main)
-        if len(occurrences):
+        if len(occurrences) > 1:
             repeated_kwargs_and_flags.append(occurrences[0])
 
     if len(repeated_kwargs_and_flags):

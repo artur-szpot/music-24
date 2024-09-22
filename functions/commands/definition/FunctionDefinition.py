@@ -1,5 +1,6 @@
 from typing import Dict, List, Callable
 
+from functions.commands.CommandEnum import CommandEnum
 from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsValidator import ArgsValidator
@@ -24,6 +25,7 @@ class FunctionDefinition:
     parameters: Dict[str, ParameterHelp]
     verbs: List[str]
     args_validator: ArgsValidator
+    command: CommandEnum
 
     def __init__(
         self,
@@ -40,3 +42,8 @@ class FunctionDefinition:
         self.category = category
         self.parameters = parameters
         self.args_validator = args_validator
+        self.command = CommandEnum.Exit
+
+    def with_command(self, command: CommandEnum):
+        self.command = command
+        return self
