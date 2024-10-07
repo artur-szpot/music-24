@@ -18,6 +18,7 @@ def list_all_files_definition() -> FunctionDefinition:
         verbs=["list-files", "ls"],
         description="Lists all files currently in the database.",
         category=FunctionCategoryEnum.ViewingFiles,
+        default_command="next-page",
     )
 
 

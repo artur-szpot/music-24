@@ -30,7 +30,8 @@ class FullExecutionResult:
         if self.result is not None:
             retval.extend(self.result.render(current_position))
         else:
+            # allow 2 for top message and 2 for input line with break
             retval.extend(
-                [Line.empty() for i in range(current_position.terminal_size - 2)]
+                [Line.empty() for i in range(current_position.terminal_size - 4)]
             )
         return retval

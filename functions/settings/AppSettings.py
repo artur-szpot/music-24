@@ -73,3 +73,8 @@ class AppSettings:
 
     def color_mapper(self, color: SchemeColor) -> TextColor:
         return color_mapper(self.color_scheme, color)
+
+    def page_size_string(self) -> str:
+        if self.page_size == PAGE_SIZE_AUTO:
+            return "automatic"
+        return str(self.page_size)

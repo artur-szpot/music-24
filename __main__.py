@@ -33,28 +33,53 @@ def terminal_size_fault_loop(
         Line.simple(other_message).render(current_position.max_width)
     command = custom_input()
     try:
-        execute_command(command, [CommandEnum.SetPageSize])
+        new_result = execute_command(
+            command, [CommandEnum.SetPageSize, CommandEnum.Exit]
+        )
+        if new_result.result is not None:
+            memory["action"] = new_result.result.get_action()
     except DisallowedCommandError as error:
         terminal_size_fault_loop(terminal_size_message, error_message_to_string(error))
     except TerminalSizeError as error:
         terminal_size_fault_loop(error_message_to_string(error))
 
 
-def main_loop(last_command: str = None, message: List[Line] = None) -> None:
+def main_loop(
+    last_command: str = None, message: List[Line] = None, initial_check: bool = False
+) -> None:
     clear()
     if message:
         for line in message:
             line.render(current_position.max_width)
         print()
-    command = custom_input()
+    if not initial_check:
+        command = custom_input()
+    else:
+        command = ""
     try:
-        normal_loop(command, last_command)
+        if initial_check:
+            current_position.update()
+            main_loop()
+        else:
+            normal_loop(command, last_command)
     except TerminalSizeError as error:
         terminal_size_fault_loop(error_message_to_string(error))
-        normal_loop_finisher(command, last_command)
+        while 1:
+            try:
+                normal_loop_finisher(command, last_command)
+                break
+            except TerminalSizeError as error:
+                terminal_size_fault_loop(error_message_to_string(error))
 
 
 def normal_loop(command: str, last_command: str = None) -> None:
+    if not len(command):
+        previous_result = query_cache.get("last")
+        if previous_result is not None and previous_result.default_command:
+            command = previous_result.default_command
+        else:
+            normal_loop_finisher(command, last_command)
+
     new_result: FullExecutionResult = execute_command(command)
     if new_result.result is not None:
         memory["action"] = new_result.result.get_action()
@@ -76,18 +101,18 @@ def normal_loop(command: str, last_command: str = None) -> None:
             ExecutionResultCategory.Action,
         ]:
             display.message = new_result.result.get_message()
-    if not display.message:
+    if not display.message or display.message.is_empty():
         display.message = Line.simple(f">_ {last_command}" if last_command else "")
     normal_loop_finisher(command, last_command)
 
 
 def normal_loop_finisher(command: str, last_command: str = None):
-    render = display.render(current_position)
     action = memory["action"]
     if action == ActionEnum.Return:
         clear()
         return
-    elif action == ActionEnum.Repeat:
+    render = display.render(current_position)
+    if action == ActionEnum.Repeat:
         # shows the command used, aka query
         main_loop(last_command=command, message=render)
     elif action == ActionEnum.Refresh:
@@ -98,4 +123,4 @@ def normal_loop_finisher(command: str, last_command: str = None):
 
 
 if __name__ == "__main__":
-    main_loop()
+    main_loop(initial_check=True)

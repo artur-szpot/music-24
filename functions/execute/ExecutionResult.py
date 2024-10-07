@@ -20,9 +20,11 @@ class ExecutionResult:
     category: ExecutionResultCategory
     is_table: bool
 
+    default_command: Optional[str]
     _message: Optional[Line]
     _header: Optional[List[Line]]
     _paginable: Optional[List[Line]]
+
     _files: Optional[List[MusicFile]]
 
     def __init__(
@@ -33,6 +35,7 @@ class ExecutionResult:
         header: List[Line] = None,
         paginable: List[Line] = None,
         files: List[MusicFile] = None,
+        default_command: Optional[str] = None,
         is_table: bool = False,
     ):
         self._action = action
@@ -43,6 +46,7 @@ class ExecutionResult:
         self._total_items = len(self._paginable or [])
         self._files = files
         self.is_table = is_table
+        self.default_command = default_command
 
     def get_action(self) -> ActionEnum:
         return self._action
@@ -62,6 +66,10 @@ class ExecutionResult:
         if self._files:
             return self._files[index]
         return None
+
+    def with_default_command(self, default_command: str):
+        self.default_command = default_command
+        return self
 
     @staticmethod
     def action(action):

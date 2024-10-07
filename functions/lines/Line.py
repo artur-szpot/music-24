@@ -39,6 +39,9 @@ class Line:
         if width_counter < max_width:
             print()
 
+    def is_empty(self):
+        return len(self.elements) == 0
+
     @staticmethod
     def key_value(key: str, value: Any):
         return Line([LineElement(f"{key}: ", bold=True), LineElement(str(value))])

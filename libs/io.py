@@ -54,6 +54,6 @@ def create_single_directory(path):
 
 def extract_filename_from_path(path: str) -> str:
     forwards_split = path.split("/")
-    if isinstance(forwards_split, list):
+    if len(forwards_split) > 1:
         return forwards_split[-1]
     return path.split("\\")[-1]

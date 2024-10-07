@@ -25,6 +25,7 @@ def print_file_analysis_definition() -> FunctionDefinition:
         args_validator=ArgsValidator.no_args().flags(flags),
         description="Analyze files from the import directory before importing.",
         category=FunctionCategoryEnum.IngestingFiles,
+        default_command="next-page",
     )
 
 

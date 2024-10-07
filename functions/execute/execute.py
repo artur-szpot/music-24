@@ -46,12 +46,20 @@ def execute_command(
         args_dict = parse_args(input_command)
         args_dict = command_definition.args_validator.validate(args_dict)
         result = command_definition.function(args_dict)
+        if (
+            command_definition.default_command is not None
+            and result.default_command is None
+        ):
+            result.default_command = command_definition.default_command
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."
         print(error_message)
         exit()
     except ComplexArgumentValidationError:
-        error_message = f"Incorrect arguments provided for command {actual_command}. Use the help command to see details."
+        error_message = (
+            f"Incorrect arguments provided for command {actual_command}. Use the help command to see "
+            f"details. "
+        )
         # todo! give correct input for help
     except ArgumentValidationError as error:
         error_message = error_message_to_string(error)

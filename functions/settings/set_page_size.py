@@ -35,7 +35,9 @@ def set_page_size(args_dict: ArgsDict) -> ExecutionResult:
     auto = args_dict.has_flag(flags[Flags.Auto])
     if arg is None and not auto:
         return ExecutionResult(
-            message=Line.simple(f"Page size is set to {app_settings.page_size}."),
+            message=Line.simple(
+                f"Page size is set to {app_settings.page_size_string()}."
+            ),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
         )

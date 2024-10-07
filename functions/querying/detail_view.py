@@ -28,6 +28,7 @@ def print_detail_view_definition() -> FunctionDefinition:
         description="Lists details of the chosen file.",
         category=FunctionCategoryEnum.ViewingFiles,
         args_validator=ArgsValidator.file_and_no_args().flags(flags),
+        default_command="next-page",
     )
 
 

@@ -1,0 +1,6 @@
+fix command:
+    mark if a fix is ready
+    iterate through problems offering solutions
+    enter -> apply auto, space -> skip (only if input empty!)
+
+THEN START USING THIS FRFR NOCAP
