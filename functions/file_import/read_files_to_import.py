@@ -1,7 +1,7 @@
 from typing import List
 
 from functions.file_import.read_file import read_file
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from libs.io import get_all_file_paths
 
 

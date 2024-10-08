@@ -19,14 +19,10 @@ def previous_page_definition() -> FunctionDefinition:
 
 
 def previous_page(args_dict: ArgsDict) -> ExecutionResult:
+    current_position.update()
     if current_position.total_pages == 0:
-        return ExecutionResult(
-            error_message="No result to paginate.", action=ActionEnum.Refresh
-        )
+        return ExecutionResult.error_message("No result to paginate.")
     if current_position.page_number == 0:
-        return ExecutionResult(
-            error_message="This is the first page.",
-            action=ActionEnum.Refresh,
-        )
+        return ExecutionResult.error_message("This is the first page.")
     current_position.page_number -= 1
     return ExecutionResult.action(ActionEnum.Refresh)

@@ -2,9 +2,10 @@ from typing import Dict
 
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.ExitCommand import exit_definition
+from functions.file_import.fix import fix_definition
 from functions.file_import.print_file_analysis import print_file_analysis_definition
 from functions.file_management.clear_db import clear_db_definition
-from functions.file_management.edit_db_file import edit_db_file_definition
+from functions.file_management.edit_file import edit_file_definition
 from functions.file_import.import_files import (
     import_files_definition,
 )
@@ -24,7 +25,7 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.ListFiles: list_all_files_definition(),
     CommandEnum.ImportFiles: import_files_definition(),
     CommandEnum.AnalyzeImport: print_file_analysis_definition(),
-    CommandEnum.EditDatabaseFile: edit_db_file_definition(),
+    CommandEnum.EditDatabaseFile: edit_file_definition(),
     CommandEnum.SetPageSize: set_page_size_definition(),
     CommandEnum.SetPageNumber: set_page_number_definition(),
     CommandEnum.SetColorScheme: set_color_scheme_definition(),
@@ -32,6 +33,7 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.PreviousPage: previous_page_definition(),
     CommandEnum.ClearDatabase: clear_db_definition(),
     CommandEnum.FileDetails: print_detail_view_definition(),
+    CommandEnum.Fix: fix_definition(),
     # CommandEnum.UpdateFromDatabase: update_from_database,
     # CommandEnum.UpdateFromMp3: update_from_mp3,
 }

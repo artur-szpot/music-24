@@ -1,7 +1,7 @@
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.file_import.read_file import read_file
-from functions.file_management.MusicFile import MusicFileDbProps, MusicFile
+from functions.music_file.MusicFile import MusicFileDbProps, MusicFile
 from functions.file_management.file_operations import save_file
 
 

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from functions.lines.Line import LineElement
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.querying.SpecialColumn import SpecialColumn
 from functions.querying.View import ViewColumn

@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.ExecutionResult import ExecutionResult, ExecutionResultCategory
 from functions.execute.FullExecutionResult import FullExecutionResult
 from functions.execute.arg_validation_errors import (
     NoArgumentsExpectedError,
@@ -24,6 +24,7 @@ class DisallowedCommandError(ValueError):
 def execute_command(
     input_command_raw: str, allowed_commands: List[CommandEnum] = None
 ) -> FullExecutionResult:
+    print(input_command_raw)
     if not input_command_raw:
         return FullExecutionResult()
     input_command = app_settings.aliases.get(input_command_raw, input_command_raw)
@@ -68,6 +69,9 @@ def execute_command(
 
     if error_message is not None:
         result = ExecutionResult.error_message(error_message)
+
+    if result.category == ExecutionResultCategory.Command:
+        return execute_command(result.get_command())
 
     return FullExecutionResult(result=result, command=command_definition)
 

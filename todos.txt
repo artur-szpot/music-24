@@ -4,3 +4,7 @@ fix command:
     enter -> apply auto, space -> skip (only if input empty!)
 
 THEN START USING THIS FRFR NOCAP
+
+BUG: after resizing to correct, the last command is not actioned
+add arg validation when updating a file
+limit args to being numeric only

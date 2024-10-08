@@ -5,7 +5,7 @@ from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryE
 from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.lines.Line import Line
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
 from functions.querying.View import View
 from functions.querying.standard_views import STANDARD_VIEW
@@ -40,9 +40,7 @@ def list_files_header(view: View = None) -> List[Line]:
 def list_files(files: List[MusicFile], view: View = None) -> List[Line]:
     view = view or STANDARD_VIEW
     lines: List[Line] = []
-    index = 1
-    for music_file in files:
+    for index, music_file in enumerate(files):
         music_file.set_view_props(index)
         lines.append(view.print_file(music_file))
-        index += 1
     return lines

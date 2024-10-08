@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional
 
 from functions.commands.definition.ActionEnum import ActionEnum
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from functions.lines.Line import Line
 from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.result_scrolling.CurrentPosition import CurrentPosition
@@ -13,6 +13,7 @@ class ExecutionResultCategory(Enum):
     Query = 0
     Detail = 1
     Message = 2
+    Command = 3
 
 
 class ExecutionResult:
@@ -24,8 +25,8 @@ class ExecutionResult:
     _message: Optional[Line]
     _header: Optional[List[Line]]
     _paginable: Optional[List[Line]]
-
     _files: Optional[List[MusicFile]]
+    _command: Optional[str]
 
     def __init__(
         self,
@@ -37,6 +38,7 @@ class ExecutionResult:
         files: List[MusicFile] = None,
         default_command: Optional[str] = None,
         is_table: bool = False,
+        command: str = None,
     ):
         self._action = action
         self.category = category
@@ -47,9 +49,13 @@ class ExecutionResult:
         self._files = files
         self.is_table = is_table
         self.default_command = default_command
+        self._command = command
 
     def get_action(self) -> ActionEnum:
         return self._action
+
+    def get_command(self) -> Optional[str]:
+        return self._command
 
     def get_message(self) -> Line:
         return self._message or Line.empty()
@@ -72,8 +78,16 @@ class ExecutionResult:
         return self
 
     @staticmethod
-    def action(action):
+    def action(action: ActionEnum):
         return ExecutionResult(action=action, category=ExecutionResultCategory.Action)
+
+    @staticmethod
+    def command(command: str):
+        return ExecutionResult(
+            action=ActionEnum.Refresh,
+            command=command,
+            category=ExecutionResultCategory.Command,
+        )
 
     @staticmethod
     def message(message: str):

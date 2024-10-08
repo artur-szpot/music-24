@@ -17,6 +17,7 @@ def color_mapper(scheme: ColorScheme, color: SchemeColor) -> TextColor:
                     SchemeColor.GOOD: TextColor.GREEN,
                     SchemeColor.BAD: TextColor.RED,
                     SchemeColor.INFO: TextColor.YELLOW,
+                    SchemeColor.WARN: TextColor.YELLOW,
                     SchemeColor.BASE: TextColor.WHITE,
                 }
                 .get(color, color)
@@ -28,6 +29,7 @@ def color_mapper(scheme: ColorScheme, color: SchemeColor) -> TextColor:
                     SchemeColor.GOOD: TextColor.GREEN,
                     SchemeColor.BAD: TextColor.RED,
                     SchemeColor.INFO: TextColor.BLUE,
+                    SchemeColor.WARN: TextColor.MAGENTA,
                     SchemeColor.BASE: TextColor.BLACK,
                 }
                 .get(color, color)

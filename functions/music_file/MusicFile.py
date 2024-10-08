@@ -1,14 +1,8 @@
-from enum import Enum
 from typing import List, Dict, Any, Optional
 
-
-class MusicFileDbProps(Enum):
-    Desynced = 0
-
-
-class MusicFileViewProps(Enum):
-    OrdinalNumber = 0
-    Highlighted = 1
+from functions.music_file.MusicFileDbProps import MusicFileDbProps
+from functions.music_file.MusicFileError import MusicFileError
+from functions.music_file.MusicFileViewProps import MusicFileViewProps
 
 
 class MusicFile:
@@ -16,7 +10,7 @@ class MusicFile:
     genres: List[str]
     title: Optional[str]
     path: str
-    filename: Optional[ str]
+    filename: Optional[str]
     length: Optional[int]
     rating: Optional[int]
     is_mlp: Optional[bool]
@@ -25,10 +19,9 @@ class MusicFile:
 
     predicted_authors: Optional[List[str]]
     predicted_title: Optional[str]
-    new_genres: Optional[List[str]]
 
-    errors: List[str]
-    warnings: List[str]
+    errors: List[MusicFileError]
+    warnings: List[MusicFileError]
 
     db_props: Dict[MusicFileDbProps, Any]
     view_props: Dict[MusicFileViewProps, Any]
@@ -47,8 +40,9 @@ class MusicFile:
         self.errors = source.get("errors", [])
         self.warnings = source.get("warnings", [])
         self.predicted_authors = source.get("predicted_authors", [])
-        self.predicted_title = source.get("predicted_title", [])
-        self.new_genres = source.get("new_genres", [])
+        self.predicted_title = source.get("predicted_title", "")
+        self.db_props = source.get("db_props", {})
+        self.view_props = source.get("view_props", {})
 
     def to_dict(self):
         return {
@@ -67,12 +61,12 @@ class MusicFile:
     def set_db_prop(self, prop, value: Any) -> None:
         self.db_props[prop] = value
 
-    def get_db_prop(self, prop: int) -> Any:
+    def get_db_prop(self, prop: MusicFileDbProps) -> Any:
         return self.db_props.get(prop)
 
     def set_view_props(self, ordinal_number: int, highlighted: bool = False) -> None:
         self.view_props = {
-            MusicFileViewProps.OrdinalNumber: ordinal_number,
+            MusicFileViewProps.OrdinalNumber: ordinal_number + 1,
             MusicFileViewProps.Highlighted: highlighted,
         }
 

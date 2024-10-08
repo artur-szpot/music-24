@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict, Optional, Union, Any
+from typing import List, Dict, Union, Any
 
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
@@ -10,12 +10,13 @@ from functions.execute.validate_args import (
     ArgumentValidationError,
     AllowedKwarg,
 )
-from functions.query_cache.query_cache import query_cache
+from functions.cache.cache import query_cache, file_cache
 from libs.error_handling import error_message_to_string
 
 
 class ArgsValidatorSpecial(Enum):
     FILE_AND_NO_ARGS = 0
+    CURRENT_FILE = 1
 
 
 SYSTEM_KWARGS = ["query", "pos", "filename"]
@@ -28,7 +29,7 @@ class ArgsValidator:
     _required_kwargs: Dict[str, AllowedKwarg]
     _allowed_kwargs: Dict[str, AllowedKwarg]
     _allowed_flags: List[str]
-    _special: Optional[ArgsValidatorSpecial]
+    _special: List[ArgsValidatorSpecial]
     _variants: Dict[str, List[str]]
 
     def __init__(
@@ -36,7 +37,7 @@ class ArgsValidator:
         min_args: int = 0,
         max_args: int = 0,
         exact_args: int = 0,
-        special: ArgsValidatorSpecial = None,
+        special: List[ArgsValidatorSpecial] = None,
     ):
         self._min_args = min_args
         self._max_args = max_args
@@ -44,14 +45,15 @@ class ArgsValidator:
         self._required_kwargs = {}
         self._allowed_kwargs = {}
         self._allowed_flags = []
-        self._special = special
+        self._special = special or []
         self._variants = {}
 
     def validate(self, args_dict: ArgsDict) -> ArgsDict:
         do_validate_args = True
-        if self._special is not None:
-            if self._special == ArgsValidatorSpecial.FILE_AND_NO_ARGS:
-                args_dict = self.validate_filename(args_dict)
+        print(args_dict.args)
+        if ArgsValidatorSpecial.FILE_AND_NO_ARGS in self._special:
+            args_dict = self.validate_filename(args_dict)
+        print(args_dict.args)
         if do_validate_args:
             validate_args(
                 args_dict,
@@ -75,7 +77,7 @@ class ArgsValidator:
 
     @staticmethod
     def file_and_no_args():
-        return ArgsValidator(special=ArgsValidatorSpecial.FILE_AND_NO_ARGS)
+        return ArgsValidator(special=[ArgsValidatorSpecial.FILE_AND_NO_ARGS])
 
     def kwargs(
         self,
@@ -133,6 +135,8 @@ class ArgsValidator:
 
     def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
         query_index = None
+        print("test 1")
+        print(args_dict.args)
         try:
             validate_args(
                 args_dict,
@@ -149,14 +153,22 @@ class ArgsValidator:
             else:
                 args_dict.system["filename"] = arg
                 return args_dict
-        except ArgumentValidationError:
+        except ArgumentValidationError as e:
+            print("failed here!")
+            print(e)
             pass
 
+        print("test 2")
+        print(args_dict.args)
+        print(self._allowed_kwargs)
         try:
             required_kwargs_temp = {"filename": AllowedKwarg.single()}
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
                 args_dict,
+                min_args=self._min_args,
+                max_args=self._max_args,
+                exact_args=self._exact_args,
                 required_kwargs=required_kwargs_temp,
                 allowed_kwargs=self._allowed_kwargs,
                 allowed_flags=self._allowed_flags,
@@ -168,6 +180,8 @@ class ArgsValidator:
         except ArgumentValidationError:
             pass
 
+        print("test 3")
+        print(args_dict.args)
         try:
             allowed_kwargs_temp = {
                 "query": AllowedKwarg.single(),
@@ -176,6 +190,9 @@ class ArgsValidator:
             allowed_kwargs_temp.update(self._allowed_kwargs or {})
             validate_args(
                 args_dict,
+                min_args=self._min_args,
+                max_args=self._max_args,
+                exact_args=self._exact_args,
                 required_kwargs=self._required_kwargs,
                 allowed_kwargs=allowed_kwargs_temp,
                 allowed_flags=self._allowed_flags,
@@ -195,7 +212,7 @@ class ArgsValidator:
                             f"Index outside of range. Use a value between 1 and {last_result.get_total_items()}."
                         )
                     if index is not None:
-                        args_dict.system["file"] = last_result.get_file(index - 1)
+                        file_cache["current_file"] = last_result.get_file(index - 1)
                     else:
                         raise ArgumentValidationError()
                 else:

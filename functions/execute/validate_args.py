@@ -34,7 +34,7 @@ def validate_kwarg(values: List[str], name: str, props: AllowedKwarg) -> None:
         raise ArgumentValidationError(
             f'Not enough values provided for argument "{name}" - expected at least {min_values}, got {len(values)}'
         )
-    if len(values) > max_values:
+    if max_values and len(values) > max_values:
         raise ArgumentValidationError(
             f'Too many values provided for argument "{name}" - expected at most {max_values}, got {len(values)}'
         )

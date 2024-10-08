@@ -3,7 +3,7 @@ from typing import Optional, List
 from mutagen import File
 
 from functions.data_types.author_registry import author_registry
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from functions.file_management.RatingMapper import RatingMapper
 from libs.io import extract_filename_from_path
 
@@ -25,7 +25,9 @@ def read_file(path: str) -> MusicFile:
     mutagen_file = File(path)
     rating_tag = mutagen_file.tags.get("POPM:no@email")
     authors = [str(author) for author in mutagen_file.tags.get("TPE1", [])]
-    predicted_title, predicted_authors = predicted_authors_and_title(filename[:-4], authors)
+    predicted_title, predicted_authors = predicted_authors_and_title(
+        filename[:-4], authors
+    )
     music_file = MusicFile(
         {
             "authors": authors,
@@ -40,8 +42,8 @@ def read_file(path: str) -> MusicFile:
             "is_mlp": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom3:XXX")),
             "is_dad": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom2:XXX")),
             "is_ready": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom1:XXX")),
-            "predicted_title": predicted_title,
-            "predicted_authors": predicted_authors,
+            "predicted_title": predicted_title or "",
+            "predicted_authors": predicted_authors or [],
         }
     )
     return music_file
@@ -60,7 +62,9 @@ def predicted_authors_and_title(
         return [title_block, authors]
     if len(title_blocks) > 2:
         return [None, authors]
-    original_authors = authors_from_string(title_blocks[1].split(']')[0], ampersand_authors)
+    original_authors = authors_from_string(
+        title_blocks[1].split("]")[0], ampersand_authors
+    )
     return title_blocks[0], authors + original_authors
 
 

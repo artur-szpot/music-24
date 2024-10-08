@@ -4,6 +4,7 @@ from functions.commands.command_registry import command_registry
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.args_parsing_errors import ArgsParsingError
 from functions.help.help_definition import help_definition
+from functions.cache.cache import query_cache
 
 
 def parse_args(input_command: str) -> ArgsDict:
@@ -11,8 +12,12 @@ def parse_args(input_command: str) -> ArgsDict:
     command = input_parts[0]
     args_raw = input_parts[1:]
     args = parse_args_exe(args_raw)
+    last_result = query_cache.get("last")
     if command in help_definition().verbs:
-        args.system = {"command_registry": command_registry}
+        args.system = {
+            "command_registry": command_registry,
+            "current_file": last_result.get_file(index - 1),
+        }
     return args
 
 

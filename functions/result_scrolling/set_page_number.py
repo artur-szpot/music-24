@@ -21,13 +21,10 @@ def set_page_number_definition() -> FunctionDefinition:
 def set_page_number(args_dict: ArgsDict) -> ExecutionResult:
     page_number = int(args_dict.get_arg())
     if current_position.total_pages == 0:
-        return ExecutionResult(
-            error_message="No result to paginate.", action=ActionEnum.Refresh
-        )
+        return ExecutionResult.error_message("No result to paginate.")
     if page_number < 1 or page_number > current_position.total_pages:
-        return ExecutionResult(
-            error_message=f"Wrong page number: {page_number}. Use a value between 1 and {current_position.total_pages}.",
-            action=ActionEnum.Refresh,
+        return ExecutionResult.error_message(
+            f"Wrong page number: {page_number}. Use a value between 1 and {current_position.total_pages}.",
         )
     current_position.page_number = page_number - 1
     return ExecutionResult.action(ActionEnum.Refresh)

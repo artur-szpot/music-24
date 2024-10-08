@@ -2,9 +2,9 @@ from mutagen import File
 from mutagen.id3 import TPE1, TCON, TIT2, POPM, COMM
 
 from functions.execute.ArgsValidator import ArgsValidator
-from functions.file_management.MusicFile import MusicFileDbProps, MusicFile
+from functions.music_file.MusicFile import MusicFileDbProps, MusicFile
 from functions.file_management.RatingMapper import RatingMapper
-from functions.file_management.file_operations import open_file, save_file
+from functions.file_management.file_operations import save_file
 
 
 def update_from_database(args_dict):

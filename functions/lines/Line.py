@@ -7,13 +7,11 @@ from functions.settings.text_color.SchemeColor import SchemeColor
 class Line:
     elements: List[LineElement]
     space_separated: bool
-    header: Optional[LineElement]
 
     def __init__(
         self,
         elements: List[LineElement],
         space_separated=False,
-        header: LineElement = None,
         color: SchemeColor = None,
         bold: bool = None,
     ):
@@ -25,10 +23,9 @@ class Line:
                 element.bold = bold
         self.elements = elements
         self.space_separated = space_separated
-        self.header = header
 
     def clone(self):
-        return Line(self.elements[:], self.space_separated, self.header)
+        return Line(self.elements[:], self.space_separated)
 
     def render(self, max_width: int):
         width_counter = 0
@@ -43,8 +40,13 @@ class Line:
         return len(self.elements) == 0
 
     @staticmethod
-    def key_value(key: str, value: Any):
-        return Line([LineElement(f"{key}: ", bold=True), LineElement(str(value))])
+    def key_value(key: str, value: Any, key_color: SchemeColor = None):
+        return Line(
+            [
+                LineElement(f"{key}: ", bold=True, color=key_color),
+                LineElement(str(value)),
+            ]
+        )
 
     @staticmethod
     def empty():

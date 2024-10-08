@@ -9,7 +9,7 @@ from functions.execute.FullExecutionResult import FullExecutionResult
 from functions.execute.custom_input import custom_input
 from functions.execute.execute import execute_command, DisallowedCommandError
 from functions.lines.Line import Line
-from functions.query_cache.query_cache import query_cache
+from functions.cache.cache import query_cache, file_cache
 from functions.result_scrolling.CurrentPosition import HeaderType, TerminalSizeError
 from functions.result_scrolling.current_position import current_position
 from libs.error_handling import error_message_to_string
@@ -80,9 +80,14 @@ def normal_loop(command: str, last_command: str = None) -> None:
         else:
             normal_loop_finisher(command, last_command)
 
+    last_executed_command = last_command
+
     new_result: FullExecutionResult = execute_command(command)
     if new_result.result is not None:
         memory["action"] = new_result.result.get_action()
+        if new_result.result.category != ExecutionResultCategory.Detail:
+            if "current_file" in file_cache:
+                del file_cache["current_file"]
         if new_result.result.category == ExecutionResultCategory.Query:
             query_cache["last"] = new_result.result
             current_position.new_result(
@@ -90,19 +95,23 @@ def normal_loop(command: str, last_command: str = None) -> None:
             )
             display.result = new_result.result
             display.message = None
+            last_executed_command = command
         elif new_result.result.category == ExecutionResultCategory.Detail:
             current_position.new_result(
                 new_result.result.get_total_items(), HeaderType.SIMPLE_PAGINATION
             )
             display.result = new_result.result
             display.message = None
+            last_executed_command = command
         elif new_result.result.category in [
             ExecutionResultCategory.Message,
             ExecutionResultCategory.Action,
         ]:
             display.message = new_result.result.get_message()
     if not display.message or display.message.is_empty():
-        display.message = Line.simple(f">_ {last_command}" if last_command else "")
+        display.message = Line.simple(
+            f">_ {last_executed_command}" if last_executed_command else ""
+        )
     normal_loop_finisher(command, last_command)
 
 

@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from libs.io import get_all_files
 
 

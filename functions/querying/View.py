@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
 from functions.lines.Line import Line
-from functions.file_management.MusicFile import MusicFile
+from functions.music_file.MusicFile import MusicFile
 from functions.querying.ViewColumn import ViewColumn
 from functions.querying.ViewColumnSort import ViewColumnSort
 from functions.querying.formatting import format_value, format_property

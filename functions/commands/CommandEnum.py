@@ -14,6 +14,7 @@ class CommandEnum(Enum):
     # export query results/albums/playlists in different formats (win, car, ?)
     # save info about what has been exported (i.e. listened to)
     AnalyzeImport = 8  # analyze files before importing them
+    Fix = 17  # apply auto fixes to found problems
     # organize files (compile files, dictify artists, genres)
     # create indexes for faster access?
     # continuous command mode (ls -> next; edit -> author)
