@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Dict, Union, Any
 
+from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
     ComplexArgumentValidationError,
@@ -10,8 +11,8 @@ from functions.execute.validate_args import (
     ArgumentValidationError,
     AllowedKwarg,
 )
-from functions.cache.cache import query_cache, file_cache
 from libs.error_handling import error_message_to_string
+from libs.strings import quoted
 
 
 class ArgsValidatorSpecial(Enum):
@@ -50,10 +51,8 @@ class ArgsValidator:
 
     def validate(self, args_dict: ArgsDict) -> ArgsDict:
         do_validate_args = True
-        print(args_dict.args)
         if ArgsValidatorSpecial.FILE_AND_NO_ARGS in self._special:
             args_dict = self.validate_filename(args_dict)
-        print(args_dict.args)
         if do_validate_args:
             validate_args(
                 args_dict,
@@ -81,31 +80,33 @@ class ArgsValidator:
 
     def kwargs(
         self,
-        required_kwargs: Dict[Union[str, List[str]], AllowedKwarg] = None,
-        allowed_kwargs: Dict[Union[str, List[str]], AllowedKwarg] = None,
+        required_kwargs: List[AllowedKwarg] = None,
+        allowed_kwargs: List[AllowedKwarg] = None,
     ):
         if required_kwargs:
-            for kwarg, definition in required_kwargs.items():
-                if isinstance(kwarg, list):
-                    self._variants[kwarg[0]] = kwarg[1:]
-                    for index, sub_kwarg in enumerate(kwarg):
+            for definition in required_kwargs:
+                kwarg_aliases = definition.aliases
+                if len(kwarg_aliases) > 1:
+                    self._variants[kwarg_aliases[0]] = kwarg_aliases[1:]
+                    for index, sub_kwarg in enumerate(kwarg_aliases):
                         self.check_argument(sub_kwarg)
                         if not index:
                             self._required_kwargs.update({sub_kwarg: definition})
                 else:
-                    self.check_argument(kwarg)
-                    self._required_kwargs.update({kwarg: definition})
+                    self.check_argument(kwarg_aliases[0])
+                    self._required_kwargs.update({kwarg_aliases[0]: definition})
         if allowed_kwargs:
-            for kwarg, definition in allowed_kwargs.items():
-                if isinstance(kwarg, list):
-                    self._variants[kwarg[0]] = kwarg[1:]
-                    for index, sub_kwarg in enumerate(kwarg):
+            for definition in allowed_kwargs:
+                kwarg_aliases = definition.aliases
+                if len(kwarg_aliases) > 1:
+                    self._variants[kwarg_aliases[0]] = kwarg_aliases[1:]
+                    for index, sub_kwarg in enumerate(kwarg_aliases):
                         self.check_argument(sub_kwarg)
                         if not index:
                             self._allowed_kwargs.update({sub_kwarg: definition})
                 else:
-                    self.check_argument(kwarg)
-                    self._allowed_kwargs.update({kwarg: definition})
+                    self.check_argument(kwarg_aliases[0])
+                    self._allowed_kwargs.update({kwarg_aliases[0]: definition})
         return self
 
     def flags(self, allowed_flags: Dict[Any, Union[str, List[str]]]):
@@ -122,21 +123,18 @@ class ArgsValidator:
 
     def check_argument(self, value: str) -> None:
         if value in SYSTEM_KWARGS:
-            raise KeyError(f'"{value}" is reserved and cannot be used as an argument.')
+            raise KeyError(
+                f"{quoted(value)} is reserved and cannot be used as an argument."
+            )
         if (
             value in self._allowed_kwargs
             or value in self._required_kwargs
             or value in self._allowed_flags
         ):
-            print(self._allowed_kwargs)
-            print(self._required_kwargs)
-            print(self._allowed_flags)
-            raise KeyError(f'Argument "{value}" used more than once.')
+            raise KeyError(f"Argument {quoted(value)} used more than once.")
 
     def validate_filename(self, args_dict: ArgsDict) -> ArgsDict:
         query_index = None
-        print("test 1")
-        print(args_dict.args)
         try:
             validate_args(
                 args_dict,
@@ -153,16 +151,11 @@ class ArgsValidator:
             else:
                 args_dict.system["filename"] = arg
                 return args_dict
-        except ArgumentValidationError as e:
-            print("failed here!")
-            print(e)
+        except ArgumentValidationError:
             pass
 
-        print("test 2")
-        print(args_dict.args)
-        print(self._allowed_kwargs)
         try:
-            required_kwargs_temp = {"filename": AllowedKwarg.single()}
+            required_kwargs_temp = {"filename": AllowedKwarg.single("")}
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
                 args_dict,
@@ -180,12 +173,10 @@ class ArgsValidator:
         except ArgumentValidationError:
             pass
 
-        print("test 3")
-        print(args_dict.args)
         try:
             allowed_kwargs_temp = {
-                "query": AllowedKwarg.single(),
-                "pos": AllowedKwarg.single(),
+                "query": AllowedKwarg.single(""),
+                "pos": AllowedKwarg.single(""),
             }
             allowed_kwargs_temp.update(self._allowed_kwargs or {})
             validate_args(
@@ -204,7 +195,7 @@ class ArgsValidator:
                 args_dict.system["filename"] = "abc"  # todo reading from queries
                 return args_dict
             else:
-                last_result = query_cache.get("last")
+                last_result = cache.get_last_query()
                 if last_result:
                     index = args_dict.kwargs.get("pos", query_index)
                     if index < 1 or index > last_result.get_total_items():
@@ -212,7 +203,7 @@ class ArgsValidator:
                             f"Index outside of range. Use a value between 1 and {last_result.get_total_items()}."
                         )
                     if index is not None:
-                        file_cache["current_file"] = last_result.get_file(index - 1)
+                        cache.set_current_file(last_result.get_file(index - 1))
                     else:
                         raise ArgumentValidationError()
                 else:

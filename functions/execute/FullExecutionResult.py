@@ -23,15 +23,18 @@ class FullExecutionResult:
 
     def render(self, current_position: CurrentPosition) -> List[Line]:
         current_position.update()
-        retval = [
-            (Line.empty() if self.message is None else self.message),
-            Line.empty(),
-        ]
+        retval = []
+        # todo reinstate message display
+        # retval = [
+        #     (Line.empty() if self.message is None else self.message),
+        #     Line.empty(),
+        # ]
         if self.result is not None:
             retval.extend(self.result.render(current_position))
         else:
-            # allow 2 for top message and 2 for input line with break
+            # allow 2 for top message and 2 for input line with break # todo 2 currently removed from the top
             retval.extend(
-                [Line.empty() for i in range(current_position.terminal_size - 4)]
+                [Line.empty() for i in range(current_position.terminal_size - 2)]
+                # [Line.empty() for i in range(current_position.terminal_size - 4)]
             )
         return retval

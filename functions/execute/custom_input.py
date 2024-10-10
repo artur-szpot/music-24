@@ -1,3 +1,5 @@
+from typing import List
+
 from readchar import readkey, key
 from termcolor import cprint
 
@@ -5,30 +7,57 @@ from functions.settings.app_settings import app_settings
 from functions.settings.text_color.SchemeColor import SchemeColor
 
 
-def custom_input() -> str:
+def custom_input(memory: List[str]) -> str:
     current_input = ""
     cursor_position = 0
+    history_position = 0
     text_color = app_settings.color_mapper(SchemeColor.BASE).value
+    previous_length = 1
     while True:
-        cprint("\r" + ">_ " + current_input, end=" ", color=text_color)
+        # print the input and cover up potential history
+        cprint(
+            "\r" + ">_ " + current_input,
+            end=" " * (previous_length - len(current_input)),
+            color=text_color,
+        )
+        # print again to set the cursor in the right position
         cprint("\r" + ">_ " + current_input[:cursor_position], end="", color=text_color)
+        # save the current input length for next round cover-up
+        previous_length = len(current_input)
+
         k = readkey()
         if (
             k
-            in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890 -\"',./?\\|;:[]{}_+=!@#$%^&*()<>"
+            in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890-\"',./?\\|;:[]{}_+=!@#$%^&*()<>"
         ):
             current_input = (
                 current_input[:cursor_position] + k + current_input[cursor_position:]
             )
             cursor_position += 1
+        if k == " ":
+            current_input = (
+                current_input[:cursor_position] + k + current_input[cursor_position:]
+            )
+            cursor_position += 1
+            if current_input == " ":
+                print("\r")
+                return current_input
+        if k == key.TAB:
+            if len(current_input) > 0:
+                # todo some kind of input completion?
+                pass
+            print("\r")
+            return "\t"
         elif k == key.ENTER:
             print("\r")
             return current_input
         elif k == key.BACKSPACE:
-            current_input = (
-                current_input[: cursor_position - 1] + current_input[cursor_position:]
-            )
-            cursor_position -= 1
+            if cursor_position > 0:
+                current_input = (
+                    current_input[: cursor_position - 1]
+                    + current_input[cursor_position:]
+                )
+                cursor_position -= 1
         elif k == key.DELETE:
             current_input = (
                 current_input[:cursor_position] + current_input[cursor_position + 1 :]
@@ -60,7 +89,18 @@ def custom_input() -> str:
                     cursor_position
                 ] != " " and cursor_position < len(current_input):
                     cursor_position += 1
-        elif k == key.ESC:
-            raise KeyError()
+        # elif k == key.ESC:
+        #     raise KeyError()
+        elif k == key.UP:
+            history_position = min(len(memory), history_position + 1)
+            current_input = memory[-history_position]
+            cursor_position = len(current_input)
+        elif k == key.DOWN:
+            history_position = max(0, history_position - 1)
+            if history_position == 0:
+                current_input = ""
+            else:
+                current_input = memory[-history_position]
+            cursor_position = len(current_input)
         # else:
         #     print(k)

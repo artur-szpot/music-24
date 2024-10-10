@@ -2,6 +2,8 @@ from typing import Dict
 
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.ExitCommand import exit_definition
+from functions.data_types.DataTypeEnum import DataTypeEnum
+from functions.data_types.functions.add import add_definition
 from functions.file_import.fix import fix_definition
 from functions.file_import.print_file_analysis import print_file_analysis_definition
 from functions.file_management.clear_db import clear_db_definition
@@ -34,6 +36,8 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.ClearDatabase: clear_db_definition(),
     CommandEnum.FileDetails: print_detail_view_definition(),
     CommandEnum.Fix: fix_definition(),
+    CommandEnum.AddArtist: add_definition(DataTypeEnum.ARTIST),
+    CommandEnum.AddGenre: add_definition(DataTypeEnum.GENRE),
     # CommandEnum.UpdateFromDatabase: update_from_database,
     # CommandEnum.UpdateFromMp3: update_from_mp3,
 }

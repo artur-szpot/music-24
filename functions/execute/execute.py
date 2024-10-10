@@ -1,5 +1,7 @@
+import json
 from typing import Optional, List
 
+from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
 from functions.execute.ExecutionResult import ExecutionResult, ExecutionResultCategory
@@ -22,15 +24,21 @@ class DisallowedCommandError(ValueError):
 
 
 def execute_command(
-    input_command_raw: str, allowed_commands: List[CommandEnum] = None
+    input_command_raw: str,
+    allowed_commands: List[CommandEnum] = None,
+    default_prefix: str = None,
 ) -> FullExecutionResult:
-    print(input_command_raw)
-    if not input_command_raw:
+    if not input_command_raw or input_command_raw in [" ", "\t"]:
         return FullExecutionResult()
     input_command = app_settings.aliases.get(input_command_raw, input_command_raw)
     user_command: str = input_command.split()[0]
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
+        if default_prefix is not None:
+            return execute_command(
+                f"{default_prefix} {input_command_raw}",
+                allowed_commands=allowed_commands,
+            )
         return FullExecutionResult(
             result=ExecutionResult.error_message(f"Unknown command: {user_command}")
         )
@@ -47,11 +55,16 @@ def execute_command(
         args_dict = parse_args(input_command)
         args_dict = command_definition.args_validator.validate(args_dict)
         result = command_definition.function(args_dict)
-        if (
-            command_definition.default_command is not None
-            and result.default_command is None
-        ):
-            result.default_command = command_definition.default_command
+        if command_definition.following_commands is not None or result.category in [
+            ExecutionResultCategory.Detail,
+            ExecutionResultCategory.Query,
+        ]:
+            # if "fix" in command_definition.verbs:
+            #     print(
+            #         command_definition.following_commands._empty_command.command_stack
+            #     )
+            #     exit()
+            result.following_commands = command_definition.following_commands
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."
         print(error_message)
@@ -70,8 +83,9 @@ def execute_command(
     if error_message is not None:
         result = ExecutionResult.error_message(error_message)
 
-    if result.category == ExecutionResultCategory.Command:
-        return execute_command(result.get_command())
+    next_command = cache.get_next_command()
+    if next_command:
+        return execute_command(next_command)
 
     return FullExecutionResult(result=result, command=command_definition)
 

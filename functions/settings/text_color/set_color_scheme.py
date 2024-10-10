@@ -8,6 +8,7 @@ from functions.lines.Line import Line
 
 from functions.settings.text_color.ColorScheme import ColorScheme
 from functions.settings.app_settings import app_settings
+from libs.strings import quoted
 
 
 def set_color_scheme_definition() -> FunctionDefinition:
@@ -25,7 +26,7 @@ def set_color_scheme(args_dict: ArgsDict) -> ExecutionResult:
     if color_scheme is None:
         return ExecutionResult(
             message=Line.simple(
-                f'Color scheme is set to "{app_settings.color_scheme.value}".'
+                f"Color scheme is set to {quoted(app_settings.color_scheme.value)}."
             ),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
@@ -34,13 +35,15 @@ def set_color_scheme(args_dict: ArgsDict) -> ExecutionResult:
         new_scheme = ColorScheme(color_scheme.lower())
     except ValueError:
         return ExecutionResult(
-            message=Line.simple(f'Unknown color scheme: "{color_scheme}".'),
+            message=Line.simple(f"Unknown color scheme: {quoted(color_scheme)}."),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
         )
     if app_settings.color_scheme == new_scheme:
         return ExecutionResult(
-            message=Line.simple(f'Color scheme was already set to "{color_scheme}".'),
+            message=Line.simple(
+                f"Color scheme was already set to {quoted(color_scheme)}."
+            ),
             action=ActionEnum.Refresh,
             category=ExecutionResultCategory.Message,
         )

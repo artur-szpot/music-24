@@ -4,6 +4,9 @@ from typing import List
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.commands.definition.FunctionDefinition import FunctionDefinition
+from functions.commands.definition.FunctionFollowingCommands import (
+    FunctionFollowingCommands,
+)
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.file_import.analyze_files import analyze_file
@@ -28,7 +31,7 @@ def print_detail_view_definition() -> FunctionDefinition:
         description="Lists details of the chosen file.",
         category=FunctionCategoryEnum.ViewingFiles,
         args_validator=ArgsValidator.file_and_no_args().flags(flags),
-        default_command="next-page",
+        following_commands=FunctionFollowingCommands().empty("next-page"),
     )
 
 
@@ -49,11 +52,11 @@ def detail_view_exe(file: MusicFile, skip_info: bool = False) -> List[Line]:
     file = analyze_file(file)
     if not skip_info:
         details.append(Line.key_value("Title", file.title))
-        details.append(Line.key_value("Authors", ", ".join(file.authors)))
+        details.append(Line.key_value("Artists", ", ".join(file.artists)))
         details.append(Line.key_value("Length", format_length(file.length).text))
         # soon to be split into groups
         details.append(Line.key_value("Genres", ", ".join(file.genres)))
-        details.append(Line.key_value("Rating", file.rating / 2))
+        details.append(Line.key_value("Rating", (file.rating or 0) / 2))
         details.append(Line.key_value("MLP-related?", check_or_x(file.is_mlp)))
         details.append(Line.key_value("Suitable for Dad?", check_or_x(file.is_dad)))
     for error in file.errors:

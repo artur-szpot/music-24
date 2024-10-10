@@ -14,7 +14,7 @@ def update_from_database(args_dict):
 
 def update_from_database_exe(db_file: MusicFile):
     mutagen_file = File(db_file.path)
-    mutagen_file.tags["TPE1"] = TPE1(encoding=3, text=db_file.authors)
+    mutagen_file.tags["TPE1"] = TPE1(encoding=3, text=db_file.artists)
     mutagen_file.tags["TCON"] = TCON(encoding=3, text=db_file.genres)
     mutagen_file.tags["TIT2"] = TIT2(encoding=3, text=db_file.title)
     mutagen_file.tags["POPM:no@email"] = POPM(
@@ -40,5 +40,5 @@ def update_from_database_exe(db_file: MusicFile):
     )
     mutagen_file.save()
     db_file.set_db_prop(MusicFileDbProps.Desynced, False)
-    save_file(db_file.filename, db_file)
+    save_file(db_file.db_file, db_file)
     return ["ok"]

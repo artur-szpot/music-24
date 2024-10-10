@@ -3,10 +3,13 @@ from typing import List
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
 from functions.commands.definition.FunctionDefinition import FunctionDefinition
-from functions.lines.Line import Line
+from functions.commands.definition.FunctionFollowingCommands import (
+    FunctionFollowingCommands,
+)
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.music_file.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
+from functions.lines.Line import Line
+from functions.music_file.MusicFile import MusicFile
 from functions.querying.View import View
 from functions.querying.standard_views import STANDARD_VIEW
 from libs.io import get_all_files
@@ -18,7 +21,7 @@ def list_all_files_definition() -> FunctionDefinition:
         verbs=["list-files", "ls"],
         description="Lists all files currently in the database.",
         category=FunctionCategoryEnum.ViewingFiles,
-        default_command="next-page",
+        following_commands=FunctionFollowingCommands().empty("next-page"),
     )
 
 

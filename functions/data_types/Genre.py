@@ -1,13 +1,13 @@
 from enum import Enum
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 
 from functions.data_types.DataType import DataType
 
 
 class GenreCategory(Enum):
-    MusicType = 0
-    MusicGenre = 1
-    MusicQuality = 2
+    MusicType = "type"
+    MusicGenre = "genre"
+    MusicQuality = "quality"
 
 
 class Genre(DataType):
@@ -15,30 +15,20 @@ class Genre(DataType):
 
     def __init__(
         self,
-        name: str,
         index: int,
-        category: GenreCategory,
+        name: str,
         aliases: Optional[List[str]] = None,
         misspellings: Optional[List[str]] = None,
+        other: Dict[str, str] = None,
     ):
-        DataType.__init__(self, name, index, aliases, misspellings)
-        self.category = category
+        DataType.__init__(self, index, name, aliases, misspellings, other)
+        self.category = GenreCategory(self.other["category"])
 
     @staticmethod
-    def from_dict(values: Dict[str, Any]):
-        return Genre(
-            name=values.get("name"),
-            index=values.get("index"),
-            category=GenreCategory(values.get("category")),
-            aliases=values.get("aliases"),
-            misspellings=values.get("misspellings"),
-        )
-
-    def to_dict(self) -> Dict[str, Any]:
-        super_dict = super().to_dict()
-        super_dict.update(
-            {
-                "category": self.category.value,
-            }
-        )
-        return super_dict
+    def create(
+        name: str,
+        aliases: Optional[List[str]] = None,
+        misspellings: Optional[List[str]] = None,
+        other: Dict[str, str] = None,
+    ):
+        return Genre(-1, name, aliases, misspellings, other)

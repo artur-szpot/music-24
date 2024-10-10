@@ -2,6 +2,9 @@ from enum import Enum
 from typing import List, Optional
 
 from functions.commands.definition.ActionEnum import ActionEnum
+from functions.commands.definition.FunctionFollowingCommands import (
+    FunctionFollowingCommands,
+)
 from functions.music_file.MusicFile import MusicFile
 from functions.lines.Line import Line
 from functions.settings.text_color.SchemeColor import SchemeColor
@@ -13,7 +16,6 @@ class ExecutionResultCategory(Enum):
     Query = 0
     Detail = 1
     Message = 2
-    Command = 3
 
 
 class ExecutionResult:
@@ -21,12 +23,11 @@ class ExecutionResult:
     category: ExecutionResultCategory
     is_table: bool
 
-    default_command: Optional[str]
+    following_commands: Optional[FunctionFollowingCommands]
     _message: Optional[Line]
     _header: Optional[List[Line]]
     _paginable: Optional[List[Line]]
     _files: Optional[List[MusicFile]]
-    _command: Optional[str]
 
     def __init__(
         self,
@@ -36,9 +37,8 @@ class ExecutionResult:
         header: List[Line] = None,
         paginable: List[Line] = None,
         files: List[MusicFile] = None,
-        default_command: Optional[str] = None,
+        following_commands: Optional[FunctionFollowingCommands] = None,
         is_table: bool = False,
-        command: str = None,
     ):
         self._action = action
         self.category = category
@@ -48,14 +48,10 @@ class ExecutionResult:
         self._total_items = len(self._paginable or [])
         self._files = files
         self.is_table = is_table
-        self.default_command = default_command
-        self._command = command
+        self.following_commands = following_commands
 
     def get_action(self) -> ActionEnum:
         return self._action
-
-    def get_command(self) -> Optional[str]:
-        return self._command
 
     def get_message(self) -> Line:
         return self._message or Line.empty()
@@ -73,20 +69,14 @@ class ExecutionResult:
             return self._files[index]
         return None
 
-    def with_default_command(self, default_command: str):
-        self.default_command = default_command
-        return self
-
     @staticmethod
     def action(action: ActionEnum):
         return ExecutionResult(action=action, category=ExecutionResultCategory.Action)
 
     @staticmethod
-    def command(command: str):
+    def refresh():
         return ExecutionResult(
-            action=ActionEnum.Refresh,
-            command=command,
-            category=ExecutionResultCategory.Command,
+            action=ActionEnum.Refresh, category=ExecutionResultCategory.Action
         )
 
     @staticmethod
@@ -99,6 +89,8 @@ class ExecutionResult:
 
     @staticmethod
     def error_message(message: str):
+        print(message)
+        quit()
         return ExecutionResult(
             action=ActionEnum.Refresh,
             message=Line.simple(message, color=SchemeColor.BAD),

@@ -1,37 +1,58 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
+
+from functions.data_types.DataTypeEnum import DataTypeEnum
 
 
 class DataType:
-    name: str
     index: int
+    name: str
     aliases: Optional[List[str]]
     misspellings: Optional[List[str]]
+    other: Dict[str, str]
 
     def __init__(
         self,
-        name: str,
         index: int,
+        name: str,
         aliases: Optional[List[str]] = None,
         misspellings: Optional[List[str]] = None,
+        other: Dict[str, str] = None,
     ):
-        self.name = name
         self.index = index
+        self.name = name
         self.aliases = aliases
         self.misspellings = misspellings
+        self.other = other or {}
+
+    @staticmethod
+    def create(
+        name: str,
+        aliases: Optional[List[str]] = None,
+        misspellings: Optional[List[str]] = None,
+        other: Dict[str, str] = None,
+    ):
+
+        return DataType(-1, name, aliases, misspellings, other)
 
     @staticmethod
     def from_dict(values: Dict[str, Any]):
-        return DataType(
-            name=values.get("name"),
-            index=values.get("index"),
-            aliases=values.get("aliases"),
-            misspellings=values.get("misspellings"),
-        )
+        index = values.get("index")
+        name = values.get("name")
+        aliases = values.get("aliases")
+        misspellings = values.get("misspellings")
+        other = {
+            key: value
+            for key, value in values.items()
+            if key not in ["index", "name", "aliases", "misspellings"]
+        }
+        return DataType(index, name, aliases, misspellings, other)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "name": self.name,
+    def to_dict(self) -> Dict[str, Union[str, List[str]]]:
+        base = {
             "index": self.index,
+            "name": self.name,
             "aliases": self.aliases,
             "misspellings": self.misspellings,
         }
+        base.update(self.other)
+        return base

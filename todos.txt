@@ -8,3 +8,5 @@ THEN START USING THIS FRFR NOCAP
 BUG: after resizing to correct, the last command is not actioned
 add arg validation when updating a file
 limit args to being numeric only
+change constructors that use dicts to actuals
+dictify data types, check that they exist when assigning

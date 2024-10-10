@@ -1,17 +1,20 @@
 from typing import List, Optional
 
-from functions.data_types.author_registry import author_registry
+from functions.data_types.artist_registry import artist_registry
 from functions.data_types.genre_registry import genre_registry
 from functions.file_import.read_files_to_import import read_files_to_import
 from functions.music_file.MusicFile import MusicFile
 from functions.music_file.MusicFileError import MusicFileError
 from functions.music_file.MusicFileErrorFix import MusicFileErrorFix
+from libs.strings import quoted
 
 
 def analyze_files(
-    show_only_if_error: bool = False, show_only_if_warning: bool = False
+    show_only_if_error: bool = False,
+    show_only_if_warning: bool = False,
+    overwrite_cache: bool = False,
 ) -> List[MusicFile]:
-    files = read_files_to_import()[1:]
+    files = read_files_to_import(overwrite_cache)
     files_to_show = []
     for index, file in enumerate(files):
         file.set_view_props(index)
@@ -26,71 +29,86 @@ def analyze_file(
     show_only_if_error: bool = False,
     show_only_if_warning: bool = False,
 ) -> Optional[MusicFile]:
+    # skip if the file is a front for wrong format
+    if not file.length:
+        return file
+
     errors: List[MusicFileError] = []
     warnings: List[MusicFileError] = []
     ordinal = file.get_ordinal_number()
 
-    if not len(file.authors):
+    if not len(file.artists):
         fixes = []
-        if file.predicted_authors:
+        if file.predicted_artists:
             fixes.append(
                 MusicFileErrorFix(
-                    f"Add authors based on file name: {', '.join(file.predicted_authors)}",
-                    f"edit-file {ordinal} --authors {' '.join(file.predicted_authors)}",
+                    f"Add artists based on file name: {', '.join(file.predicted_artists)}",
+                    f"edit-file {ordinal} --artists {' '.join(quoted(artist) for artist in file.predicted_artists)}",
                 )
             )
         fixes.append(
             MusicFileErrorFix.with_user_input(
-                "Add authors...",
-                f"edit-file {ordinal} --authors ",
+                "Add artists...",
+                f"edit-file {ordinal} --artists ",
             )
         )
-        errors.append(MusicFileError("No authors in tags", fixes))
+        errors.append(MusicFileError("No artists in tags", fixes))
 
-    for author in file.authors:
-        if "," in author or "[" in author or "]" in author:
-            corrected_author = (
-                author.replace(",", "").replace("[,]", "").replace("]", "")
+    for artist in file.artists:
+        if "," in artist or "[" in artist or "]" in artist:
+            corrected_artist = (
+                artist.replace(",", "").replace("[,]", "").replace("]", "")
             )
             errors.append(
                 MusicFileError(
-                    f"Author with illegal symbols in their name: {author}",
+                    f"Artist with illegal symbols in their name: {artist}",
                     [
                         MusicFileErrorFix(
-                            f"Change author name to {corrected_author}",
-                            f"edit-file {ordinal} --remove-authors {author} --add-authors {corrected_author}",
+                            f"Change artist name to {corrected_artist}",
+                            f"edit-file {ordinal} --remove-artists {quoted(artist)} "
+                            f"--add-artists {quoted(corrected_artist)}",
                         ),
                         MusicFileErrorFix.with_user_input(
-                            f"Change author name to...",
-                            f"edit-file {ordinal} --remove-authors {author} --add-authors ",
+                            f"Change artist name to...",
+                            f"edit-file {ordinal} --remove-artists {quoted(artist)} --add-artists ",
                         ),
                     ],
                 )
             )
 
-        if author not in file.predicted_authors:
-            errors.append(MusicFileError(f"Author missing from file name: {author}"))
-            # alias existing author to {}
-            # replace existing author
+        if artist not in file.predicted_artists:
+            errors.append(MusicFileError(f"Artist missing from file name: {artist}"))
+            # alias existing artist to {}
+            # replace existing artist
             # todo command to change file name
-            # todo command to alias authors
+            # todo command to alias artists
 
-        if not author_registry.find_author(author):
-            warnings.append(MusicFileError(f"New author: {author}"))
-            # todo command to add author
-            # alias existing author to {}
-            # replace existing author
+        if not artist_registry.find(artist):
+            warnings.append(
+                MusicFileError(
+                    f"New artist: {artist}",
+                    [
+                        MusicFileErrorFix(
+                            f"Add new artist",
+                            f"add-artist {quoted(artist)}",
+                        ),
+                    ],
+                )
+            )
+            # todo
+            # alias existing artist to {}
+            # replace existing artist
 
-    for author in file.predicted_authors:
-        # alias existing author to {}
-        # replace existing author
-        if author not in file.authors:
+    for artist in file.predicted_artists:
+        # alias existing artist to {}
+        # replace existing artist
+        if artist not in file.artists:
             errors.append(
                 MusicFileError(
-                    f"Author missing from tags: {author}",
+                    f"Artist missing from tags: {artist}",
                     MusicFileErrorFix(
-                        "Add author to tags",
-                        f"edit-file {ordinal} --add-authors {author}",
+                        "Add artist to tags",
+                        f"edit-file {ordinal} --add-artists {quoted(artist)}",
                     ),
                 )
             )
@@ -110,7 +128,7 @@ def analyze_file(
     for genre in file.genres:
         if "," in genre:
             corrected_genre = genre.replace(",", "")
-            # todo command to alias genres [genres will autocorrect, authors will not]
+            # todo command to alias genres [genres will autocorrect, artists will not]
             # alias existing genre to {}
             # replace existing genre
             errors.append(
@@ -119,20 +137,37 @@ def analyze_file(
                     [
                         MusicFileErrorFix(
                             f"Change genre to {corrected_genre}",
-                            f"edit-file {ordinal} --remove-genres {genre} --add-genres {corrected_genre}",
+                            f"edit-file {ordinal} --remove-genres {quoted(genre)} --add-genres {quoted(corrected_genre)}",
                         ),
                         MusicFileErrorFix.with_user_input(
                             f"Change genre to...",
-                            f"edit-file {ordinal} --remove-genres {genre} --add-genres ",
+                            f"edit-file {ordinal} --remove-genres {quoted(genre)} --add-genres ",
                         ),
                     ],
                 )
             )
 
-        if not genre_registry.find_genre(genre):
-            warnings.append(MusicFileError(f"New genre: {genre}"))
-            # todo command to add genre
-            # todo command to alias genres [genres will autocorrect, authors will not]
+        if not genre_registry.find(genre):
+            warnings.append(
+                MusicFileError(
+                    f"New genre: {genre}",
+                    [
+                        MusicFileErrorFix(
+                            f'Add new "music type" genre',
+                            f"add-genre {quoted(genre)} --category type",
+                        ),
+                        MusicFileErrorFix(
+                            f'Add new "music genre" genre',
+                            f"add-genre {quoted(genre)} --category genre",
+                        ),
+                        MusicFileErrorFix(
+                            f'Add new "music quality" genre',
+                            f"add-genre {quoted(genre)} --category quality",
+                        ),
+                    ],
+                )
+            )
+            # todo command to alias genres [genres will autocorrect, artists will not]
 
         correct_capitalization = " ".join(
             [word[0].upper() + word[1:].lower() for word in genre.split(" ")]
@@ -143,7 +178,8 @@ def analyze_file(
                     f"Wrong genre name capitalization: {genre}",
                     MusicFileErrorFix(
                         f"Change the capitalization to {correct_capitalization}",
-                        f"edit-file {ordinal} --remove-genres {genre} --add-genres {correct_capitalization}",
+                        f"edit-file {ordinal} --remove-genres {quoted(genre)} "
+                        f"--add-genres {quoted(correct_capitalization)}",
                     ),
                 )
             )
@@ -154,7 +190,7 @@ def analyze_file(
             fixes.append(
                 MusicFileErrorFix(
                     f"Use title from file name ({file.predicted_title})",
-                    f"edit-file {ordinal} --title {file.predicted_title}",
+                    f"edit-file {ordinal} --title {quoted(file.predicted_title)}",
                 )
             )
         errors.append(MusicFileError("No title set", fixes))
@@ -165,7 +201,7 @@ def analyze_file(
             fixes.append(
                 MusicFileErrorFix(
                     f"Use title from file name ({file.predicted_title})",
-                    f"edit-file {ordinal} --title {file.predicted_title}",
+                    f"edit-file {ordinal} --title {quoted(file.predicted_title)}",
                 )
             )
         # todo add possibility to change file name instead

@@ -5,6 +5,7 @@ from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.settings.text_color.TextColor import TextColor
 from functions.settings.text_color.ColorScheme import ColorScheme, color_mapper
 from libs.io import create_directory
+from libs.strings import quoted
 
 PAGE_SIZE_AUTO = -1
 
@@ -68,7 +69,7 @@ class AppSettings:
         if name in default_settings.keys():
             self.apply_settings({name: value})
         else:
-            raise KeyError(f'Unknown setting name: "{name}".')
+            raise KeyError(f"Unknown setting name: {quoted(name)}.")
         self.save_settings()
 
     def color_mapper(self, color: SchemeColor) -> TextColor:

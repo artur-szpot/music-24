@@ -90,7 +90,7 @@ class CurrentPosition:
             self.terminal_size = terminal_size.lines
         else:
             self.terminal_size = min(app_settings.page_size, terminal_size.lines)
-        # 3 for last command/message, break, pagination
+        # 3 for last command/message, break, pagination # todo only 1 now
         # 1 or 3 for table header
         # 2 for break, input
         pagination_size = 1
@@ -99,7 +99,8 @@ class CurrentPosition:
             and self.header_type == HeaderType.TABLE_HEADER
         ):
             pagination_size = 3
-        self.page_size = self.terminal_size - 3 - pagination_size - 2
+        self.page_size = self.terminal_size - 1 - pagination_size - 2
+        # self.page_size = self.terminal_size - 3 - pagination_size - 2
         if self.page_size < 2:
             raise TerminalSizeError(
                 "Terminal is too small to display the application. Increase terminal height or enable compact table "

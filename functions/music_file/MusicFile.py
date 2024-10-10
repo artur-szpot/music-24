@@ -6,10 +6,11 @@ from functions.music_file.MusicFileViewProps import MusicFileViewProps
 
 
 class MusicFile:
-    authors: List[str]
+    artists: List[str]
     genres: List[str]
     title: Optional[str]
     path: str
+    db_file: Optional[str]
     filename: Optional[str]
     length: Optional[int]
     rating: Optional[int]
@@ -17,7 +18,7 @@ class MusicFile:
     is_dad: Optional[bool]
     is_ready: Optional[bool]
 
-    predicted_authors: Optional[List[str]]
+    predicted_artists: Optional[List[str]]
     predicted_title: Optional[str]
 
     errors: List[MusicFileError]
@@ -27,11 +28,12 @@ class MusicFile:
     view_props: Dict[MusicFileViewProps, Any]
 
     def __init__(self, source) -> None:
-        self.authors = source.get("authors", [])
+        self.artists = source.get("artists", [])
         self.genres = source.get("genres", [])
         self.title = source.get("title")
         self.path = source.get("path")
         self.filename = source.get("filename")
+        self.db_file = source.get("db_file")
         self.length = source.get("length")
         self.rating = source.get("rating")
         self.is_mlp = source.get("is_mlp")
@@ -39,18 +41,19 @@ class MusicFile:
         self.is_ready = source.get("is_ready")
         self.errors = source.get("errors", [])
         self.warnings = source.get("warnings", [])
-        self.predicted_authors = source.get("predicted_authors", [])
+        self.predicted_artists = source.get("predicted_artists", [])
         self.predicted_title = source.get("predicted_title", "")
         self.db_props = source.get("db_props", {})
         self.view_props = source.get("view_props", {})
 
     def to_dict(self):
         return {
-            "authors": self.authors,
+            "artists": self.artists,
             "genres": self.genres,
             "title": self.title,
             "path": self.path,
             "filename": self.filename,
+            "db_file": self.db_file,
             "length": self.length,
             "rating": self.rating,
             "is_mlp": self.is_mlp,

@@ -3,6 +3,9 @@ from typing import Dict, List, Callable, Optional
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
+from functions.commands.definition.FunctionFollowingCommands import (
+    FunctionFollowingCommands,
+)
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 
@@ -26,7 +29,7 @@ class FunctionDefinition:
     verbs: List[str]
     args_validator: ArgsValidator
     command: CommandEnum
-    default_command: Optional[str]
+    following_commands: Optional[FunctionFollowingCommands]
 
     def __init__(
         self,
@@ -36,7 +39,7 @@ class FunctionDefinition:
         category: FunctionCategoryEnum,
         parameters: Dict[str, ParameterHelp] = None,
         args_validator: ArgsValidator = ArgsValidator.no_args(),
-        default_command: str = None,
+        following_commands: FunctionFollowingCommands = None,
     ):
         self.function = function
         self.verbs = verbs
@@ -45,7 +48,7 @@ class FunctionDefinition:
         self.parameters = parameters
         self.args_validator = args_validator
         self.command = CommandEnum.Exit
-        self.default_command = default_command
+        self.following_commands = following_commands
 
     def with_command(self, command: CommandEnum):
         self.command = command

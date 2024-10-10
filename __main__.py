@@ -2,6 +2,7 @@ import os
 from typing import List
 
 from constants.debug import debug_tools
+from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.definition.ActionEnum import ActionEnum
 from functions.execute.ExecutionResult import ExecutionResultCategory
@@ -9,7 +10,6 @@ from functions.execute.FullExecutionResult import FullExecutionResult
 from functions.execute.custom_input import custom_input
 from functions.execute.execute import execute_command, DisallowedCommandError
 from functions.lines.Line import Line
-from functions.cache.cache import query_cache, file_cache
 from functions.result_scrolling.CurrentPosition import HeaderType, TerminalSizeError
 from functions.result_scrolling.current_position import current_position
 from libs.error_handling import error_message_to_string
@@ -21,7 +21,16 @@ def clear():
 
 
 display: FullExecutionResult = FullExecutionResult()
-memory = {"action": ActionEnum.Refresh}
+memory = {"action": ActionEnum.Refresh, "user_input": []}
+
+
+def get_user_input() -> str:
+    command = custom_input(memory["user_input"])
+    if command not in ["", " ", "\t"]:
+        memory["user_input"].append(command)
+        if len(memory["user_input"]) > 10:
+            memory["user_input"] = memory["user_input"][-10:]
+    return command
 
 
 def terminal_size_fault_loop(
@@ -31,7 +40,7 @@ def terminal_size_fault_loop(
     Line.simple(terminal_size_message).render(current_position.max_width)
     if other_message:
         Line.simple(other_message).render(current_position.max_width)
-    command = custom_input()
+    command = get_user_input()
     try:
         new_result = execute_command(
             command, [CommandEnum.SetPageSize, CommandEnum.Exit]
@@ -53,7 +62,7 @@ def main_loop(
             line.render(current_position.max_width)
         print()
     if not initial_check:
-        command = custom_input()
+        command = get_user_input()
     else:
         command = ""
     try:
@@ -73,23 +82,32 @@ def main_loop(
 
 
 def normal_loop(command: str, last_command: str = None) -> None:
+    previous_result = cache.get_last_result()
+    default_prefix = None
+    if previous_result is not None and previous_result.following_commands:
+        default_prefix = previous_result.following_commands.get_default()
+        command_stack = {
+            "": previous_result.following_commands.get_empty(),
+            " ": previous_result.following_commands.get_space(),
+            "\t": previous_result.following_commands.get_tab(),
+        }.get(command)
+        if command_stack is not None:
+            command = command_stack[0]
+            cache.extend_command_stack(command_stack[1:])
     if not len(command):
-        previous_result = query_cache.get("last")
-        if previous_result is not None and previous_result.default_command:
-            command = previous_result.default_command
-        else:
-            normal_loop_finisher(command, last_command)
+        normal_loop_finisher(command, last_command)
 
     last_executed_command = last_command
 
-    new_result: FullExecutionResult = execute_command(command)
+    new_result: FullExecutionResult = execute_command(
+        command, default_prefix=default_prefix
+    )
     if new_result.result is not None:
         memory["action"] = new_result.result.get_action()
-        if new_result.result.category != ExecutionResultCategory.Detail:
-            if "current_file" in file_cache:
-                del file_cache["current_file"]
         if new_result.result.category == ExecutionResultCategory.Query:
-            query_cache["last"] = new_result.result
+            cache.set_last_query(new_result.result)
+            cache.set_last_result(new_result.result)
+            cache.clear_current_file()
             current_position.new_result(
                 new_result.result.get_total_items(), HeaderType.TABLE_HEADER
             )
@@ -97,6 +115,7 @@ def normal_loop(command: str, last_command: str = None) -> None:
             display.message = None
             last_executed_command = command
         elif new_result.result.category == ExecutionResultCategory.Detail:
+            cache.set_last_result(new_result.result)
             current_position.new_result(
                 new_result.result.get_total_items(), HeaderType.SIMPLE_PAGINATION
             )

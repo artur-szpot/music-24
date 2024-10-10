@@ -9,4 +9,5 @@ class FunctionCategoryEnum(Enum):
     IngestingFiles = 3
     CreatingPlaylists = 4
     ExportingFiles = 5
+    DataTypeManagement = 6
     Unassigned = -1

@@ -1,10 +1,11 @@
 from typing import List
 
+from functions.cache import cache
 from functions.commands.command_registry import command_registry
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.args_parsing_errors import ArgsParsingError
 from functions.help.help_definition import help_definition
-from functions.cache.cache import query_cache
+from libs.strings import quoted
 
 
 def parse_args(input_command: str) -> ArgsDict:
@@ -12,16 +13,18 @@ def parse_args(input_command: str) -> ArgsDict:
     command = input_parts[0]
     args_raw = input_parts[1:]
     args = parse_args_exe(args_raw)
-    last_result = query_cache.get("last")
     if command in help_definition().verbs:
         args.system = {
             "command_registry": command_registry,
-            "current_file": last_result.get_file(index - 1),
         }
     return args
 
 
 def parse_args_exe(args_raw: List[str]) -> ArgsDict:
+    # Check for empty quoted args.
+    if '""' in args_raw:
+        raise ArgsParsingError('Parsing error: empty arguments ("") are not allowed')
+
     # Ensure the processing will end on an empty token.
     args_raw.append("")
 
@@ -41,7 +44,7 @@ def parse_args_exe(args_raw: List[str]) -> ArgsDict:
                 raise ArgsParsingError(f'Incorrect flag usage: "--" lacks flag name')
             if len(arg) == 3:
                 raise ArgsParsingError(
-                    f'Incorrect flag usage: "{arg}" should have been "{arg[1:]}"'
+                    f"Incorrect flag usage: {quoted(arg)} should have been {quoted(arg[1:])}"
                 )
             new_flag = arg[2:]
         elif arg.startswith("-"):
@@ -49,13 +52,26 @@ def parse_args_exe(args_raw: List[str]) -> ArgsDict:
                 raise ArgsParsingError(f'Incorrect flag usage: "-" lacks flag name')
             if len(arg) > 2:
                 raise ArgsParsingError(
-                    f'Incorrect flag usage: "{arg}" should have been "-{arg}"'
+                    f"Incorrect flag usage: {quoted(arg)} should have been {quoted(f'--{arg[1:]}')}"
                 )
             new_flag = arg[1]
 
         # If it is just a quote, raise - quoted args should be trimmed.
         elif arg == '"':
             raise ArgsParsingError("Parsing error: lone quote")  # todo test this
+
+        # If it starts AND ends with a quote, treat it as a single arg.
+        # Important: This excludes all of the following conditions!
+        # - does start with "
+        # - does end with "
+        # - checks for processing
+        # - check for emptiness occurred above
+        # - is not last, as last is always empty string
+        elif arg.startswith('"') and arg.endswith('"'):
+            # If it starts AND ends with a quote, but in the middle of parsing a quoted arg, it's nonsense.
+            if current_arg is not None:
+                raise ArgsParsingError("Parsing error: nested quoted argument")
+            pass
 
         # If it starts with a quote, begin parsing a quoted arg.
         elif arg.startswith('"'):

@@ -25,6 +25,27 @@ class Test(unittest.TestCase):
         self.assertDictEqual(parsed_args.kwargs, {})
         self.assertListEqual(parsed_args.flags, [])
 
+    def test_should_parse_single_quoted_arg(self):
+        user_input = 'command "arg"'
+        parsed_args = parse_args(user_input)
+        self.assertListEqual(parsed_args.args, ["arg"])
+        self.assertDictEqual(parsed_args.kwargs, {})
+        self.assertListEqual(parsed_args.flags, [])
+
+    def test_should_parse_single_arg_with_quotes(self):
+        user_input = 'command \\"arg\\"'
+        parsed_args = parse_args(user_input)
+        self.assertListEqual(parsed_args.args, ['"arg"'])
+        self.assertDictEqual(parsed_args.kwargs, {})
+        self.assertListEqual(parsed_args.flags, [])
+
+    def test_should_parse_single_quoted_arg_with_quotes(self):
+        user_input = 'command "\\"arg\\""'
+        parsed_args = parse_args(user_input)
+        self.assertListEqual(parsed_args.args, ['"arg"'])
+        self.assertDictEqual(parsed_args.kwargs, {})
+        self.assertListEqual(parsed_args.flags, [])
+
     def test_should_parse_multiple_args(self):
         user_input = "command arg1 arg2 arg3"
         parsed_args = parse_args(user_input)
@@ -219,8 +240,31 @@ class Test(unittest.TestCase):
 
     # ERRORS: JUST ARGS
 
+    def test_should_error_on_empty_argument(self):
+        user_input = 'command arg1 ""'
+        try:
+            parse_args(user_input)
+        except ArgsParsingError as error:
+            self.assertEqual(
+                error_message_to_string(error),
+                'Parsing error: empty arguments ("") are not allowed',
+            )
+            return
+        self.assertEqual("An error should have been thrown", "")
+
+    def test_should_error_on_nested_quoted_argument(self):
+        user_input = 'command "arg1 "arg2" arg3"'
+        try:
+            parse_args(user_input)
+        except ArgsParsingError as error:
+            self.assertEqual(
+                error_message_to_string(error), "Parsing error: nested quoted argument"
+            )
+            return
+        self.assertEqual("An error should have been thrown", "")
+
     def test_should_error_on_opening_next_quote(self):
-        user_input = 'command "arg1 "arg2""'
+        user_input = 'command "arg1 "arg2 arg3"'
         try:
             parse_args(user_input)
         except ArgsParsingError as error:
