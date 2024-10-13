@@ -9,7 +9,7 @@ from functions.commands.definition.FunctionFollowingCommands import (
 )
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.file_import.analyze_files import analyze_file
+from functions.file_import.analyze.analyze_files import analyze_file
 from functions.lines.Line import Line
 from functions.music_file.MusicFile import MusicFile
 from functions.querying.file_view_header import file_view_header

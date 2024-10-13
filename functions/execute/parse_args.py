@@ -1,6 +1,5 @@
 from typing import List
 
-from functions.cache import cache
 from functions.commands.command_registry import command_registry
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.args_parsing_errors import ArgsParsingError

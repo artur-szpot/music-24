@@ -4,8 +4,10 @@ from functions.commands.CommandEnum import CommandEnum
 from functions.commands.ExitCommand import exit_definition
 from functions.data_types.DataTypeEnum import DataTypeEnum
 from functions.data_types.functions.add import add_definition
+from functions.data_types.functions.add_variant import add_variant_definition
+from functions.execute.show_log import show_log_definition
 from functions.file_import.fix import fix_definition
-from functions.file_import.print_file_analysis import print_file_analysis_definition
+from functions.file_import.analyze.print_file_analysis import print_file_analysis_definition
 from functions.file_management.clear_db import clear_db_definition
 from functions.file_management.edit_file import edit_file_definition
 from functions.file_import.import_files import (
@@ -23,6 +25,7 @@ from functions.settings.set_page_size import set_page_size_definition
 
 command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.Exit: exit_definition(),
+    CommandEnum.ShowLog: show_log_definition(),
     CommandEnum.Help: help_definition(),
     CommandEnum.ListFiles: list_all_files_definition(),
     CommandEnum.ImportFiles: import_files_definition(),
@@ -38,6 +41,10 @@ command_registry: Dict[CommandEnum, FunctionDefinition] = {
     CommandEnum.Fix: fix_definition(),
     CommandEnum.AddArtist: add_definition(DataTypeEnum.ARTIST),
     CommandEnum.AddGenre: add_definition(DataTypeEnum.GENRE),
+    CommandEnum.AddArtistAlias: add_variant_definition(DataTypeEnum.ARTIST, True),
+    CommandEnum.AddArtistGenre: add_variant_definition(DataTypeEnum.GENRE, True),
+    CommandEnum.AddArtistMisspelling: add_variant_definition(DataTypeEnum.ARTIST, False),
+    CommandEnum.AddGenreMisspelling: add_variant_definition(DataTypeEnum.GENRE, False),
     # CommandEnum.UpdateFromDatabase: update_from_database,
     # CommandEnum.UpdateFromMp3: update_from_mp3,
 }

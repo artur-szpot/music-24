@@ -10,6 +10,7 @@ from functions.commands.definition.FunctionFollowingCommands import (
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
+from functions.file_import.analyze.analyze_files import analyze_file
 from functions.lines.Line import Line
 from functions.music_file.MusicFile import MusicFile
 from functions.music_file.MusicFileError import MusicFileError
@@ -35,6 +36,7 @@ def fix(args_dict: ArgsDict) -> ExecutionResult:
     file = args_dict.get_file()
     if file is None:
         return ExecutionResult.error_message("Could not find the file to fix.")
+    file = analyze_file(file)
     chosen_option = args_dict.get_numeric_arg(0)
     to_fix, is_error = get_first_to_fix(file)
     if to_fix is None:

@@ -89,8 +89,8 @@ class ExecutionResult:
 
     @staticmethod
     def error_message(message: str):
-        print(message)
-        quit()
+        # print(message)
+        # quit()
         return ExecutionResult(
             action=ActionEnum.Refresh,
             message=Line.simple(message, color=SchemeColor.BAD),

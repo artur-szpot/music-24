@@ -1,13 +1,13 @@
 from typing import Optional, List, Union
 
+from libs.list_union_util import SimpleList, simple_list
+
 
 class FollowingCommand:
     command_stack: List[str]
 
-    def __init__(self, command_stack: Union[str, List[str]]):
-        self.command_stack = (
-            command_stack if isinstance(command_stack, list) else [command_stack]
-        )
+    def __init__(self, command_stack: SimpleList[str]):
+        self.command_stack = simple_list(command_stack)
 
 
 class FunctionFollowingCommands:
@@ -21,26 +21,26 @@ class FunctionFollowingCommands:
     _default_command_prefix: Optional[str]
 
     def __init__(
-        self,
-        empty_command: Optional[FollowingCommand] = None,
-        space_command: Optional[FollowingCommand] = None,
-        tab_command: Optional[FollowingCommand] = None,
-        default_prefix: Optional[str] = None,
+            self,
+            empty_command: Optional[FollowingCommand] = None,
+            space_command: Optional[FollowingCommand] = None,
+            tab_command: Optional[FollowingCommand] = None,
+            default_prefix: Optional[str] = None,
     ):
         self._empty_command = empty_command
         self._space_command = space_command
         self._tab_command = tab_command
         self._default_command_prefix = default_prefix
 
-    def empty(self, command_stack: Union[str, List[str]]):
+    def empty(self, command_stack: SimpleList[str]):
         self._empty_command = FollowingCommand(command_stack)
         return self
 
-    def space(self, command_stack: Union[str, List[str]]):
+    def space(self, command_stack: SimpleList[str]):
         self._space_command = FollowingCommand(command_stack)
         return self
 
-    def tab(self, command_stack: Union[str, List[str]]):
+    def tab(self, command_stack: SimpleList[str]):
         self._tab_command = FollowingCommand(command_stack)
         return self
 

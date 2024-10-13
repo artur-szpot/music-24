@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
@@ -7,24 +7,24 @@ from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.execute.arg_validation_errors import ArgumentValidationError
-from functions.execute.validate_args import AllowedKwarg
-from functions.file_import.analyze_files import analyze_file
+from functions.execute.validate_args import KwargDefinition
+from functions.file_import.analyze.analyze_files import analyze_file
 from functions.file_management.file_operations import save_file
 from functions.music_file.MusicFile import MusicFileDbProps, MusicFile
 
 args_validator = ArgsValidator.file_and_no_args().kwargs(
     allowed_kwargs={
-        AllowedKwarg.any("add-artists"),
-        AllowedKwarg.any("remove-artists"),
-        AllowedKwarg.any("add-genres"),
-        AllowedKwarg.any("remove-genres"),
-        AllowedKwarg.any("artists"),
-        AllowedKwarg.any("genres"),
-        AllowedKwarg.single("title"),
-        AllowedKwarg.single("rating"),
-        AllowedKwarg.single("is_mlp"),
-        AllowedKwarg.single("is_dad"),
-        AllowedKwarg.single("is_ready"),
+        KwargDefinition.any("add-artists"),
+        KwargDefinition.any("remove-artists"),
+        KwargDefinition.any("add-genres"),
+        KwargDefinition.any("remove-genres"),
+        KwargDefinition.any("artists"),
+        KwargDefinition.any("genres"),
+        KwargDefinition.single("title"),
+        KwargDefinition.single("rating"),
+        KwargDefinition.single("is_mlp"),
+        KwargDefinition.single("is_dad"),
+        KwargDefinition.single("is_ready"),
     }
 )
 
@@ -42,7 +42,7 @@ def edit_file_definition() -> FunctionDefinition:
 def edit_file(args_dict: ArgsDict) -> ExecutionResult:
     file = args_dict.get_file()
 
-    instructions: Dict[str, Union[str, List[str], Dict[str, List[str]]]] = {}
+    instructions: dict = {}
     add: Dict[str, List[str]] = {"a": []}
     add_artists = args_dict.get_kwarg("add-artists")
     add_genres = args_dict.get_kwarg("add-genres")
@@ -77,7 +77,7 @@ def edit_file(args_dict: ArgsDict) -> ExecutionResult:
 
     rating = args_dict.get_kwarg("rating")
     if rating:
-        instructions["rating"] = rating[0]
+        instructions["rating"] = int(rating[0])
 
     is_mlp = args_dict.get_kwarg("is_mlp")
     if is_mlp:
@@ -94,7 +94,7 @@ def edit_file(args_dict: ArgsDict) -> ExecutionResult:
     return edit_file_exe(file, instructions)
 
 
-def edit_file_exe(file: MusicFile, instructions: Dict) -> ExecutionResult:
+def edit_file_exe(file: MusicFile, instructions: dict) -> ExecutionResult:
     if not instructions:
         raise ArgumentValidationError("No values to update provided")
 
@@ -102,12 +102,10 @@ def edit_file_exe(file: MusicFile, instructions: Dict) -> ExecutionResult:
     remove = instructions.get("remove")
     if add is not None:
         if "artists" in add:
-            artists = file.artists
-            artists += add.get("artists")
+            artists = add.get("artists") + file.artists
             file.artists = artists
         if "genres" in add:
-            genres = file.genres
-            genres += add.get("genres")
+            genres = add.get("genres") + file.genres
             file.genres = genres
     if remove is not None:
         if "artists" in remove:

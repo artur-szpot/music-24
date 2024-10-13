@@ -1,6 +1,6 @@
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 
-from functions.data_types.DataTypeEnum import DataTypeEnum
+from libs.list_union_util import SimpleList
 
 
 class DataType:
@@ -47,7 +47,7 @@ class DataType:
         }
         return DataType(index, name, aliases, misspellings, other)
 
-    def to_dict(self) -> Dict[str, Union[str, List[str]]]:
+    def to_dict(self) -> Dict[str, SimpleList[str]]:
         base = {
             "index": self.index,
             "name": self.name,

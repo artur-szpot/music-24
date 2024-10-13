@@ -8,7 +8,7 @@ from functions.commands.definition.FunctionFollowingCommands import (
 )
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.file_import.analyze_files import analyze_files
+from functions.file_import.analyze.analyze_files import analyze_files
 from functions.querying.list_files import list_files, list_files_header
 from functions.querying.standard_views import ANALYZE_VIEW
 

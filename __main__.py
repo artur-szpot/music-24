@@ -60,7 +60,7 @@ def main_loop(
     if message:
         for line in message:
             line.render(current_position.max_width)
-        print()
+        # print()
     if not initial_check:
         command = get_user_input()
     else:
@@ -112,7 +112,7 @@ def normal_loop(command: str, last_command: str = None) -> None:
                 new_result.result.get_total_items(), HeaderType.TABLE_HEADER
             )
             display.result = new_result.result
-            display.message = None
+            # display.message = None
             last_executed_command = command
         elif new_result.result.category == ExecutionResultCategory.Detail:
             cache.set_last_result(new_result.result)
@@ -120,17 +120,19 @@ def normal_loop(command: str, last_command: str = None) -> None:
                 new_result.result.get_total_items(), HeaderType.SIMPLE_PAGINATION
             )
             display.result = new_result.result
-            display.message = None
+            # display.message = None
             last_executed_command = command
-        elif new_result.result.category in [
-            ExecutionResultCategory.Message,
-            ExecutionResultCategory.Action,
-        ]:
-            display.message = new_result.result.get_message()
-    if not display.message or display.message.is_empty():
-        display.message = Line.simple(
-            f">_ {last_executed_command}" if last_executed_command else ""
-        )
+        # elif new_result.result.category in [
+        #     ExecutionResultCategory.Message,
+        #     ExecutionResultCategory.Action,
+        # ]:
+        display.message = new_result.result.get_message()
+    else:
+        display.message = None
+    # if not display.message or display.message.is_empty():
+    #     display.message = Line.simple(
+    #         f">_ {last_executed_command}" if last_executed_command else ""
+    #     )
     normal_loop_finisher(command, last_command)
 
 

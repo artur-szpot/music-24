@@ -34,7 +34,10 @@ class FullExecutionResult:
         else:
             # allow 2 for top message and 2 for input line with break # todo 2 currently removed from the top
             retval.extend(
-                [Line.empty() for i in range(current_position.terminal_size - 2)]
+                [Line.empty() for i in range(current_position.terminal_size - 3)]
+                # + [Line.empty() if self.message is None else self.message]
                 # [Line.empty() for i in range(current_position.terminal_size - 4)]
             )
+        retval.append(Line.empty())
+        retval.append(Line.empty() if self.message is None else self.message)
         return retval

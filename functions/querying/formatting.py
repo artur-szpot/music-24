@@ -2,9 +2,10 @@ from typing import Optional
 
 from functions.lines.Line import LineElement
 from functions.music_file.MusicFile import MusicFile
-from functions.settings.text_color.SchemeColor import SchemeColor
 from functions.querying.SpecialColumn import SpecialColumn
 from functions.querying.View import ViewColumn
+from functions.settings.text_color.SchemeColor import SchemeColor
+from libs.list_union_util import simple_list
 
 
 def format_special(music_file: MusicFile, column: ViewColumn) -> LineElement:
@@ -29,9 +30,7 @@ def format_property(music_file: MusicFile, column: ViewColumn) -> LineElement:
     if column.special is not None:
         return format_special(music_file, column)
     value = music_file.to_dict().get(column.property_name)
-    if isinstance(value, list):
-        value = ", ".join(value)
-    return format_value(value, column)
+    return format_value(", ".join(simple_list(value)), column)
 
 
 def format_value(value: Optional[str], column: ViewColumn) -> LineElement:

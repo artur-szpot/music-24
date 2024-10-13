@@ -1,14 +1,15 @@
-from typing import List, Dict, Union
+from typing import List, Dict
 
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.arg_validation_errors import (
     ArgumentValidationError,
     NoArgumentsExpectedError,
 )
+from libs.list_union_util import SimpleList, simple_list
 from libs.strings import quoted
 
 
-class AllowedKwarg:
+class KwargDefinition:
     aliases: List[str]
     min_values: int
     max_values: int
@@ -16,26 +17,26 @@ class AllowedKwarg:
 
     def __init__(
         self,
-        aliases: Union[str, List[str]],
+        aliases: SimpleList[str],
         min_values: int = 0,
         max_values: int = 0,
         exact_values: int = 0,
     ):
-        self.aliases = aliases if isinstance(aliases, list) else [aliases]
+        self.aliases = simple_list(aliases)
         self.min_values = min_values
         self.max_values = max_values
         self.exact_values = exact_values
 
     @staticmethod
-    def single(aliases: Union[str, List[str]]):
-        return AllowedKwarg(aliases, exact_values=1)
+    def single(aliases: SimpleList[str]):
+        return KwargDefinition(aliases, exact_values=1)
 
     @staticmethod
-    def any(aliases: Union[str, List[str]]):
-        return AllowedKwarg(aliases, min_values=1)
+    def any(aliases: SimpleList[str]):
+        return KwargDefinition(aliases, min_values=1)
 
 
-def validate_kwarg(values: List[str], name: str, props: AllowedKwarg) -> None:
+def validate_kwarg(values: List[str], name: str, props: KwargDefinition) -> None:
     min_values = props.min_values
     max_values = props.max_values
     exact_values = props.exact_values
@@ -58,8 +59,8 @@ def validate_args(
     min_args: int = 0,
     max_args: int = 0,
     exact_args: int = 0,
-    required_kwargs: Dict[str, AllowedKwarg] = None,
-    allowed_kwargs: Dict[str, AllowedKwarg] = None,
+    required_kwargs: Dict[str, KwargDefinition] = None,
+    allowed_kwargs: Dict[str, KwargDefinition] = None,
     allowed_flags: List[str] = None,
     variants: Dict[str, List[str]] = None,
 ):
@@ -86,8 +87,11 @@ def validate_args(
     if not min_args and not max_args and not exact_args and len(args):
         raise NoArgumentsExpectedError()
 
+    all_allowed_kwargs = []
+
     for name, values in required_kwargs.items():
-        kwarg_variants = variants.get(name, [name])
+        kwarg_variants = [name] + variants.get(name, [])
+        all_allowed_kwargs.extend(kwarg_variants)
         kwarg = None
         for variant in kwarg_variants:
             if kwarg is None:
@@ -97,7 +101,8 @@ def validate_args(
         validate_kwarg(kwarg, name, values)
 
     for name, values in allowed_kwargs.items():
-        kwarg_variants = variants.get(name, [name])
+        kwarg_variants = [name] + variants.get(name, [])
+        all_allowed_kwargs.extend(kwarg_variants)
         kwarg = None
         for variant in kwarg_variants:
             if kwarg is None:
@@ -105,9 +110,6 @@ def validate_args(
         if kwarg is not None:
             validate_kwarg(kwarg, name, values)
 
-    all_allowed_kwargs = [key for key in allowed_kwargs.keys()] + [
-        key for key in allowed_kwargs.keys()
-    ]
     disallowed_kwargs = [key for key in kwargs.keys() if key not in all_allowed_kwargs]
     disallowed_flags = [flag for flag in flags if flag not in allowed_flags]
     disallowed_args = disallowed_kwargs + disallowed_flags

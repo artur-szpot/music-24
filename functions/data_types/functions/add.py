@@ -15,7 +15,8 @@ from functions.data_types.artist_registry import artist_registry
 from functions.data_types.genre_registry import genre_registry
 from functions.execute.ArgsValidator import ArgsValidator
 from functions.execute.ExecutionResult import ExecutionResult
-from functions.execute.validate_args import AllowedKwarg
+from functions.execute.validate_args import KwargDefinition
+from libs.error_handling import error_message_to_string
 
 
 def add_definition(data_type: DataTypeEnum) -> FunctionDefinition:
@@ -29,14 +30,14 @@ def add_definition(data_type: DataTypeEnum) -> FunctionDefinition:
     else:
         registry = genre_registry
         constructor = Genre.create
-        required_kwargs = [AllowedKwarg.single(["category", "cat", "c"])]
+        required_kwargs = [KwargDefinition.single(["category", "cat", "c"])]
     return FunctionDefinition(
         function=add(registry, constructor),
         verbs=[f"add-{data_type.value}"],
         args_validator=ArgsValidator.args(exact=1).kwargs(
             allowed_kwargs=[
-                AllowedKwarg.any(["aliases", "alias", "a"]),
-                AllowedKwarg.any(["misspellings", "miss", "m"]),
+                KwargDefinition.any(["aliases", "alias", "a"]),
+                KwargDefinition.any(["misspellings", "miss", "m"]),
             ],
             required_kwargs=required_kwargs,
         ),
@@ -60,7 +61,10 @@ def add(
         other = {}
         if category is not None:
             other["category"] = category
-        registry.add(constructor(name, aliases, misspellings, other))
+        try:
+            registry.add(constructor(name, aliases, misspellings, other))
+        except Exception as e:
+            return ExecutionResult.error_message(error_message_to_string(e))
         return ExecutionResult.refresh()
 
     return add_typed

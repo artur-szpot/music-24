@@ -3,6 +3,8 @@ from enum import Enum
 
 class CommandEnum(Enum):
     Exit = 0  # close the app
+    ShowLog = 36
+
     ListFiles = 2  # list the files in the file_management
     FileDetails = 15  # List all the info about a chosen file
     EditDatabaseFile = 5  # change whatever values for the file in database
@@ -19,6 +21,7 @@ class CommandEnum(Enum):
     # look through the files in the directory set for importing from, add them to file_management and move to proper
     # storage folder
     ImportFiles = 4
+    RenameImport = 37  # change the file name to correctly reflect its tags
 
     # work with data types - artist
     ListArtists = 34
@@ -35,7 +38,7 @@ class CommandEnum(Enum):
     # work with data types - genre
     ListGenres = 35
     AddGenre = 26
-    RenameGenre = 27  # mostly to change default capitalization
+    RenameGenre = 27
     AddGenreAlias = 28
     # because there should be a genre under this alias, or it became unused
     RemoveGenreAlias = 29

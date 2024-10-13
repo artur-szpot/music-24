@@ -3,6 +3,7 @@ from typing import Optional, List, Union
 from functions.cache.CacheContainer import CacheContainer
 from functions.execute.ExecutionResult import ExecutionResult
 from functions.music_file.MusicFile import MusicFile
+from libs.list_union_util import SimpleList, simple_list
 
 cache_container = CacheContainer()
 CURRENT_FILE = "current_file"
@@ -23,11 +24,19 @@ def get_next_command() -> Optional[str]:
     return next_command
 
 
-def extend_command_stack(commands: Union[str, List[str]]) -> None:
-    if isinstance(commands, list):
-        cache_container.command_stack.extend(commands)
-    else:
-        cache_container.command_stack.append(commands)
+def extend_command_stack(commands: SimpleList[str]) -> None:
+    cache_container.command_stack.extend(simple_list( commands))
+
+
+# COMMAND LOG
+
+
+def get_command_log() -> List[str]:
+    return cache_container.command_log
+
+
+def log_command(command: str) -> None:
+    cache_container.command_log = cache_container.command_log[-99:] + [command]
 
 
 # CURRENT FILE

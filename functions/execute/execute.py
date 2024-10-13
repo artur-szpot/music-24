@@ -31,6 +31,7 @@ def execute_command(
     if not input_command_raw or input_command_raw in [" ", "\t"]:
         return FullExecutionResult()
     input_command = app_settings.aliases.get(input_command_raw, input_command_raw)
+    cache.log_command(input_command)
     user_command: str = input_command.split()[0]
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
@@ -59,11 +60,6 @@ def execute_command(
             ExecutionResultCategory.Detail,
             ExecutionResultCategory.Query,
         ]:
-            # if "fix" in command_definition.verbs:
-            #     print(
-            #         command_definition.following_commands._empty_command.command_stack
-            #     )
-            #     exit()
             result.following_commands = command_definition.following_commands
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."

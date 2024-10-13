@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict, Union, Any
+from typing import List, Dict, Any
 
 from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
@@ -9,9 +9,10 @@ from functions.execute.arg_validation_errors import (
 from functions.execute.validate_args import (
     validate_args,
     ArgumentValidationError,
-    AllowedKwarg,
+    KwargDefinition,
 )
 from libs.error_handling import error_message_to_string
+from libs.list_union_util import SimpleList, simple_list
 from libs.strings import quoted
 
 
@@ -27,8 +28,8 @@ class ArgsValidator:
     _min_args: int
     _max_args: int
     _exact_args: int
-    _required_kwargs: Dict[str, AllowedKwarg]
-    _allowed_kwargs: Dict[str, AllowedKwarg]
+    _required_kwargs: Dict[str, KwargDefinition]
+    _allowed_kwargs: Dict[str, KwargDefinition]
     _allowed_flags: List[str]
     _special: List[ArgsValidatorSpecial]
     _variants: Dict[str, List[str]]
@@ -80,8 +81,8 @@ class ArgsValidator:
 
     def kwargs(
         self,
-        required_kwargs: List[AllowedKwarg] = None,
-        allowed_kwargs: List[AllowedKwarg] = None,
+        required_kwargs: List[KwargDefinition] = None,
+        allowed_kwargs: List[KwargDefinition] = None,
     ):
         if required_kwargs:
             for definition in required_kwargs:
@@ -109,16 +110,14 @@ class ArgsValidator:
                     self._allowed_kwargs.update({kwarg_aliases[0]: definition})
         return self
 
-    def flags(self, allowed_flags: Dict[Any, Union[str, List[str]]]):
-        for flags in allowed_flags.values():
-            if isinstance(flags, list):
-                for flag in flags:
-                    self.check_argument(flag)
-                self._allowed_flags.extend(flags)
+    def flags(self, allowed_flags: Dict[Any, SimpleList[str]]):
+        for flags_raw in allowed_flags.values():
+            flags = simple_list(flags_raw)
+            for flag in flags:
+                self.check_argument(flag)
+            self._allowed_flags.extend(flags)
+            if len(flags) > 1:
                 self._variants[flags[0]] = flags[1:]
-            else:
-                self.check_argument(flags)
-                self._allowed_flags.append(flags)
         return self
 
     def check_argument(self, value: str) -> None:
@@ -155,7 +154,7 @@ class ArgsValidator:
             pass
 
         try:
-            required_kwargs_temp = {"filename": AllowedKwarg.single("")}
+            required_kwargs_temp = {"filename": KwargDefinition.single("")}
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
                 args_dict,
@@ -175,8 +174,8 @@ class ArgsValidator:
 
         try:
             allowed_kwargs_temp = {
-                "query": AllowedKwarg.single(""),
-                "pos": AllowedKwarg.single(""),
+                "query": KwargDefinition.single(""),
+                "pos": KwargDefinition.single(""),
             }
             allowed_kwargs_temp.update(self._allowed_kwargs or {})
             validate_args(
