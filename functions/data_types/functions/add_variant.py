@@ -26,7 +26,7 @@ def add_variant_definition(data_type: DataTypeEnum, alias: bool) -> FunctionDefi
     else:
         registry = genre_registry
     return FunctionDefinition(
-        function=add_variant(registry),
+        function=add_variant(registry, alias),
         verbs=[f"add-{data_type.value}-{variant_name}", f"add-{variant_name}-{data_type.value}",f"{data_type.value}-{variant_name}", f"{variant_name}-{data_type.value}"],
         args_validator=ArgsValidator.args(exact=2),
         description=f"Add a new {variant_name} for {indefinite(data_type.value)} in the database.",

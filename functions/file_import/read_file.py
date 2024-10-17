@@ -79,13 +79,24 @@ def predicted_artists_and_title(
 def artists_from_string(
     value: str, ampersand_artists: Optional[List[str]] = None
 ) -> List[str]:
+    # very much needs a rework
+    a: str = 1
     comma_split = value.split(", ")
-    if len(comma_split) == 1:
-        return [value]
-    ampersand_split = comma_split[-1].split(" & ")
-    if len(ampersand_split) == 1:
-        return comma_split
-    feat_split = ampersand_split[-1].split(" feat. ")
+    # if len(comma_split) == 1:
+    #     return [value]
+    # ampersand_split = [artist for artist in ampersanded in comma_split]
+    #     comma_split[-1].split(" & ")
+    ampersand_split = [
+        ampersanded.split(" & ")
+        for potential in comma_split
+        for ampersanded in potential
+    ]
+    # if len(ampersand_split) == 1:
+    #     return comma_split
+    feat_split = [
+        feated.split(" & ") for potential in ampersand_split for feated in potential
+    ]
+    # feat_split = ampersand_split[-1].split(" feat. ")
     if len(feat_split) == 1:
         return comma_split[:-1] + ampersand_split
     return (
