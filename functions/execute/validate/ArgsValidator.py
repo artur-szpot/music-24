@@ -1,12 +1,13 @@
-from enum import Enum
 from typing import List, Dict, Any
 
 from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
-from functions.execute.arg_validation_errors import (
+from functions.execute.args.system_kwargs import SYSTEM_KWARGS
+from functions.execute.validate.ArgsValidatorSpecial import ArgsValidatorSpecial
+from functions.execute.validate.arg_validation_errors import (
     ComplexArgumentValidationError,
 )
-from functions.execute.validate_args import (
+from functions.execute.validate.validate_args import (
     validate_args,
     ArgumentValidationError,
     KwargDefinition,
@@ -14,14 +15,6 @@ from functions.execute.validate_args import (
 from libs.error_handling import error_message_to_string
 from libs.list_union_util import SimpleList, simple_list
 from libs.strings import quoted
-
-
-class ArgsValidatorSpecial(Enum):
-    FILE_AND_NO_ARGS = 0
-    CURRENT_FILE = 1
-
-
-SYSTEM_KWARGS = ["query", "pos", "filename"]
 
 
 class ArgsValidator:

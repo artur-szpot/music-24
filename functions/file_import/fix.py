@@ -7,9 +7,9 @@ from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.commands.definition.FunctionFollowingCommands import (
     FunctionFollowingCommands,
 )
-from functions.execute.ArgsValidator import ArgsValidator
-from functions.execute.ExecutionResult import ExecutionResult
-from functions.execute.arg_validation_errors import ArgumentValidationError
+from functions.execute.validate.ArgsValidator import ArgsValidator
+from functions.execute.result.ExecutionResult import ExecutionResult
+from functions.execute.validate.arg_validation_errors import ArgumentValidationError
 from functions.file_import.analyze.analyze_files import analyze_file
 from functions.lines.Line import Line
 from functions.music_file.MusicFile import MusicFile
@@ -40,8 +40,16 @@ def fix(args_dict: ArgsDict) -> ExecutionResult:
     chosen_option = args_dict.get_numeric_arg(0)
     to_fix, is_error = get_first_to_fix(file)
     if to_fix is None:
-        cache.extend_command_stack(f"detail-view {file.get_ordinal_number()}")
-        return ExecutionResult.message("Nothing left to fix.")
+        if len(file.errors) or len(file.warnings):
+            cache.extend_command_stack(
+                f"detail-view {file.get_ordinal_number()} "
+                f'--error-message "Remaining problems cannot be fixed automatically."'
+            )
+        else:
+            cache.extend_command_stack(
+                f'detail-view {file.get_ordinal_number()} --message "Nothing left to fix."'
+            )
+        return ExecutionResult.refresh()
     if chosen_option is None:
         return ExecutionResult.paginable(
             items=fix_exe(to_fix, is_error), header=[file_view_header(file)]

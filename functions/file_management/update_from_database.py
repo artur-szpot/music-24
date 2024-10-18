@@ -1,7 +1,7 @@
 from mutagen import File
 from mutagen.id3 import TPE1, TCON, TIT2, POPM, COMM
 
-from functions.execute.ArgsValidator import ArgsValidator
+from functions.execute.validate.ArgsValidator import ArgsValidator
 from functions.music_file.MusicFile import MusicFileDbProps, MusicFile
 from functions.file_management.RatingMapper import RatingMapper
 from functions.file_management.file_operations import save_file

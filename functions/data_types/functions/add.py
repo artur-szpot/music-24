@@ -13,16 +13,15 @@ from functions.data_types.DataTypeRegistry import DataTypeRegistry
 from functions.data_types.Genre import Genre
 from functions.data_types.artist_registry import artist_registry
 from functions.data_types.genre_registry import genre_registry
-from functions.execute.ArgsValidator import ArgsValidator
-from functions.execute.ExecutionResult import ExecutionResult
-from functions.execute.validate_args import KwargDefinition
+from functions.execute.validate.ArgsValidator import ArgsValidator
+from functions.execute.result.ExecutionResult import ExecutionResult
+from functions.execute.validate.validate_args import KwargDefinition
 from libs.error_handling import error_message_to_string
 
 
 def add_definition(data_type: DataTypeEnum) -> FunctionDefinition:
     constructor: Callable[[str, List[str], List[str], Dict[str, str]], DataType]
     registry: DataTypeRegistry
-    additional_kwargs = []
     required_kwargs = []
     if data_type == DataTypeEnum.ARTIST:
         registry = artist_registry
@@ -54,13 +53,16 @@ def add(
         name = args_dict.get_arg(0)
         aliases = args_dict.get_kwarg("aliases")
         misspellings = args_dict.get_kwarg("misspellings")
+
         category_raw = args_dict.get_kwarg("category")
         category = None
         if category_raw is not None and len(category_raw):
             category = category_raw[0]
+
         other = {}
         if category is not None:
             other["category"] = category
+
         try:
             registry.add(constructor(name, aliases, misspellings, other))
         except Exception as e:

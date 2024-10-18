@@ -6,6 +6,8 @@ from termcolor import cprint
 from functions.settings.app_settings import app_settings
 from functions.settings.text_color.SchemeColor import SchemeColor
 
+ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890-\"',./?\\|;:[]{}_+=!@#$%^&*()<>"
+
 
 def custom_input(memory: List[str]) -> str:
     current_input = ""
@@ -26,10 +28,7 @@ def custom_input(memory: List[str]) -> str:
         previous_length = len(current_input)
 
         k = readkey()
-        if (
-            k
-            in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890-\"',./?\\|;:[]{}_+=!@#$%^&*()<>"
-        ):
+        if k in ALLOWED_CHARS:
             current_input = (
                 current_input[:cursor_position] + k + current_input[cursor_position:]
             )

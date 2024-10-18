@@ -5,9 +5,9 @@ from constants.debug import debug_tools
 from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.definition.ActionEnum import ActionEnum
-from functions.execute.ExecutionResult import ExecutionResultCategory
-from functions.execute.FullExecutionResult import FullExecutionResult
-from functions.execute.custom_input import custom_input
+from functions.execute.result.ExecutionResult import ExecutionResultCategory
+from functions.execute.result.FullExecutionResult import FullExecutionResult
+from functions.execute.custom_input.custom_input import custom_input
 from functions.execute.execute import execute_command, DisallowedCommandError
 from functions.lines.Line import Line
 from functions.result_scrolling.CurrentPosition import HeaderType, TerminalSizeError

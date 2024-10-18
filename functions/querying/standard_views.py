@@ -11,7 +11,7 @@ STANDARD_VIEW = View(
     [
         ORDINAL,
         LENGTH,
-        standard("artists", 70),
+        standard("artists", 70, "artists_string"),
         standard("title", 30),
     ]
 )
@@ -20,7 +20,7 @@ ANALYZE_VIEW = View(
     [
         ORDINAL,
         LENGTH,
-        standard("artists", 70),
+        standard("artists", 70, "artists_string"),
         standard("title", 30),
         ERRORS,
         WARNINGS,

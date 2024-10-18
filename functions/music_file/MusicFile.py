@@ -1,12 +1,14 @@
 from typing import List, Dict, Any, Optional
 
+from functions.data_types.ArtistRole import ArtistRole
+from functions.music_file.IgnoreFilenameDifferences import IgnoreFilenameDifferences
 from functions.music_file.MusicFileDbProps import MusicFileDbProps
 from functions.music_file.MusicFileError import MusicFileError
 from functions.music_file.MusicFileViewProps import MusicFileViewProps
 
 
 class MusicFile:
-    artists: List[str]
+    artists: Dict[str, List[ArtistRole]]
     genres: List[str]
     title: Optional[str]
     path: str
@@ -18,8 +20,9 @@ class MusicFile:
     is_dad: Optional[bool]
     is_ready: Optional[bool]
 
-    predicted_artists: Optional[List[str]]
+    predicted_artists: Optional[Dict[str, List[ArtistRole]]]
     predicted_title: Optional[str]
+    ignore_predicted_filename_differences: Dict[IgnoreFilenameDifferences, bool]
 
     errors: List[MusicFileError]
     warnings: List[MusicFileError]
@@ -28,7 +31,7 @@ class MusicFile:
     view_props: Dict[MusicFileViewProps, Any]
 
     def __init__(self, source) -> None:
-        self.artists = source.get("artists", [])
+        self.artists = source.get("artists", {})
         self.genres = source.get("genres", [])
         self.title = source.get("title")
         self.path = source.get("path")
@@ -45,10 +48,14 @@ class MusicFile:
         self.predicted_title = source.get("predicted_title", "")
         self.db_props = source.get("db_props", {})
         self.view_props = source.get("view_props", {})
+        self.ignore_predicted_filename_differences = {
+            key: False for key in IgnoreFilenameDifferences
+        }
 
     def to_dict(self):
         return {
             "artists": self.artists,
+            "artists_string": ", ".join(artist for artist in self.artists),
             "genres": self.genres,
             "title": self.title,
             "path": self.path,
@@ -78,3 +85,49 @@ class MusicFile:
 
     def get_highlighted(self) -> bool:
         return self.view_props.get(MusicFileViewProps.Highlighted, False)
+
+    @staticmethod
+    def create_artists_substring(artists: List[str]) -> str:
+        if len(artists) == 1:
+            artists_string = artists[0]
+        else:
+            if any(["&" in artist for artist in artists]):
+                artists_string = ", ".join(artists)
+            else:
+                artists_string = f"{', '.join(artists[:-1])} & {artists[-1]}"
+        return artists_string
+
+    @staticmethod
+    def create_artists_string(main: List[str], feat: List[str]) -> str:
+        if not len(main):
+            return ""
+        artists_string = MusicFile.create_artists_substring(main)
+        if len(feat):
+            artists_string += f" feat. {MusicFile.create_artists_substring(feat)}"
+        return artists_string
+
+    def create_filename(self) -> str:
+        main_artists = []
+        main_feat_artists = []
+        original_artists = []
+        original_feat_artists = []
+        for artist, roles in self.artists.items():
+            original = ArtistRole.Original in roles
+            feat = ArtistRole.Feat in roles
+            if original:
+                if feat:
+                    main_feat_artists.append(artist)
+                else:
+                    main_artists.append(artist)
+            else:
+                if feat:
+                    original_feat_artists.append(artist)
+                else:
+                    original_artists.append(artist)
+        original_artists_string = MusicFile.create_artists_string(
+            original_artists, original_feat_artists
+        )
+        title = f"{MusicFile.create_artists_string(main_artists, main_feat_artists)} - {self.title}"
+        if original_artists_string:
+            title += f"[{original_artists_string}]"
+        return title

@@ -17,4 +17,11 @@ def check_title_set(file: MusicFile, ordinal: int) -> Optional[AnalysisResult]:
                     f"edit-file {ordinal} --title {quoted(file.predicted_title)}",
                 )
             )
+        else:
+            fixes.append(
+                MusicFileErrorFix(
+                    "Use file name as title",
+                    f"edit-file {ordinal} --title {quoted(file.filename)}",
+                )
+            )
         return analysis(errors=MusicFileError("No title set", fixes))

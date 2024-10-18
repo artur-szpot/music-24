@@ -6,8 +6,8 @@ from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryE
 from functions.commands.definition.FunctionFollowingCommands import (
     FunctionFollowingCommands,
 )
-from functions.execute.ArgsValidator import ArgsValidator
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.validate.ArgsValidator import ArgsValidator
+from functions.execute.result.ExecutionResult import ExecutionResult
 
 MusicFunction = Callable[[ArgsDict], ExecutionResult]
 

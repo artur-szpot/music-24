@@ -7,8 +7,8 @@ from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.commands.definition.FunctionFollowingCommands import (
     FunctionFollowingCommands,
 )
-from functions.execute.ArgsValidator import ArgsValidator
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.validate.ArgsValidator import ArgsValidator
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.file_import.analyze.analyze_files import analyze_file
 from functions.lines.Line import Line
 from functions.music_file.MusicFile import MusicFile

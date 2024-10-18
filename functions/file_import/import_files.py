@@ -1,7 +1,7 @@
 from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.commands.definition.FunctionCategoryEnum import FunctionCategoryEnum
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.file_import.read_files_to_import import read_files_to_import
 from functions.file_management.file_operations import create_db_files
 

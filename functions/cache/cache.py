@@ -1,7 +1,7 @@
-from typing import Optional, List, Union
+from typing import Optional, List
 
 from functions.cache.CacheContainer import CacheContainer
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.music_file.MusicFile import MusicFile
 from libs.list_union_util import SimpleList, simple_list
 
@@ -25,7 +25,7 @@ def get_next_command() -> Optional[str]:
 
 
 def extend_command_stack(commands: SimpleList[str]) -> None:
-    cache_container.command_stack.extend(simple_list( commands))
+    cache_container.command_stack.extend(simple_list(commands))
 
 
 # COMMAND LOG

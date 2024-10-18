@@ -1,7 +1,7 @@
 import unittest
 
-from functions.execute.args_parsing_errors import ArgsParsingError
-from functions.execute.parse_args import parse_args
+from functions.execute.parse.args_parsing_errors import ArgsParsingError
+from functions.execute.parse.parse_args import parse_args
 from libs.error_handling import error_message_to_string
 
 

@@ -1,57 +1,13 @@
 from typing import List, Dict
 
 from functions.commands.definition.ArgsDict import ArgsDict
-from functions.execute.arg_validation_errors import (
+from functions.execute.args.KwargDefinition import KwargDefinition
+from functions.execute.args.system_kwargs import SYSTEM_KWARGS
+from functions.execute.validate.arg_validation_errors import (
     ArgumentValidationError,
     NoArgumentsExpectedError,
 )
-from libs.list_union_util import SimpleList, simple_list
-from libs.strings import quoted
-
-
-class KwargDefinition:
-    aliases: List[str]
-    min_values: int
-    max_values: int
-    exact_values: int
-
-    def __init__(
-        self,
-        aliases: SimpleList[str],
-        min_values: int = 0,
-        max_values: int = 0,
-        exact_values: int = 0,
-    ):
-        self.aliases = simple_list(aliases)
-        self.min_values = min_values
-        self.max_values = max_values
-        self.exact_values = exact_values
-
-    @staticmethod
-    def single(aliases: SimpleList[str]):
-        return KwargDefinition(aliases, exact_values=1)
-
-    @staticmethod
-    def any(aliases: SimpleList[str]):
-        return KwargDefinition(aliases, min_values=1)
-
-
-def validate_kwarg(values: List[str], name: str, props: KwargDefinition) -> None:
-    min_values = props.min_values
-    max_values = props.max_values
-    exact_values = props.exact_values
-    if len(values) < min_values:
-        raise ArgumentValidationError(
-            f"Not enough values provided for argument {quoted(name)} - expected at least {min_values}, got {len(values)}"
-        )
-    if max_values and len(values) > max_values:
-        raise ArgumentValidationError(
-            f"Too many values provided for argument {quoted(name)} - expected at most {max_values}, got {len(values)}"
-        )
-    if exact_values and len(values) != exact_values:
-        raise ArgumentValidationError(
-            f"Wrong number of values provided for argument {quoted(name)} - expected {exact_values}, got {len(values)}"
-        )
+from functions.execute.validate.validate_kwarg import validate_kwarg
 
 
 def validate_args(
@@ -110,7 +66,11 @@ def validate_args(
         if kwarg is not None:
             validate_kwarg(kwarg, name, values)
 
-    disallowed_kwargs = [key for key in kwargs.keys() if key not in all_allowed_kwargs]
+    disallowed_kwargs = [
+        key
+        for key in kwargs.keys()
+        if key not in all_allowed_kwargs and key not in SYSTEM_KWARGS
+    ]
     disallowed_flags = [flag for flag in flags if flag not in allowed_flags]
     disallowed_args = disallowed_kwargs + disallowed_flags
 

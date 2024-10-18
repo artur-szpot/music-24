@@ -1,21 +1,14 @@
-from enum import Enum
 from typing import List, Optional
 
 from functions.commands.definition.ActionEnum import ActionEnum
 from functions.commands.definition.FunctionFollowingCommands import (
     FunctionFollowingCommands,
 )
-from functions.music_file.MusicFile import MusicFile
+from functions.execute.result.ExecutionResultCategory import ExecutionResultCategory
 from functions.lines.Line import Line
-from functions.settings.text_color.SchemeColor import SchemeColor
+from functions.music_file.MusicFile import MusicFile
 from functions.result_scrolling.CurrentPosition import CurrentPosition
-
-
-class ExecutionResultCategory(Enum):
-    Action = -1
-    Query = 0
-    Detail = 1
-    Message = 2
+from functions.settings.text_color.SchemeColor import SchemeColor
 
 
 class ExecutionResult:
@@ -55,6 +48,12 @@ class ExecutionResult:
 
     def get_message(self) -> Line:
         return self._message or Line.empty()
+
+    def set_message(self, message: str) -> None:
+        self._message = Line.simple(message)
+
+    def set_error_message(self, message: str) -> None:
+        self._message = Line.simple(message, SchemeColor.BAD)
 
     def get_total_items(self) -> int:
         return len(self._paginable or [])
@@ -123,8 +122,8 @@ class ExecutionResult:
     def render_contents(
         self, current_position: CurrentPosition
     ) -> Optional[List[Line]]:
-        if self._message:
-            return [self._message]
+        # if self._message:
+        #     return [self._message]
         if self._paginable:
             if self.is_table:
                 header = [current_position.render_pagination()]

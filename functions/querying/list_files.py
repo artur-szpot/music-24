@@ -6,7 +6,7 @@ from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.commands.definition.FunctionFollowingCommands import (
     FunctionFollowingCommands,
 )
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.file_management.file_operations import open_file
 from functions.lines.Line import Line
 from functions.music_file.MusicFile import MusicFile

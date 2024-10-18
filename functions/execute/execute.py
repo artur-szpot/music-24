@@ -1,18 +1,20 @@
-import json
 from typing import Optional, List
 
 from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
-from functions.execute.ExecutionResult import ExecutionResult, ExecutionResultCategory
-from functions.execute.FullExecutionResult import FullExecutionResult
-from functions.execute.arg_validation_errors import (
+from functions.execute.result.ExecutionResult import (
+    ExecutionResult,
+    ExecutionResultCategory,
+)
+from functions.execute.result.FullExecutionResult import FullExecutionResult
+from functions.execute.validate.arg_validation_errors import (
     NoArgumentsExpectedError,
     ComplexArgumentValidationError,
     ArgumentValidationError,
 )
-from functions.execute.args_parsing_errors import ArgsParsingError
-from functions.execute.parse_args import parse_args
+from functions.execute.parse.args_parsing_errors import ArgsParsingError
+from functions.execute.parse.parse_args import parse_args
 from functions.settings.app_settings import app_settings
 from libs.error_handling import error_message_to_string
 
@@ -52,9 +54,17 @@ def execute_command(
 
     error_message: Optional[str] = None
     result: Optional[ExecutionResult] = None
+    message: Optional[str] = None
+    custom_error_message: Optional[str] = None
     try:
         args_dict = parse_args(input_command)
         args_dict = command_definition.args_validator.validate(args_dict)
+        message_raw = args_dict.get_kwarg("message")
+        if message_raw:
+            message = message_raw[0]
+        custom_error_message_raw = args_dict.get_kwarg("error-message")
+        if custom_error_message_raw:
+            custom_error_message = custom_error_message_raw[0]
         result = command_definition.function(args_dict)
         if command_definition.following_commands is not None or result.category in [
             ExecutionResultCategory.Detail,
@@ -78,6 +88,10 @@ def execute_command(
 
     if error_message is not None:
         result = ExecutionResult.error_message(error_message)
+    elif message is not None:
+        result.set_message(message)
+    elif custom_error_message is not None:
+        result.set_error_message(custom_error_message)
 
     next_command = cache.get_next_command()
     if next_command:

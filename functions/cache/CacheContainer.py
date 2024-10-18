@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.music_file.MusicFile import MusicFile
 from libs.list_union_util import SimpleList
 

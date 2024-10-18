@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from functions.commands.definition.FunctionDefinition import FunctionDefinition
-from functions.execute.ExecutionResult import ExecutionResult
+from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.lines.Line import Line
 from functions.result_scrolling.CurrentPosition import CurrentPosition
 

@@ -5,7 +5,7 @@ from functions.commands.ExitCommand import exit_definition
 from functions.data_types.DataTypeEnum import DataTypeEnum
 from functions.data_types.functions.add import add_definition
 from functions.data_types.functions.add_variant import add_variant_definition
-from functions.execute.show_log import show_log_definition
+from functions.log.show_log import show_log_definition
 from functions.file_import.fix import fix_definition
 from functions.file_import.analyze.print_file_analysis import (
     print_file_analysis_definition,

@@ -40,5 +40,7 @@ WARNINGS = ViewColumn(
 )
 
 
-def standard(name: str, width: int, label: str = None) -> ViewColumn:
-    return ViewColumn({"label": name, "width": width, "property_name": label or name})
+def standard(name: str, width: int, property_name: str = None) -> ViewColumn:
+    return ViewColumn(
+        {"label": name, "width": width, "property_name": property_name or name}
+    )
