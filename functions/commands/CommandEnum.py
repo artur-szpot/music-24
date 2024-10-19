@@ -21,7 +21,7 @@ class CommandEnum(Enum):
     # look through the files in the directory set for importing from, add them to file_management and move to proper
     # storage folder
     ImportFiles = 4
-    RenameImport = 37  # change the file name to correctly reflect its tags
+    RenameFile = 37  # change the file name to correctly reflect its tags
 
     # work with data types - artist
     ListArtists = 34

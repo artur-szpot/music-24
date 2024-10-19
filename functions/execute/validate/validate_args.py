@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.args.KwargDefinition import KwargDefinition
-from functions.execute.args.system_kwargs import SYSTEM_KWARGS
+from functions.execute.args.system_kwargs import SystemKwargs
 from functions.execute.validate.arg_validation_errors import (
     ArgumentValidationError,
     NoArgumentsExpectedError,
@@ -69,7 +69,7 @@ def validate_args(
     disallowed_kwargs = [
         key
         for key in kwargs.keys()
-        if key not in all_allowed_kwargs and key not in SYSTEM_KWARGS
+        if key not in all_allowed_kwargs and not SystemKwargs.is_system_kwarg(key)
     ]
     disallowed_flags = [flag for flag in flags if flag not in allowed_flags]
     disallowed_args = disallowed_kwargs + disallowed_flags

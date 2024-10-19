@@ -98,6 +98,8 @@ def analyze_file(
     # 4. Check tags are consistent with filename - ignorable!
     apply(check_consistent_filename)
     # check mismatched artists
+    # Intentionally no check for consistency of artist roles - there's no information
+    # about such in the file itself and will be set upon import.
     apply(check_artists_missing_from_tags)
     apply(check_artists_missing_from_filename)
     apply(check_consistent_title)

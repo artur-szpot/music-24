@@ -23,7 +23,13 @@ def check_consistent_title(file: MusicFile, ordinal: int) -> Optional[AnalysisRe
                 f"edit-file {ordinal} --title {quoted(file.predicted_title)}",
             )
         )
-    # todo add possibility to change file name instead
+    fixes.append(
+        MusicFileErrorFix(
+            "Ignore",
+            f"edit-file {ordinal} "
+            f"--ignore {IgnoreFilenameDifferences.CONSISTENT_TITLE.value}",
+        ),
+    )
     return analysis(
         errors=MusicFileError("Title in tags differs from the one in file name", fixes)
     )

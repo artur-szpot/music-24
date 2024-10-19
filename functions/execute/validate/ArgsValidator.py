@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 
 from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
-from functions.execute.args.system_kwargs import SYSTEM_KWARGS
+from functions.execute.args.system_kwargs import SystemKwargs
 from functions.execute.validate.ArgsValidatorSpecial import ArgsValidatorSpecial
 from functions.execute.validate.arg_validation_errors import (
     ComplexArgumentValidationError,
@@ -114,7 +114,7 @@ class ArgsValidator:
         return self
 
     def check_argument(self, value: str) -> None:
-        if value in SYSTEM_KWARGS:
+        if SystemKwargs.is_system_kwarg(value):
             raise KeyError(
                 f"{quoted(value)} is reserved and cannot be used as an argument."
             )
@@ -147,7 +147,11 @@ class ArgsValidator:
             pass
 
         try:
-            required_kwargs_temp = {"filename": KwargDefinition.single("")}
+            required_kwargs_temp = {
+                SystemKwargs.Filename.value: KwargDefinition.single(
+                    SystemKwargs.Filename
+                )
+            }
             required_kwargs_temp.update(self._required_kwargs or {})
             validate_args(
                 args_dict,
@@ -159,16 +163,20 @@ class ArgsValidator:
                 allowed_flags=self._allowed_flags,
                 variants=self._variants,
             )
-            args_dict.kwargs.pop("filename", None)
-            args_dict.system["filename"] = args_dict.get_kwarg("filename")[0]
+            args_dict.kwargs.pop(SystemKwargs.Filename.value, None)
+            args_dict.system[SystemKwargs.Filename.value] = args_dict.get_kwarg(
+                SystemKwargs.Filename
+            )[0]
             return args_dict
         except ArgumentValidationError:
             pass
 
         try:
             allowed_kwargs_temp = {
-                "query": KwargDefinition.single(""),
-                "pos": KwargDefinition.single(""),
+                SystemKwargs.Query.value: KwargDefinition.single(SystemKwargs.Query),
+                SystemKwargs.Position.value: KwargDefinition.single(
+                    SystemKwargs.Position
+                ),
             }
             allowed_kwargs_temp.update(self._allowed_kwargs or {})
             validate_args(

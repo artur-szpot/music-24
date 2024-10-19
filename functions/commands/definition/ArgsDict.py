@@ -1,8 +1,9 @@
+from enum import Enum
 from typing import List, Dict, Any, Optional
 
 from functions.cache import cache
-from functions.music_file.MusicFile import MusicFile
 from functions.file_management.file_operations import open_file
+from functions.music_file.MusicFile import MusicFile
 
 
 class ArgsDict:
@@ -30,8 +31,8 @@ class ArgsDict:
         except:
             return None
 
-    def get_kwarg(self, name: str) -> List[str]:
-        return self.kwargs.get(name, [])
+    def get_kwarg(self, name: Enum) -> List[str]:
+        return self.kwargs.get(name.value, [])
 
     def get_file(self) -> Optional[MusicFile]:
         file = cache.get_current_file()
@@ -45,4 +46,14 @@ class ArgsDict:
         return None
 
     def has_flag(self, flags: List[str]) -> bool:
-        return len(list(filter(lambda item: item in self.flags, flags))) > 0
+        return (
+            len(
+                list(
+                    filter(
+                        lambda item: item in self.flags,
+                        [flag for flag in flags],
+                    )
+                )
+            )
+            > 0
+        )

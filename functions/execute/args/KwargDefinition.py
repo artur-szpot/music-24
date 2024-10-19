@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List
 
 from libs.list_union_util import SimpleList, simple_list
@@ -22,9 +23,9 @@ class KwargDefinition:
         self.exact_values = exact_values
 
     @staticmethod
-    def single(aliases: SimpleList[str]):
-        return KwargDefinition(aliases, exact_values=1)
+    def single(name: Enum, aliases: SimpleList[str] = None):
+        return KwargDefinition([name.value] + simple_list(aliases), exact_values=1)
 
     @staticmethod
-    def any(aliases: SimpleList[str]):
-        return KwargDefinition(aliases, min_values=1)
+    def any(name: Enum, aliases: SimpleList[str] = None):
+        return KwargDefinition([name.value] + simple_list(aliases), min_values=1)

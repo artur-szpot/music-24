@@ -3,6 +3,7 @@ from typing import Optional, List
 from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
+from functions.execute.args.system_kwargs import SystemKwargs
 from functions.execute.result.ExecutionResult import (
     ExecutionResult,
     ExecutionResultCategory,
@@ -59,10 +60,10 @@ def execute_command(
     try:
         args_dict = parse_args(input_command)
         args_dict = command_definition.args_validator.validate(args_dict)
-        message_raw = args_dict.get_kwarg("message")
+        message_raw = args_dict.get_kwarg(SystemKwargs.Message)
         if message_raw:
             message = message_raw[0]
-        custom_error_message_raw = args_dict.get_kwarg("error-message")
+        custom_error_message_raw = args_dict.get_kwarg(SystemKwargs.ErrorMessage)
         if custom_error_message_raw:
             custom_error_message = custom_error_message_raw[0]
         result = command_definition.function(args_dict)
@@ -73,7 +74,7 @@ def execute_command(
             result.following_commands = command_definition.following_commands
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."
-        print(error_message)
+        print(cache.get_command_log())
         exit()
     except ComplexArgumentValidationError:
         error_message = (

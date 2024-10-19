@@ -19,15 +19,28 @@ def check_artists_missing_from_tags(
     for artist in file.predicted_artists:
         # alias existing artist to {}
         # replace existing artist
+        fixes = []
         if artist not in file.artists:
             errors.append(
                 MusicFileError(
                     f"Artist missing from tags: {artist}",
-                    MusicFileErrorFix(
-                        "Add artist to tags",
-                        f"edit-file {ordinal} --add-artists {quoted(artist)}",
-                    ),
+                    [
+                        MusicFileErrorFix(
+                            "Add artist to tags",
+                            f"edit-file {ordinal} --add-artists {quoted(artist)}",
+                        ),
+                        # todo continue here
+                        MusicFileErrorFix(
+                            f"Add {artist} as an alias for...",
+                            f"edit-file {ordinal} --add-artists {quoted(artist)}",
+                        ),
+                        MusicFileErrorFix(
+                            "Ignore",
+                            f"edit-file {ordinal} "
+                            f"--ignore {IgnoreFilenameDifferences.CONSISTENT_TITLE.value}",
+                        ),
+                    ],
                 )
             )
 
-    return analysis(errors=errors)
+        return analysis(errors=errors)

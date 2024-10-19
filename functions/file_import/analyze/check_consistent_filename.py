@@ -16,10 +16,10 @@ def check_consistent_filename(
     ]:
         return None
     predicted_filename = file.create_filename()
-    if file.filename != predicted_filename:
+    if file.filename[:-4] != predicted_filename:
         return analysis(
             errors=MusicFileError(
-                "Filename differs from expected",
+                "File name differs from expected",
                 [
                     MusicFileErrorFix(
                         f"Change file name to expected: {quoted(predicted_filename)}",

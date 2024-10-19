@@ -4,11 +4,10 @@ from mutagen import File
 
 from functions.data_types.ArtistRole import ArtistRole
 from functions.data_types.artist_registry import artist_registry
-from functions.music_file.MusicFile import MusicFile
 from functions.file_management.RatingMapper import RatingMapper
+from functions.music_file.MusicFile import MusicFile
 from functions.music_file.MusicFileError import MusicFileError
 from libs.io import extract_filename_from_path
-from libs.list_union_util import simple_list
 
 
 def tag(value: str) -> Optional[bool]:
@@ -33,7 +32,11 @@ def read_file(path: str) -> MusicFile:
         )
     mutagen_file = File(path)
     rating_tag = mutagen_file.tags.get("POPM:no@email")
-    artists = [str(artist) for artist in mutagen_file.tags.get("TPE1", [])]
+    artists = {
+        str(artist): [ArtistRole.Original]
+        for artist in mutagen_file.tags.get("TPE1", [])
+    }
+
     predicted_title, predicted_artists = predicted_artists_and_title(
         filename[:-4], artists
     )

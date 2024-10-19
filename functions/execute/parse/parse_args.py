@@ -3,7 +3,7 @@ from typing import List
 from functions.commands.command_registry import command_registry
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.parse.args_parsing_errors import ArgsParsingError
-from functions.help.help_definition import help_definition
+from functions.help.command_help.definition import help_definition
 from libs.strings import quoted
 
 
