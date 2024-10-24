@@ -23,9 +23,9 @@ class KwargDefinition:
         self.exact_values = exact_values
 
     @staticmethod
-    def single(name: Enum, aliases: SimpleList[str] = None):
-        return KwargDefinition([name.value] + simple_list(aliases), exact_values=1)
+    def single(aliases: SimpleList[str] = None):
+        return KwargDefinition(simple_list(aliases), exact_values=1)
 
     @staticmethod
-    def any(name: Enum, aliases: SimpleList[str] = None):
-        return KwargDefinition([name.value] + simple_list(aliases), min_values=1)
+    def any(aliases: SimpleList[str] = None):
+        return KwargDefinition(simple_list(aliases), min_values=1)

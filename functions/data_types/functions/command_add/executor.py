@@ -6,7 +6,7 @@ from functions.commands.definition.FunctionDefinition import (
 )
 from functions.data_types.DataType import DataType
 from functions.data_types.DataTypeRegistry import DataTypeRegistry
-from functions.data_types.functions.command_add.kwargs import AddKwargs
+from functions.data_types.functions.command_add.kwargs import AddKwargs, add_kwargs
 from functions.execute.result.ExecutionResult import ExecutionResult
 from libs.error_handling import error_message_to_string
 
@@ -17,10 +17,10 @@ def add(
 ) -> MusicFunction:
     def add_typed(args_dict: ArgsDict) -> ExecutionResult:
         name = args_dict.get_arg(0)
-        aliases = args_dict.get_kwarg(AddKwargs.Aliases)
-        misspellings = args_dict.get_kwarg(AddKwargs.Misspellings)
+        aliases = args_dict.get_kwarg(add_kwargs(AddKwargs.Aliases))
+        misspellings = args_dict.get_kwarg(add_kwargs(AddKwargs.Misspellings))
 
-        category_raw = args_dict.get_kwarg(AddKwargs.Category)
+        category_raw = args_dict.get_kwarg(add_kwargs(AddKwargs.Category))
         category = None
         if category_raw is not None and len(category_raw):
             category = category_raw[0]

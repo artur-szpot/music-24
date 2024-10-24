@@ -3,7 +3,7 @@ from typing import Optional, List
 from functions.cache import cache
 from functions.commands.CommandEnum import CommandEnum
 from functions.commands.get_command_dictionary import get_command_dictionary
-from functions.execute.args.system_kwargs import SystemKwargs
+from functions.execute.args.system_kwargs import SystemKwargs, system_kwargs
 from functions.execute.result.ExecutionResult import (
     ExecutionResult,
     ExecutionResultCategory,
@@ -18,6 +18,7 @@ from functions.execute.parse.args_parsing_errors import ArgsParsingError
 from functions.execute.parse.parse_args import parse_args
 from functions.settings.app_settings import app_settings
 from libs.error_handling import error_message_to_string
+from libs.strings import quoted
 
 command_dictionary = get_command_dictionary()
 
@@ -34,7 +35,7 @@ def execute_command(
     if not input_command_raw or input_command_raw in [" ", "\t"]:
         return FullExecutionResult()
     input_command = app_settings.aliases.get(input_command_raw, input_command_raw)
-    cache.log_command(input_command)
+    cache.log_command(input_command_raw)
     user_command: str = input_command.split()[0]
     command_definition = command_dictionary.get(user_command)
     if command_definition is None:
@@ -60,22 +61,26 @@ def execute_command(
     try:
         args_dict = parse_args(input_command)
         args_dict = command_definition.args_validator.validate(args_dict)
-        message_raw = args_dict.get_kwarg(SystemKwargs.Message)
+        message_raw = args_dict.get_kwarg(system_kwargs(SystemKwargs.Message))
         if message_raw:
             message = message_raw[0]
-        custom_error_message_raw = args_dict.get_kwarg(SystemKwargs.ErrorMessage)
+        custom_error_message_raw = args_dict.get_kwarg(
+            system_kwargs(SystemKwargs.ErrorMessage)
+        )
         if custom_error_message_raw:
             custom_error_message = custom_error_message_raw[0]
         result = command_definition.function(args_dict)
-        if command_definition.following_commands is not None or result.category in [
-            ExecutionResultCategory.Detail,
-            ExecutionResultCategory.Query,
-        ]:
+        if command_definition.following_commands is not None or (
+            result is not None
+            and result.category
+            in [
+                ExecutionResultCategory.Detail,
+                ExecutionResultCategory.Query,
+            ]
+        ):
             result.following_commands = command_definition.following_commands
     except NoArgumentsExpectedError:
         error_message = f"Command {actual_command} accepts no arguments."
-        print(cache.get_command_log())
-        exit()
     except ComplexArgumentValidationError:
         error_message = (
             f"Incorrect arguments provided for command {actual_command}. Use the help command to see "
@@ -96,6 +101,10 @@ def execute_command(
 
     next_command = cache.get_next_command()
     if next_command:
+        if message is not None:
+            next_command += f"--message {quoted(message)}"
+        elif custom_error_message is not None:
+            next_command += f"--error-message {quoted(custom_error_message)}"
         return execute_command(next_command)
 
     return FullExecutionResult(result=result, command=command_definition)

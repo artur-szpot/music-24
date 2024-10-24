@@ -3,7 +3,10 @@ from functions.commands.definition.FunctionDefinition import FunctionDefinition
 from functions.execute.validate.ArgsValidator import ArgsValidator
 from functions.execute.validate.validate_args import KwargDefinition
 from functions.file_management.command_rename_file.executor import rename_file
-from functions.file_management.command_rename_file.kwargs import RenameFileKwargs
+from functions.file_management.command_rename_file.kwargs import (
+    RenameFileKwargs,
+    rename_file_kwargs,
+)
 
 
 def rename_file_definition() -> FunctionDefinition:
@@ -12,7 +15,7 @@ def rename_file_definition() -> FunctionDefinition:
         verbs=["rename-file", "rf"],
         args_validator=ArgsValidator.file_and_no_args().kwargs(
             required_kwargs=[
-                KwargDefinition.single(RenameFileKwargs.NewName, ["new", "to"])
+                KwargDefinition.single(rename_file_kwargs(RenameFileKwargs.NewName))
             ]
         ),
         description="Rename a file. Extension will be added by default.",

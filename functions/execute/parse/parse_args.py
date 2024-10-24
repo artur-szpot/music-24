@@ -37,8 +37,9 @@ def parse_args_exe(args_raw: List[str]) -> ArgsDict:
 
     for arg in args_raw:
         # If it starts with dashes, set the new_flag value to the name of the flag/kwarg.
+        # But do not parse flags in the middle of a quoted arg!
         new_flag = None
-        if arg.startswith("--"):
+        if current_arg is None and arg.startswith("--"):
             if len(arg) == 2:
                 raise ArgsParsingError(f'Incorrect flag usage: "--" lacks flag name')
             if len(arg) == 3:
@@ -46,7 +47,7 @@ def parse_args_exe(args_raw: List[str]) -> ArgsDict:
                     f"Incorrect flag usage: {quoted(arg)} should have been {quoted(arg[1:])}"
                 )
             new_flag = arg[2:]
-        elif arg.startswith("-"):
+        elif current_arg is None and arg.startswith("-"):
             if len(arg) == 1:
                 raise ArgsParsingError(f'Incorrect flag usage: "-" lacks flag name')
             if len(arg) > 2:
