@@ -129,5 +129,5 @@ class MusicFile:
         )
         title = f"{MusicFile.create_artists_string(main_artists, main_feat_artists)} - {self.title}"
         if original_artists_string:
-            title += f"[{original_artists_string}]"
+            title += f" [{original_artists_string}]"
         return title

@@ -31,8 +31,12 @@ class ArgsDict:
         except:
             return None
 
-    def get_kwarg(self, name: Enum) -> List[str]:
-        return self.kwargs.get(name.value, [])
+    def get_kwarg(self, names: List[str]) -> List[str]:
+        for name in names:
+            result = self.kwargs.get(name)
+            if result is not None:
+                return result
+        return []
 
     def get_file(self) -> Optional[MusicFile]:
         file = cache.get_current_file()

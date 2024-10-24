@@ -4,16 +4,19 @@ from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
 from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.file_import.analyze.analyze_files import analyze_file
-from functions.file_management.command_rename_file.kwargs import RenameFileKwargs
+from functions.file_management.command_rename_file.kwargs import (
+    RenameFileKwargs,
+    rename_file_kwargs,
+)
 from functions.file_management.file_operations import save_file
 
 
 def rename_file(args_dict: ArgsDict) -> ExecutionResult:
-    new_name = args_dict.get_kwarg(RenameFileKwargs.NewName)[0] + ".mp3"
+    new_name = (
+        args_dict.get_kwarg(rename_file_kwargs(RenameFileKwargs.NewName))[0] + ".mp3"
+    )
     file = args_dict.get_file()
     file.filename = new_name
-    print(new_name)
-    quit()
 
     if file.db_file is not None:
         try:

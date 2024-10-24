@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 
 from functions.cache import cache
 from functions.commands.definition.ArgsDict import ArgsDict
-from functions.execute.args.system_kwargs import SystemKwargs
+from functions.execute.args.system_kwargs import SystemKwargs, system_kwargs
 from functions.execute.validate.ArgsValidatorSpecial import ArgsValidatorSpecial
 from functions.execute.validate.arg_validation_errors import (
     ComplexArgumentValidationError,
@@ -149,7 +149,7 @@ class ArgsValidator:
         try:
             required_kwargs_temp = {
                 SystemKwargs.Filename.value: KwargDefinition.single(
-                    SystemKwargs.Filename
+                    system_kwargs(SystemKwargs.Filename)
                 )
             }
             required_kwargs_temp.update(self._required_kwargs or {})
@@ -165,7 +165,7 @@ class ArgsValidator:
             )
             args_dict.kwargs.pop(SystemKwargs.Filename.value, None)
             args_dict.system[SystemKwargs.Filename.value] = args_dict.get_kwarg(
-                SystemKwargs.Filename
+                system_kwargs(SystemKwargs.Filename)
             )[0]
             return args_dict
         except ArgumentValidationError:
@@ -173,9 +173,11 @@ class ArgsValidator:
 
         try:
             allowed_kwargs_temp = {
-                SystemKwargs.Query.value: KwargDefinition.single(SystemKwargs.Query),
+                SystemKwargs.Query.value: KwargDefinition.single(
+                    system_kwargs(SystemKwargs.Query)
+                ),
                 SystemKwargs.Position.value: KwargDefinition.single(
-                    SystemKwargs.Position
+                    system_kwargs(SystemKwargs.Position)
                 ),
             }
             allowed_kwargs_temp.update(self._allowed_kwargs or {})
@@ -189,6 +191,7 @@ class ArgsValidator:
                 allowed_flags=self._allowed_flags,
                 variants=self._variants,
             )
+            # todo is this dumb? does it delete the value before reading it???
             args_dict.kwargs.pop("query", None)
             args_dict.kwargs.pop("pos", None)
             if args_dict.kwargs.get("query") is not None:

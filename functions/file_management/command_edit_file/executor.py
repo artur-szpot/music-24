@@ -6,7 +6,10 @@ from functions.data_types.ArtistRole import ArtistRole
 from functions.execute.result.ExecutionResult import ExecutionResult
 from functions.execute.validate.arg_validation_errors import ArgumentValidationError
 from functions.file_import.analyze.analyze_files import analyze_file
-from functions.file_management.command_edit_file.kwargs import EditFileKwargs
+from functions.file_management.command_edit_file.kwargs import (
+    EditFileKwargs,
+    edit_file_kwargs,
+)
 from functions.file_management.file_operations import save_file
 from functions.music_file.MusicFile import MusicFileDbProps, MusicFile
 from libs.strings import quoted
@@ -17,8 +20,8 @@ def edit_file(args_dict: ArgsDict) -> ExecutionResult:
 
     instructions: dict = {}
     add: Dict[str, List[str]] = {"a": []}
-    add_artists = args_dict.get_kwarg(EditFileKwargs.AddArtists)
-    add_genres = args_dict.get_kwarg(EditFileKwargs.AddGenres)
+    add_artists = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.AddArtists))
+    add_genres = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.AddGenres))
     if add_artists:
         add["artists"] = add_artists
     if add_genres:
@@ -27,8 +30,8 @@ def edit_file(args_dict: ArgsDict) -> ExecutionResult:
         instructions["add"] = add
 
     remove: Dict[str, List[str]] = {"a": []}
-    remove_artists = args_dict.get_kwarg(EditFileKwargs.RemoveArtists)
-    remove_genres = args_dict.get_kwarg(EditFileKwargs.RemoveGenres)
+    remove_artists = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.RemoveArtists))
+    remove_genres = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.RemoveGenres))
     if remove_artists:
         remove["artists"] = remove_artists
     if remove_genres:
@@ -36,35 +39,35 @@ def edit_file(args_dict: ArgsDict) -> ExecutionResult:
     if len(remove) > 1:
         instructions["remove"] = remove
 
-    artists = args_dict.get_kwarg(EditFileKwargs.Artists)
+    artists = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.Artists))
     if artists:
         instructions["artists"] = artists
 
-    genres = args_dict.get_kwarg(EditFileKwargs.Genres)
+    genres = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.Genres))
     if genres:
         instructions["genres"] = genres
 
-    title = args_dict.get_kwarg(EditFileKwargs.Title)
+    title = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.Title))
     if title:
         instructions["title"] = title[0]
 
-    rating = args_dict.get_kwarg(EditFileKwargs.Rating)
+    rating = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.Rating))
     if rating:
         instructions["rating"] = int(rating[0])
 
-    is_mlp = args_dict.get_kwarg(EditFileKwargs.IsMLP)
+    is_mlp = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.IsMLP))
     if is_mlp:
         instructions["is_mlp"] = is_mlp[0]
 
-    is_dad = args_dict.get_kwarg(EditFileKwargs.IsDad)
+    is_dad = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.IsDad))
     if is_dad:
         instructions["is_dad"] = is_dad[0]
 
-    is_ready = args_dict.get_kwarg(EditFileKwargs.IsReady)
+    is_ready = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.IsReady))
     if is_ready:
         instructions["is_ready"] = is_ready[0]
 
-    ignore = args_dict.get_kwarg(EditFileKwargs.Ignore)
+    ignore = args_dict.get_kwarg(edit_file_kwargs(EditFileKwargs.Ignore))
     if ignore:
         instructions["ignore"] = ignore[0]
 

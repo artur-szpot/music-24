@@ -33,6 +33,7 @@ from functions.file_import.analyze.check_repeated_genres_and_artists import (
     check_repeated_genres_and_artists,
 )
 from functions.file_import.analyze.check_title_set import check_title_set
+from functions.file_import.read_file import predicted_artists_and_title
 from functions.file_import.read_files_to_import import read_files_to_import
 from functions.music_file.MusicFile import MusicFile
 from functions.music_file.MusicFileError import MusicFileError
@@ -65,6 +66,9 @@ def analyze_file(
     errors: List[MusicFileError] = []
     warnings: List[MusicFileError] = []
     ordinal = file.get_ordinal_number()
+    file.predicted_title, file.predicted_artists = predicted_artists_and_title(
+        file.filename[:-4]
+    )
 
     def apply(analyzer: Callable[[MusicFile, int], Optional[AnalysisResult]]) -> None:
         result = analyzer(file, ordinal)
