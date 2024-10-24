@@ -37,9 +37,7 @@ def read_file(path: str) -> MusicFile:
         for artist in mutagen_file.tags.get("TPE1", [])
     }
 
-    predicted_title, predicted_artists = predicted_artists_and_title(
-        filename[:-4], artists
-    )
+    predicted_title, predicted_artists = predicted_artists_and_title(filename[:-4])
     music_file = MusicFile(
         {
             "artists": artists,
@@ -63,40 +61,45 @@ def read_file(path: str) -> MusicFile:
 
 
 def predicted_artists_and_title(
-    filename: str, ampersand_artists: Optional[List[str]] = None
-) -> [List[str], Optional[str]]:
+    filename: str,
+) -> [List[str], Dict[str, List[ArtistRole]]]:
     blocks = filename.split(" - ")
     if len(blocks) == 1:
-        return [filename, []]
-    # artists = artists_from_string(blocks[0], ampersand_artists)
+        return [filename, {}]
     title_block = " - ".join(blocks[1:])
     title_blocks = title_block.split(" [")
     if len(title_blocks) == 1:
-        original_artists = {}
+        original_artists = ""
     elif len(title_blocks) > 2:
-        return [title_block, artists_from_string2(blocks[0], ArtistRole.Original)]
+        return [
+            title_block,
+            full_artist_string_to_artists(blocks[0], ArtistRole.Original),
+        ]
     else:
         original_artists = title_blocks[1].split("]")[0]
-    artists = artists_from_string2(
-        blocks[0], ArtistRole.Remixer if original_artists else ArtistRole.Original
+    artists = full_artist_string_to_artists(
+        blocks[0], ArtistRole.Remixer if len(original_artists) else ArtistRole.Original
     )
-    if original_artists:
-        original_artists = artists_from_string2(original_artists, ArtistRole.Original)
-    return title_blocks[0], artists.update(original_artists)
+    if len(original_artists):
+        artists.update(
+            full_artist_string_to_artists(original_artists, ArtistRole.Original)
+        )
+    return title_blocks[0], artists
 
 
-def artists_from_string2(
+def full_artist_string_to_artists(
     value: str, main_role: ArtistRole
 ) -> Dict[str, List[ArtistRole]]:
     values = value.split(" feat. ")
-    main = values[0]
-    artists = artists_from_string3(main, [main_role, ArtistRole.Original])
+    artists = half_artist_string_to_artists(values[0], [main_role])
     if len(values) > 1:
-        artists += artists_from_string3(values[1], [main_role, ArtistRole.Feat])
+        artists.update(
+            half_artist_string_to_artists(values[1], [main_role, ArtistRole.Feat])
+        )
     return artists
 
 
-def artists_from_string3(
+def half_artist_string_to_artists(
     value: str, roles: List[ArtistRole]
 ) -> Dict[str, List[ArtistRole]]:
     by_comma = value.split(", ")
@@ -104,37 +107,6 @@ def artists_from_string3(
     if " & " in last and not artist_registry.find(last):
         return {key: roles for key in by_comma[:-1] + last.split(" & ")}
     return {key: roles for key in by_comma}
-
-
-def artists_from_string(
-    value: str, ampersand_artists: Optional[List[str]] = None
-) -> List[str]:
-    # very much needs a rework
-    a: str = 1
-    comma_split = value.split(", ")
-    # if len(comma_split) == 1:
-    #     return [value]
-    # ampersand_split = [artist for artist in ampersanded in comma_split]
-    #     comma_split[-1].split(" & ")
-    ampersand_split = [
-        ampersanded.split(" & ")
-        for potential in comma_split
-        for ampersanded in potential
-    ]
-    # if len(ampersand_split) == 1:
-    #     return comma_split
-    feat_split = [
-        feated.split(" & ") for potential in ampersand_split for feated in potential
-    ]
-    # feat_split = ampersand_split[-1].split(" feat. ")
-    if len(feat_split) == 1:
-        return comma_split[:-1] + ampersand_split
-    return (
-        comma_split[:-1]
-        + reconnect_ampersand_artists(ampersand_split[:-1], ampersand_artists)
-        + [feat_split[0]]
-        + artists_from_string(feat_split[1])
-    )
 
 
 def reconnect_ampersand_artists(
