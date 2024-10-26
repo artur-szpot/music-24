@@ -1,6 +1,8 @@
 from typing import Optional
 
 from functions.file_import.analyze.analysis_helpers import AnalysisResult, analysis
+from functions.file_management.command_edit_file.constructor import EditFileCommand
+from functions.file_management.command_rename_file.constructor import RenameFileCommand
 from functions.music_file.IgnoreFilenameDifferences import IgnoreFilenameDifferences
 from functions.music_file.MusicFile import MusicFile
 from functions.music_file.MusicFileError import MusicFileError
@@ -31,12 +33,14 @@ def check_consistent_filename_after_corrections(
                 [
                     MusicFileErrorFix(
                         f"Change file name to expected: {quoted(predicted_filename)}",
-                        f"rename-file {ordinal} --to {quoted(predicted_filename)}",
+                        RenameFileCommand.create(ordinal, predicted_filename),
                     ),
                     MusicFileErrorFix(
                         "Ignore",
-                        f"edit-file {ordinal} "
-                        f"--ignore {IgnoreFilenameDifferences.CONSISTENT_FILENAME.value}",
+                        EditFileCommand.create(
+                            ordinal,
+                            ignore=[IgnoreFilenameDifferences.CONSISTENT_FILENAME],
+                        ),
                     ),
                 ],
             )

@@ -1,9 +1,4 @@
-fix command:
-    mark if a fix is ready
-    iterate through problems offering solutions
-    enter -> apply auto, space -> skip (only if input empty!)
-
-THEN START USING THIS FRFR NOCAP
+START USING THIS FRFR NOCAP
 
 BUG: after resizing to correct, the last command is not actioned
 add arg validation when updating a file
@@ -12,3 +7,5 @@ change constructors that use dicts to actuals
 dictify data types, check that they exist when assigning
 don't ever write commands as strings in code, use constructors
 remove magic strings in general
+
+app like this but for thoughts, with categories, entry date, etc

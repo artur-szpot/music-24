@@ -1,6 +1,10 @@
 from typing import Optional
 
-from functions.data_types.Genre import Genre
+from functions.data_types.Genre import Genre, GenreCategory
+from functions.data_types.functions.command_add.constructor import AddGenreCommand
+from functions.data_types.functions.command_add_variant.constructor import (
+    AddGenreAliasCommand,
+)
 from functions.data_types.genre_registry import genre_registry
 from functions.file_import.analyze.analysis_helpers import AnalysisResult, analysis
 from functions.music_file.MusicFile import MusicFile
@@ -24,22 +28,21 @@ def check_new_genres(file: MusicFile, ordinal: int) -> Optional[AnalysisResult]:
                 [
                     MusicFileErrorFix(
                         f'Add new "music type" genre',
-                        f"add-genre {quoted(genre)} --category type",
+                        AddGenreCommand.create(genre, GenreCategory.MusicType),
                     ),
                     MusicFileErrorFix(
                         f'Add new "music genre" genre',
-                        f"add-genre {quoted(genre)} --category genre",
+                        AddGenreCommand.create(genre, GenreCategory.MusicGenre),
                     ),
                     MusicFileErrorFix(
                         f'Add new "music quality" genre',
-                        f"add-genre {quoted(genre)} --category quality",
+                        AddGenreCommand.create(genre, GenreCategory.MusicQuality),
                     ),
                     MusicFileErrorFix.with_user_input(
-                        f'Add as alias...',
-                        f"add-genre-alias {quoted(genre)} ",
+                        f"Add as alias...", AddGenreAliasCommand.create(genre)
                     ),
                     MusicFileErrorFix.with_user_input(
-                        f'Add as misspelling...',
+                        f"Add as misspelling...",
                         f"add-genre-misspelling {quoted(genre)} ",
                     ),
                 ],
