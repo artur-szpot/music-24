@@ -8,5 +8,5 @@ def import_files(args_dict: ArgsDict) -> ExecutionResult:
     files = read_files_to_import()
     # move files
     # NOW create file_management files
-    create_db_files(files)
+    # create_db_files(files)
     return ExecutionResult.message(f"Successfully imported {len(files)} files")

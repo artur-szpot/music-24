@@ -12,6 +12,7 @@ from functions.data_types.Genre import Genre
 from functions.data_types.artist_registry import artist_registry
 from functions.data_types.functions.command_add.executor import add
 from functions.data_types.functions.command_add.kwargs import AddKwargs, add_kwargs
+from functions.data_types.functions.command_add.verbs import add_verbs
 from functions.data_types.genre_registry import genre_registry
 from functions.execute.validate.ArgsValidator import ArgsValidator
 from functions.execute.validate.validate_args import KwargDefinition
@@ -30,7 +31,7 @@ def add_definition(data_type: DataTypeEnum) -> FunctionDefinition:
         required_kwargs = [KwargDefinition.single(add_kwargs(AddKwargs.Category))]
     return FunctionDefinition(
         function=add(registry, constructor),
-        verbs=[f"add-{data_type.value}"],
+        verbs=add_verbs(data_type),
         args_validator=ArgsValidator.args(exact=1).kwargs(
             allowed_kwargs=[
                 KwargDefinition.any(add_kwargs(AddKwargs.Aliases)),

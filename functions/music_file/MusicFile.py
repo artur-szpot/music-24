@@ -30,27 +30,75 @@ class MusicFile:
     db_props: Dict[MusicFileDbProps, Any]
     view_props: Dict[MusicFileViewProps, Any]
 
-    def __init__(self, source) -> None:
-        self.artists = source.get("artists", {})
-        self.genres = source.get("genres", [])
-        self.title = source.get("title")
-        self.path = source.get("path")
-        self.filename = source.get("filename")
-        self.db_file = source.get("db_file")
-        self.length = source.get("length")
-        self.rating = source.get("rating")
-        self.is_mlp = source.get("is_mlp")
-        self.is_dad = source.get("is_dad")
-        self.is_ready = source.get("is_ready")
-        self.errors = source.get("errors", [])
-        self.warnings = source.get("warnings", [])
-        self.predicted_artists = source.get("predicted_artists", [])
-        self.predicted_title = source.get("predicted_title", "")
-        self.db_props = source.get("db_props", {})
-        self.view_props = source.get("view_props", {})
-        self.ignore_predicted_filename_differences = {
-            key: False for key in IgnoreFilenameDifferences
-        }
+    def __init__(
+        self,
+        artists: Dict[str, List[ArtistRole]],
+        genres: List[str],
+        title: Optional[str],
+        path: str,
+        db_file: Optional[str],
+        filename: Optional[str],
+        length: Optional[int],
+        rating: Optional[int],
+        is_mlp: Optional[bool],
+        is_dad: Optional[bool],
+        is_ready: Optional[bool],
+        predicted_artists: Optional[Dict[str, List[ArtistRole]]] = None,
+        predicted_title: Optional[str] = None,
+        ignore_predicted_filename_differences: Dict[
+            IgnoreFilenameDifferences, bool
+        ] = None,
+        errors: List[MusicFileError] = None,
+        warnings: List[MusicFileError] = None,
+        db_props: Dict[MusicFileDbProps, Any] = None,
+        view_props: Dict[MusicFileViewProps, Any] = None,
+    ) -> None:
+        self.artists = artists
+        self.genres = genres
+        self.title = title
+        self.path = path
+        self.filename = filename
+        self.db_file = db_file
+        self.length = length
+        self.rating = rating
+        self.is_mlp = is_mlp
+        self.is_dad = is_dad
+        self.is_ready = is_ready
+        self.errors = errors or []
+        self.warnings = warnings or []
+        self.predicted_artists = predicted_artists or []
+        self.predicted_title = predicted_title
+        self.db_props = db_props or {}
+        self.view_props = view_props or {}
+        self.ignore_predicted_filename_differences = (
+            ignore_predicted_filename_differences
+            or {key: False for key in IgnoreFilenameDifferences}
+        )
+
+    @staticmethod
+    def from_dict(source):
+        return MusicFile(
+            artists=source.get("artists", {}),
+            genres=source.get("genres", []),
+            title=source.get("title"),
+            path=source.get("path"),
+            filename=source.get("filename"),
+            db_file=source.get("db_file"),
+            length=source.get("length"),
+            rating=source.get("rating"),
+            is_mlp=source.get("is_mlp"),
+            is_dad=source.get("is_dad"),
+            is_ready=source.get("is_ready"),
+            errors=source.get("errors", []),
+            warnings=source.get("warnings", []),
+            predicted_artists=source.get("predicted_artists", []),
+            predicted_title=source.get("predicted_title", ""),
+            db_props=source.get("db_props", {}),
+            view_props=source.get("view_props", {}),
+            ignore_predicted_filename_differences={
+                key: False for key in IgnoreFilenameDifferences
+            },
+        )
 
     def to_dict(self):
         return {

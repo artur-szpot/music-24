@@ -10,12 +10,15 @@ from functions.file_import.analyze.command_print_file_analysis.executor import (
 from functions.file_import.analyze.command_print_file_analysis.flags import (
     print_file_analysis_flags,
 )
+from functions.file_import.analyze.command_print_file_analysis.verbs import (
+    print_file_analysis_verbs,
+)
 
 
 def print_file_analysis_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=print_file_analysis,
-        verbs=["analyze-import", "ai"],
+        verbs=print_file_analysis_verbs,
         args_validator=ArgsValidator.no_args().flags(print_file_analysis_flags),
         description="Analyze files from the import directory before importing.",
         category=FunctionCategoryEnum.IngestingFiles,

@@ -7,6 +7,7 @@ from functions.file_management.command_edit_file.kwargs import (
     EditFileKwargs,
     edit_file_kwargs,
 )
+from functions.file_management.command_edit_file.verbs import edit_file_verbs
 
 args_validator = ArgsValidator.file_and_no_args().kwargs(
     allowed_kwargs={
@@ -29,7 +30,7 @@ args_validator = ArgsValidator.file_and_no_args().kwargs(
 def edit_file_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=edit_file,
-        verbs=["edit-file", "ef"],
+        verbs=edit_file_verbs,
         args_validator=args_validator,
         description="Edit the selected properties of a file.",
         category=FunctionCategoryEnum.EditingFiles,

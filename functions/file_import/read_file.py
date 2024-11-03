@@ -24,11 +24,18 @@ def read_file(path: str) -> MusicFile:
     filename = extract_filename_from_path(path)
     if not path.lower().endswith(".mp3"):
         return MusicFile(
-            {
-                "path": path,
-                "filename": filename,
-                "errors": [MusicFileError("File in a wrong format")],
-            }
+            artists={},
+            genres=[],
+            title=None,
+            path=path,
+            db_file=None,
+            filename=filename,
+            length=0,
+            rating=0,
+            is_mlp=False,
+            is_dad=False,
+            is_ready=False,
+            errors=[MusicFileError("File in a wrong format")],
         )
     mutagen_file = File(path)
     rating_tag = mutagen_file.tags.get("POPM:no@email")
@@ -39,23 +46,21 @@ def read_file(path: str) -> MusicFile:
 
     predicted_title, predicted_artists = predicted_artists_and_title(filename[:-4])
     music_file = MusicFile(
-        {
-            "artists": artists,
-            "genres": [str(artist) for artist in mutagen_file.tags.get("TCON", [])],
-            "title": str(mutagen_file.tags.get("TIT2", "")),
-            "path": path,
-            "db_file": None,
-            "filename": filename,
-            "length": int(mutagen_file.info.length),
-            "rating": RatingMapper.from_mp3_tags(
-                -1 if rating_tag is None else int(rating_tag.rating)
-            ),
-            "is_mlp": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom3:XXX")),
-            "is_dad": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom2:XXX")),
-            "is_ready": tag(mutagen_file.tags.get("COMM:Songs-DB_Custom1:XXX")),
-            "predicted_title": predicted_title or "",
-            "predicted_artists": predicted_artists or [],
-        }
+        artists=artists,
+        genres=[str(artist) for artist in mutagen_file.tags.get("TCON", [])],
+        title=str(mutagen_file.tags.get("TIT2", "")),
+        path=path,
+        db_file=None,
+        filename=filename,
+        length=int(mutagen_file.info.length),
+        rating=RatingMapper.from_mp3_tags(
+            -1 if rating_tag is None else int(rating_tag.rating)
+        ),
+        is_mlp=tag(mutagen_file.tags.get("COMM:Songs-DB_Custom3:XXX")),
+        is_dad=tag(mutagen_file.tags.get("COMM:Songs-DB_Custom2:XXX")),
+        is_ready=tag(mutagen_file.tags.get("COMM:Songs-DB_Custom1:XXX")),
+        predicted_title=predicted_title or "",
+        predicted_artists=predicted_artists or [],
     )
     return music_file
 
