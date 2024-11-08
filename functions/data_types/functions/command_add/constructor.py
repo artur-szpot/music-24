@@ -3,10 +3,8 @@ from typing import List
 from functions.commands.print_command import print_command
 from functions.data_types.DataTypeEnum import DataTypeEnum
 from functions.data_types.Genre import GenreCategory
-from functions.data_types.functions.command_add.definition import (
-    add_definition,
-)
 from functions.data_types.functions.command_add.kwargs import AddKwargs
+from functions.data_types.functions.command_add.verbs import add_verbs
 
 
 class AddCommand:
@@ -25,7 +23,7 @@ class AddCommand:
             kwargs.append({AddKwargs.Misspellings: misspellings})
         if category:
             kwargs.append({AddKwargs.Category: category})
-        return print_command(add_definition(data_type), args=[name], kwargs=kwargs)
+        return print_command(add_verbs(data_type), args=[name], kwargs=kwargs)
 
 
 class AddArtistCommand:

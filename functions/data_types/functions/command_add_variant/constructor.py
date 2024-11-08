@@ -1,9 +1,6 @@
 from functions.commands.print_command import print_command
 from functions.data_types.DataTypeEnum import DataTypeEnum
-from functions.data_types.functions.command_add_variant.definition import (
-    add_variant_definition,
-)
-from libs.strings import quoted
+from functions.data_types.functions.command_add_variant.verbs import add_variant_verbs
 
 
 class AddVariantCommand:
@@ -12,7 +9,7 @@ class AddVariantCommand:
         data_type: DataTypeEnum, alias: bool, original: str, new_alias: str
     ) -> str:
         return print_command(
-            add_variant_definition(data_type, alias), args=[original, new_alias]
+            add_variant_verbs(data_type, alias), args=[original, new_alias]
         )
 
 

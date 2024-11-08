@@ -8,10 +8,13 @@ from functions.music_file.MusicFileErrorFix import MusicFileErrorFix
 from libs.strings import quoted
 
 
-def check_correct_genre_capitalization(file: MusicFile, ordinal: int) -> Optional[AnalysisResult]:
+def check_correct_genre_capitalization(
+    file: MusicFile, ordinal: int
+) -> Optional[AnalysisResult]:
     warnings = []
     for genre in file.genres:
         correct_capitalization = Genre.check_capitalization(genre)
+        # todo add checking for misspellings/aliasesx
         if correct_capitalization is not None:
             warnings.append(
                 MusicFileError(

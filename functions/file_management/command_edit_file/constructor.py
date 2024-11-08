@@ -1,8 +1,11 @@
 from typing import List
 
 from functions.commands.print_command import print_command
-from functions.file_management.command_edit_file.definition import edit_file_definition
-from functions.file_management.command_edit_file.kwargs import EditFileKwargs
+from functions.file_management.command_edit_file.kwargs import (
+    EditFileKwargs,
+    edit_file_kwargs,
+)
+from functions.file_management.command_edit_file.verbs import edit_file_verbs
 from functions.music_file.IgnoreFilenameDifferences import IgnoreFilenameDifferences
 
 
@@ -48,4 +51,9 @@ class EditFileCommand:
             kwargs.append({EditFileKwargs.IsReady: "1" if is_ready else "0"})
         if ignore:
             kwargs.append({EditFileKwargs.Ignore: [i.value for i in ignore]})
-        return print_command(edit_file_definition(), args=[str(ordinal)], kwargs=kwargs)
+        return print_command(
+            edit_file_verbs,
+            args=[str(ordinal)],
+            kwargs=kwargs,
+            kwarg_dict=edit_file_kwargs,
+        )

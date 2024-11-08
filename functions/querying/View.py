@@ -17,7 +17,7 @@ class View:
 
     @staticmethod
     def from_dict(source: Dict):
-        columns = [ViewColumn(column) for column in source.get("columns", [])]
+        columns = [ViewColumn.from_dict(column) for column in source.get("columns", [])]
         sort = [
             ViewColumnSort(property_name, ascending)
             for property_name, ascending in source.get("sort", {}).items()

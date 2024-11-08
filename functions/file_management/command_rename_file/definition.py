@@ -7,12 +7,13 @@ from functions.file_management.command_rename_file.kwargs import (
     RenameFileKwargs,
     rename_file_kwargs,
 )
+from functions.file_management.command_rename_file.verbs import rename_file_verbs
 
 
 def rename_file_definition() -> FunctionDefinition:
     return FunctionDefinition(
         function=rename_file,
-        verbs=["rename-file", "rf"],
+        verbs=rename_file_verbs,
         args_validator=ArgsValidator.file_and_no_args().kwargs(
             required_kwargs=[
                 KwargDefinition.single(rename_file_kwargs(RenameFileKwargs.NewName))
