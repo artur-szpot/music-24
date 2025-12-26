@@ -1,0 +1,79 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+ 
+body {
+  position: relative;
+  color: white;
+  height: 100vh;
+  background: #ac30a8;
+  font-family: sans-serif;
+  overflow-y: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+div {
+   overflow-x: hidden;
+}
+
+p {
+   margin: 0;
+}
+
+div#nav {
+   background-color: black;
+   color: white;
+   position: absolute;
+   height: 100vw;
+   left: 0;
+   top: 0;
+   padding: 10px;
+   width: 80px;
+}
+
+div.screen {
+   width: calc(100vw - 100px);
+   position: absolute;
+   left: 100px;
+   top: 0;
+   text-align: center;
+   height: 100vh;
+}
+
+div.screen-contents {
+    margin: auto;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block;
+}
+
+div.screen-pagination {
+   width: 100%;
+   position: absolute;
+   left: 0;
+    margin: auto;
+    bottom: 10px;
+    height: auto;
+   text-align: center;
+}
+
+div.minion {
+   display: inline-block;
+  padding: 10px;
+  padding-bottom: 10px;
+  text-align: left;
+    overflow-y: hidden;
+  max-width: 22%;
+}
+
+div.minion > img {
+    width: 100%; 
+    height: auto;
+}
+
+img { border: 2px solid black; }
