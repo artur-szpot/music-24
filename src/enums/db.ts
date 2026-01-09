@@ -3,8 +3,17 @@ export enum DB_OPERATIONS {
   GET_MINION,
   GET_MINIONS,
   GET_MINIONS_COUNT,
+  GET_TAG_CATEGORIES,
+  GET_IMPLEMENTATION_CATEGORIES,
+  GET_CARDS,
+  GET_EPISODES,
+  GET_SCENES,
+  INITIALIZE_LABELS,
 }
 
 export enum DB_TABLES {
   MINIONS = 'minions',
+  CARDS = 'cards',
+  EPISODES = 'episodes',
+  SCENES = 'scenes',
 }

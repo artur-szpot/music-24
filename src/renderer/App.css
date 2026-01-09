@@ -2,12 +2,12 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
- 
+
 body {
   position: relative;
   color: white;
   height: 100vh;
-  background: #ac30a8;
+  background: #9e9e9e;
   font-family: sans-serif;
   overflow-y: hidden;
   display: flex;
@@ -17,63 +17,207 @@ body {
 }
 
 div {
-   overflow-x: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 p {
-   margin: 0;
+  margin: 0;
 }
 
 div#nav {
-   background-color: black;
-   color: white;
-   position: absolute;
-   height: 100vw;
-   left: 0;
-   top: 0;
-   padding: 10px;
-   width: 80px;
+  background-color: black;
+  color: white;
+  position: absolute;
+  height: 100vw;
+  left: 0;
+  top: 0;
+  padding: 10px;
+  width: 80px;
+}
+
+div.screen-pagination nav ul li button {
+  font-size: 1.2rem;
 }
 
 div.screen {
-   width: calc(100vw - 100px);
-   position: absolute;
-   left: 100px;
-   top: 0;
-   text-align: center;
-   height: 100vh;
+  width: calc(100vw - 100px);
+  position: absolute;
+  left: 100px;
+  top: 0;
+  text-align: center;
+  height: calc(100vh - 20px);
 }
 
-div.screen-contents {
-    margin: auto;
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    display: block;
+div.screen-popup {
+  width: calc(100vw - 104px);
+  position: absolute;
+  left: 100px;
+  top: 0;
+  text-align: center;
+  height: calc(100vh - 20px);
+  border: 2px solid red;
+}
+
+div.accordion-screen {
+  width: calc(100vw - 120px);
+  overflow-y: scroll;
+  padding: 10px;
+}
+
+div.accordion-box {
+  padding-left: 60px;
+}
+
+div.minion-screen-contents {
+  margin: auto;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
 }
 
 div.screen-pagination {
-   width: 100%;
-   position: absolute;
-   left: 0;
-    margin: auto;
-    bottom: 10px;
-    height: auto;
-   text-align: center;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  margin: auto;
+  bottom: 0;
+  padding-bottom: 10px;
+  height: auto;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+div.screen-pagination button {
+  min-width: 50px;
+  height: 50px;
+}
+
+p.pagination-info {
+  float: right;
+  position: absolute;
+  right: 5px;
+  margin: 0;
+  bottom: 0;
+  font-size: 0.7em;
+  color: black;
 }
 
 div.minion {
-   display: inline-block;
+  display: inline-block;
   padding: 10px;
   padding-bottom: 10px;
   text-align: left;
-    overflow-y: hidden;
+  overflow-y: hidden;
   max-width: 22%;
 }
 
-div.minion > img {
-    width: 100%; 
-    height: auto;
+div.minion.full {
+  display: inline-block;
+  padding: 10px;
+  padding-bottom: 10px;
+  text-align: left;
+  overflow-y: hidden;
+  max-width: 66%;
 }
 
-img { border: 2px solid black; }
+div.minion > img {
+  width: 100%;
+  height: auto;
+}
+
+img {
+  border: 2px solid black;
+}
+
+span.action {
+  color: #b568c7;
+  text-align: left;
+}
+
+span.action:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+span.disabled {
+  color: #666666;
+}
+
+span.disabled:hover {
+  cursor: default;
+  text-decoration: none;
+}
+
+span.MuiAccordionSummary-content {
+  margin: 5px 0;
+}
+
+div.MuiAccordionDetails-root {
+  padding-top: 5px;
+  padding-bottom: 0;
+}
+
+span.accordion-main-header {
+  display: block;
+  margin: 0;
+  margin-block: 0;
+  line-height: normal;
+  font-size: 2rem;
+}
+
+span.accordion-header {
+  display: inline-block;
+  padding: 0 5px;
+  margin-block: 0;
+}
+
+div.accordion-screen input {
+  padding: 10px 14px;
+  border: 2px solid #b568c7;
+  font-size: 2rem;
+}
+
+div.accordion-screen div.spacer {
+  height: 10px;
+}
+
+span.category-icon {
+  transform: translateY(8px);
+}
+
+div.filter-main,
+div.filter-row {
+  text-align: left;
+  padding: 0 10px;
+}
+
+div.filter-main > div.filter-main {
+  padding: 0 30px;
+}
+
+div.filter-main > p,
+div.filter-row > p {
+  margin-bottom: 5px;
+}
+
+div.filter-main h3 {
+  margin: 15px 0 0 0;
+}
+
+div.filter-row h4 {
+  margin: 15px 0;
+}
+
+div.card-details-screen {
+  overflow-y: scroll;
+  text-align: left;
+  padding: 20px;
+  width: calc(100vw - 140px);
+}
+
+div.filter-subrow {
+  margin-bottom: 10px;
+}

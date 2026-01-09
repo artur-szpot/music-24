@@ -1,17 +1,33 @@
-import { useCallback, useEffect, useState } from 'react';
-import { DB_OPERATIONS } from '../../enums/db';
-import { Minion, MinionProps } from '../components/Minion';
-import { CHANNELS } from '../../enums/channels';
+import Pagination from '@mui/material/Pagination';
+import { useEffect, useState } from 'react';
+import { IPC_CHANNEL } from '../../constants/channel';
 import { LIMITS } from '../../constants/limits';
+import { DB_OPERATIONS } from '../../enums/db';
+import { Interactive } from '../components/interactive';
+import { LoaderScreen } from '../components/Loader';
+import { Minion, MinionProps } from '../components/Minion';
 
-export interface MinionsListProps {
+export interface MinionsListQuery {
   episodes?: number[];
+  ids?: number[];
+  scenes?: number[];
+  cards?: number[];
+  rel?: string;
+  view?: string;
 }
+
+export interface MinionsListOwnProps {
+  query: MinionsListQuery;
+}
+
+export interface MinionsListProps extends Interactive, MinionsListOwnProps {}
 
 export const MinionsList: React.FC<MinionsListProps> = (
   props: MinionsListProps,
 ) => {
-  const { episodes } = props;
+  const { query, handleNav } = props;
+  const privateChannel = 'minions-list';
+  const privateCountChannel = 'minions-list-count';
   const [minions, setMinions] = useState([] as MinionProps[]);
   const [page, setPage] = useState(-1);
   const [itemTotal, setItemTotal] = useState(0);
@@ -19,15 +35,15 @@ export const MinionsList: React.FC<MinionsListProps> = (
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isCountLoading, setIsCountLoading] = useState(true);
 
-  window.electron.ipcRenderer.once(CHANNELS.DEFAULT, (arg) => {
+  window.electron.ipcRenderer.once(privateChannel, (arg) => {
     console.log(`Data received: ${JSON.stringify(arg)}`);
     setMinions(arg as MinionProps[]);
     setIsDataLoading(false);
   });
 
-  window.electron.ipcRenderer.once(CHANNELS.COUNT, (arg) => {
+  window.electron.ipcRenderer.once(privateCountChannel, (arg) => {
     console.log(`Count received: ${JSON.stringify(arg)}`);
-    const totalItems = (arg as any)[0]['count(1)'] as number;
+    const totalItems = (arg as any)[0].total as number;
     const totalPages = Math.ceil(totalItems / LIMITS.MINIONS_PER_PAGE);
     setItemTotal(totalItems);
     setPageTotal(totalPages);
@@ -36,37 +52,53 @@ export const MinionsList: React.FC<MinionsListProps> = (
   });
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(CHANNELS.DEFAULT, {
+    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
+      privateChannel,
       operation: DB_OPERATIONS.GET_MINIONS,
-      episodes,
+      query,
       page,
     });
-  }, [episodes, page]);
+  }, [query, page]);
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(CHANNELS.COUNT, {
+    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
+      privateChannel: privateCountChannel,
       operation: DB_OPERATIONS.GET_MINIONS_COUNT,
-      episodes,
+      query,
     });
-  }, [episodes]);
+  }, [query]);
 
   if (isDataLoading || isCountLoading) {
-    return (
-      <div className="screen">
-        <p className="loading">Loading...</p>
-      </div>
-    );
+    return <LoaderScreen />;
   }
 
   return (
     <div className="screen">
-      <div className="screen-contents">
+      <div className="minion-screen-query">
+        {query.cards && (
+          <p>{`One of cards: ${query.cards.join(', ')} with relation "${query.rel}"`}</p>
+        )}
+        {query.episodes && (
+          <p>{`One of episodes: ${query.episodes.join(', ')}`}</p>
+        )}
+        {query.scenes && <p>{`One of scenes: ${query.scenes.join(', ')}`}</p>}
+        {query.ids && <p>{`One of IDs: ${query.ids.join(', ')}`}</p>}
+        {query.view && <p>{`Coming from view: ${query.view}`}</p>}
+      </div>
+      <div className="minion-screen-contents">
         {minions.map((minion) => (
-          <Minion {...minion} />
+          <Minion {...minion} handleNav={handleNav} />
         ))}
       </div>
       <div className="screen-pagination">
-        <p>{`Page ${page + 1} of ${pageTotal} (showing items ${page * LIMITS.MINIONS_PER_PAGE + 1}-${(page + 1) * LIMITS.MINIONS_PER_PAGE} of ${itemTotal})`}</p>
+        <p className="pagination-info">{`${page * LIMITS.MINIONS_PER_PAGE + 1}-${Math.min((page + 1) * LIMITS.MINIONS_PER_PAGE, itemTotal)} of ${itemTotal}`}</p>
+        <Pagination
+          count={pageTotal}
+          color="secondary"
+          onChange={(event: React.ChangeEvent<unknown>, page: number) => {
+            setPage(page - 1);
+          }}
+        />
       </div>
     </div>
   );

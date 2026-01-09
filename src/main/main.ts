@@ -15,17 +15,17 @@ import { dbOperation } from './db';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-export const QUERY_CHANNEL = 'query-channel';
-export const COUNT_CHANNEL = 'count-channel';
+export const DEFAULT_CHANNEL = 'default-channel';
 
 let mainWindow: BrowserWindow | null = null;
 
 // Forward a DB operation to its handler
-ipcMain.on(QUERY_CHANNEL, async (event, arg) => {
-  event.reply(QUERY_CHANNEL, dbOperation(arg));
-});
-ipcMain.on(COUNT_CHANNEL, async (event, arg) => {
-  event.reply(COUNT_CHANNEL, dbOperation(arg));
+ipcMain.on(DEFAULT_CHANNEL, async (event, arg) => {
+  if (arg.privateChannel) {
+    event.reply(arg.privateChannel, dbOperation(arg));
+  } else if (arg.log) {
+    console.log(arg.log);
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {
