@@ -59,6 +59,17 @@ div.screen-popup {
   border: 2px solid red;
 }
 
+div.screen-side {
+  width: 25vw;
+  text-align: center;
+  height: calc(100vh - 20px);
+}
+
+div.screen-tooltip {
+  width: 250px;
+  text-align: center;
+}
+
 div.accordion-screen {
   width: calc(100vw - 120px);
   overflow-y: scroll;
@@ -114,13 +125,12 @@ div.minion {
   max-width: 22%;
 }
 
-div.minion.full {
-  display: inline-block;
-  padding: 10px;
-  padding-bottom: 10px;
-  text-align: left;
-  overflow-y: hidden;
+div.minion-solo {
   max-width: 66%;
+}
+
+div.minion-full {
+  max-width: 100%;
 }
 
 div.minion > img {

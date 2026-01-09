@@ -5,6 +5,8 @@ import { Filter } from '../components/Filter';
 import { Loader, LoaderScreen } from '../components/Loader';
 import { Interactive } from '../components/interactive';
 import Drawer from '@mui/material/Drawer';
+import { MinionDetails } from './MinionDetails';
+import { SCREEN_TYPES } from '../../enums/screens';
 
 export interface CardProps {
   id: number;
@@ -30,10 +32,12 @@ export const CardDetails: React.FC<CardDetailsProps> = (
   const [card, setCard] = useState<CardProps | undefined>(undefined);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-  const [sidePanelContent, setSidePanelContent] = React.useState(<Loader />);
-  const [sidePanelOpen, setSidePanelOpen] = React.useState(false);
+  const [sidePanelContent, setSidePanelContent] = React.useState(
+    <MinionDetails id={666} screenType={SCREEN_TYPES.SIDE_PANEL} />,
+  );
+  const [sidePanelOpen, setSidePanelOpen] = React.useState(true);
 
-  const toggleSidePanel = (newOpen: boolean) => () => {
+  const toggleSidePanel = (newOpen: boolean) => {
     setSidePanelOpen(newOpen);
   };
 
@@ -67,11 +71,15 @@ export const CardDetails: React.FC<CardDetailsProps> = (
           <Filter
             {...view}
             globalLabels={globalLabels}
-            openSidePanel={() => toggleSidePanel(true)}
+            openSidePanel={toggleSidePanel}
           />
         )}
       </div>
-      <Drawer open={sidePanelOpen} onClose={toggleSidePanel(false)}>
+      <Drawer
+        open={sidePanelOpen}
+        anchor="right"
+        onClose={() => toggleSidePanel(false)}
+      >
         {sidePanelContent}
       </Drawer>
     </div>

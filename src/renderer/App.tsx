@@ -2,7 +2,7 @@ import Backdrop from '@mui/material/Backdrop';
 import { useEffect, useState } from 'react';
 import { IPC_CHANNEL } from '../constants/channel';
 import { DB_OPERATIONS } from '../enums/db';
-import { SCREENS } from '../enums/screens';
+import { SCREEN_TYPES, SCREENS } from '../enums/screens';
 import './App.css';
 import { LoaderScreen } from './components/Loader';
 import { GlobalLabels } from './globalLabels';
@@ -19,7 +19,10 @@ export default function App() {
     screen: SCREENS.HELLO,
   });
   const setPopup = (popup: SetScreenProps) => {
-    setScreen({ ...screen, popup });
+    setScreen({
+      ...screen,
+      popup: { ...popup, screenType: SCREEN_TYPES.POPUP },
+    });
   };
   const [popupOpen, setPopupOpen] = useState(false);
   const handleClose = () => {
@@ -91,10 +94,7 @@ export default function App() {
     return <LoaderScreen />;
   }
 
-  const screenRenderer = (
-    selectedScreen?: SetScreenProps,
-    isPopup: boolean = false,
-  ) => {
+  const screenRenderer = (selectedScreen?: SetScreenProps) => {
     switch (selectedScreen?.screen) {
       default:
         return <Hello />;
@@ -117,7 +117,12 @@ export default function App() {
           />
         );
       case SCREENS.MINION_DETAILS:
-        return <MinionDetails id={selectedScreen.id ?? 666} popup={isPopup} />;
+        return (
+          <MinionDetails
+            id={selectedScreen.id ?? 666}
+            screenType={selectedScreen.screenType ?? SCREEN_TYPES.SCREEN}
+          />
+        );
       case SCREENS.CARD_DETAILS:
         return (
           <CardDetails
@@ -136,7 +141,7 @@ export default function App() {
       <Backdrop open={popupOpen} onClick={handleClose}>
         <Backdrop open={true} onClick={handleClose}>
           <Backdrop open={true} onClick={handleClose}>
-            {screenRenderer(screen.popup, true)}
+            {screenRenderer(screen.popup)}
           </Backdrop>
         </Backdrop>
       </Backdrop>

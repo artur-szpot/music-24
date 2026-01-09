@@ -1,5 +1,5 @@
 import { DB_OPERATIONS } from '../enums/db';
-import { SCREENS } from '../enums/screens';
+import { SCREEN_TYPES, SCREENS } from '../enums/screens';
 import { CategoryAction } from './components/Category';
 import { MinionsListQuery } from './screens/MinionsList';
 
@@ -11,4 +11,5 @@ export interface SetScreenProps {
   popup?: SetScreenProps;
   id?: number;
   actions?: CategoryAction[];
+  screenType?: SCREEN_TYPES;
 }

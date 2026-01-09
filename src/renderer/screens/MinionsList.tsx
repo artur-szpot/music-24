@@ -5,7 +5,8 @@ import { LIMITS } from '../../constants/limits';
 import { DB_OPERATIONS } from '../../enums/db';
 import { Interactive } from '../components/interactive';
 import { LoaderScreen } from '../components/Loader';
-import { Minion, MinionProps } from '../components/Minion';
+import { Minion, MinionInteractive, MinionProps } from '../components/Minion';
+import { SCREENS } from '../../enums/screens';
 
 export interface MinionsListQuery {
   episodes?: number[];
@@ -87,7 +88,15 @@ export const MinionsList: React.FC<MinionsListProps> = (
       </div>
       <div className="minion-screen-contents">
         {minions.map((minion) => (
-          <Minion {...minion} handleNav={handleNav} />
+          <MinionInteractive
+            {...minion}
+            onClick={() =>
+              handleNav.setPopup({
+                screen: SCREENS.MINION_DETAILS,
+                id: minion.id,
+              })
+            }
+          />
         ))}
       </div>
       <div className="screen-pagination">

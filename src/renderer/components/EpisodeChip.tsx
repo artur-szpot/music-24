@@ -1,10 +1,9 @@
 import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
-import React from 'react';
-import { Minion } from './Minion';
-import { SetScreenProps } from '../setScreenProps';
-import { MinionDetails } from '../screens/MinionDetails';
 import Typography from '@mui/material/Typography';
+import React from 'react';
+import { SCREEN_TYPES } from '../../enums/screens';
+import { MinionDetails } from '../screens/MinionDetails';
 
 export interface CustomChipProps {
   id: number;
@@ -27,7 +26,7 @@ export const EpisodeChip: React.FC<CustomChipProps> = (
   const {
     id,
     label,
-    color,
+    color = 'primary',
     onClick = () => null,
     onDelete = () => null,
   } = props;
@@ -35,13 +34,11 @@ export const EpisodeChip: React.FC<CustomChipProps> = (
     <Tooltip
       title={
         <React.Fragment>
-          <Typography color="inherit">Tooltip with HTML</Typography>
-          <em>{"And here's"}</em> <b>{'some'}</b> <u>{'amazing content'}</u>.{' '}
-          {"It's very engaging. Right?"}
-          <MinionDetails id={id} />
+          <MinionDetails id={id} screenType={SCREEN_TYPES.TOOLTIP} />
         </React.Fragment>
       }
-      sx={{ maxWidth: '400px' }}
+      sx={{ maxWidth: '250px' }}
+      followCursor={true}
     >
       <Chip
         label={label}

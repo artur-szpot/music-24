@@ -3,6 +3,7 @@ import Stack from '@mui/material/Stack';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { EpisodeChip } from './EpisodeChip';
+import { FilterSubRow } from './FilterSubRow';
 
 export interface ViewCategoryProps {
   oneOf?: number[];
@@ -16,33 +17,6 @@ export interface FilterRowProps extends ViewCategoryProps {
   noContents?: boolean;
   openSidePanel: () => void;
 }
-
-interface FilterSubRowProps {
-  ids?: number[];
-  negativeIds?: number[];
-  label: string;
-  labels: Record<number, string>;
-  openSidePanel: () => void;
-}
-
-const FilterSubRow: React.FC<FilterSubRowProps> = (
-  props: FilterSubRowProps,
-) => {
-  const { ids, negativeIds, label, labels, openSidePanel } = props;
-  return (
-    <div className="filter-subrow">
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-        <Chip label={label} onClick={() => openSidePanel} icon={<EditIcon />} />
-        {(ids ?? []).map((id) => (
-          <EpisodeChip id={id} label={labels[id]} />
-        ))}
-        {(negativeIds ?? []).map((id) => (
-          <EpisodeChip id={id} label={labels[id]} color="error" />
-        ))}
-      </Stack>
-    </div>
-  );
-};
 
 export const FilterRow: React.FC<FilterRowProps> = (props: FilterRowProps) => {
   const { label, allOf, oneOf, noneOf, labels, noContents, openSidePanel } =
