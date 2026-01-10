@@ -9,45 +9,59 @@ import {
   CategoryOwnProps,
   satisfiesSearchTerm,
 } from '../components/Category';
-import { Interactive } from '../components/interactive';
+import { Interactive } from '../interfaces/interactive';
 import { LoaderScreen } from '../components/Loader';
+import { CategoryListOwnProps } from './CategoryListProps';
+import { ScreenProps } from '../interfaces/screen';
+import { CategoryActionProps } from '../components/CategoryActionProps';
 
-export interface CategoriesListOwnProps {
-  dbOperation: DB_OPERATIONS;
-  searchTerm?: string;
-  actions: CategoryAction[];
-}
-
-export interface CategoriesListProps
+export interface CategoryListProps
   extends Interactive,
-    CategoriesListOwnProps {}
+    CategoryListOwnProps, ScreenProps, CategoryActionProps {}
 
-export const CategoriesList: React.FC<CategoriesListProps> = (
-  props: CategoriesListProps,
+export const CategoryList: React.FC<CategoryListProps> = (
+   { dbOperation, handleNav, globalLabels, actions, navActions, chosenCategories:chosenCategoriesProps={}, openCategories: openCategoriesProps=[],searchTerm:searchTermProps }: CategoryListProps,
 ) => {
-  const { dbOperation, handleNav, globalLabels } = props;
-  const privateChannel = `categories-list-${dbOperation}`;
-
-  const [categories, setCategories] = useState([] as CategoryOwnProps[]);
-  const [openCategory, setOpenCategory] = useState<string | undefined>(
-    undefined,
-  );
-  const handleOpenCategory =
-    (category: string) =>
-    (event: React.SyntheticEvent, newExpanded: boolean) => {
-      setOpenCategory(newExpanded ? category : undefined);
-    };
+  const [openCategories, setOpenCategories] = useState<number[]>(
+     openCategoriesProps
+     );
+     const handleOpenCategory =
+     (args:{add?:number|undefined, remove?:number|undefined}) =>
+      setOpenCategories([...openCategories, args.add].filter((category)=>![undefined, args.remove].includes( category)));
+      
+      const [chosenCategories, setChosenCategories] = useState<{[key:number]: boolean}>(chosenCategoriesProps);
+      const handleChosenCategory =
+    (id: number) =>{
+      const newChosenCategories = {...chosenCategories}
+      const currentState = newChosenCategories[id]
+      switch(currentState){
+         case undefined:
+            newChosenCategories[id] = true
+            break
+            case true:
+               newChosenCategories[id]=false
+               break
+               case false:
+                  delete newChosenCategories[id]
+      }
+      setChosenCategories(newChosenCategories);
+    }
+  
   const [searchTerm, setSearchTerm] = useState<string | undefined>(
-    props.searchTerm,
+    searchTermProps,
   );
   const handleSearch = (value: string) => {
     value.length ? setSearchTerm(value) : setSearchTerm(undefined);
   };
+  const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+  handleSearch(event.target.value)
+
+  const privateChannel = `categories-list-${dbOperation}`;
+  const [categories, setCategories] = useState([] as CategoryOwnProps[]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   window.electron.ipcRenderer.once(privateChannel, (response) => {
-    console.log(`Data received: ${JSON.stringify(response)}`);
-
+   try {
     const categoryMap = {} as { [key: string]: CategoryOwnProps };
 
     const subs = response as SubCard[];
@@ -60,7 +74,6 @@ export const CategoriesList: React.FC<CategoriesListProps> = (
     subs
       .filter(({ parent }) => parent === null)
       .forEach((sub) => {
-        try {
           if (categoryMap[sub.category] === undefined) {
             categoryMap[sub.category] = {
               id: sub.id,
@@ -73,14 +86,13 @@ export const CategoriesList: React.FC<CategoriesListProps> = (
             ...sub,
             subs: processSubs(sub.id),
           });
-        } catch (e) {
-          alert(e);
-          alert(Object.values(categoryMap).length);
-        }
       });
 
     setCategories(Object.values(categoryMap));
     setIsDataLoading(false);
+   } catch (e) {
+     alert(`Error encountered while loading data for CategoryList: ${e}`);
+   }
   });
 
   useEffect(() => {
@@ -94,13 +106,21 @@ export const CategoriesList: React.FC<CategoriesListProps> = (
     return <LoaderScreen />;
   }
 
+  const passableProps = {
+     searchTerm,
+     handleNav,
+     globalLabels,
+     handleOpenCategory,
+     handleChosenCategory,
+     actions,
+     navActions}
+     
+
   return (
     <div className="screen accordion-screen">
       <TextField
         autoFocus
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          handleSearch(event.target.value)
-        }
+        onChange={onSearchChange        }
         fullWidth
       />
       <div className="spacer"></div>
@@ -109,13 +129,9 @@ export const CategoriesList: React.FC<CategoriesListProps> = (
         .map((category) => (
           <Category
             {...category}
-            searchTerm={searchTerm}
+            {...passableProps}
             key={category.name}
-            handleNav={handleNav}
-            globalLabels={globalLabels}
-            expanded={searchTerm ? true : category.name === openCategory}
-            onChange={handleOpenCategory(category.name ?? '')}
-            actions={props.actions}
+            expanded={searchTerm ? true : category.id === openCategory}
             topCategory={true}
           />
         ))}

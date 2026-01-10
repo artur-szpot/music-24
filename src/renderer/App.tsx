@@ -8,15 +8,17 @@ import { LoaderScreen } from './components/Loader';
 import { GlobalLabels } from './globalLabels';
 import { Nav } from './nav/Nav';
 import { CardDetails } from './screens/CardDetails';
-import { CategoriesList } from './screens/CategoriesList';
-import { Hello } from './screens/Hello';
+import { CategoryList } from './screens/CategoryList';
 import { MinionDetails } from './screens/MinionDetails';
-import { MinionsList } from './screens/MinionsList';
-import { SetScreenProps } from './setScreenProps';
+import { MinionList } from './screens/MinionList';
+import { SetScreenProps } from './interfaces/setScreenProps';
 
 export default function App() {
   const [screen, setScreen] = useState<SetScreenProps>({
-    screen: SCREENS.HELLO,
+    minionDetails: {
+      id: 666
+    },
+    screenType: SCREEN_TYPES.SCREEN
   });
   const setPopup = (popup: SetScreenProps) => {
     setScreen({
@@ -25,17 +27,14 @@ export default function App() {
     });
   };
   const [popupOpen, setPopupOpen] = useState(false);
-  const handleClose = () => {
-    setPopupOpen(false);
+  const handlePopupToggle = (newOpen: boolean) => {
+    setPopupOpen(newOpen);
   };
-  const handleOpen = () => {
-    setPopupOpen(true);
-  };
+  
   const handleNav = { handleNav: { setScreen, setPopup } };
-
   useEffect(() => {
     if (screen.popup !== undefined && !popupOpen) {
-      handleOpen();
+      handlePopupToggle(true);
     }
   }, [screen.popup]);
 
@@ -95,40 +94,45 @@ export default function App() {
   }
 
   const screenRenderer = (selectedScreen?: SetScreenProps) => {
-    switch (selectedScreen?.screen) {
-      default:
-        return <Hello />;
-      case SCREENS.MINIONS_LIST:
+   const { cardDetails, categoryList, minionDetails, minionList, screenType}=selectedScreen
+   const screensSelected = [cardDetails,categoryList,minionDetails, minionList].filter(Boolean).length
+   if(screensSelected !== 1){
+      throw new Error(`Wrong number of screens selected. Expected 1, got ${screensSelected}`)
+   }
+   const commonProps = {
+      ...handleNav,
+      globalLabels,
+      screenType,
+   }
+if(minionList){
         return (
-          <MinionsList
-            {...handleNav}
-            globalLabels={globalLabels}
-            query={selectedScreen.query ?? { cards: [666] }}
+          <MinionList
+          {...minionList}
+          {...commonProps}
           />
         );
-      case SCREENS.CATEGORIES_LIST:
+}
+      if(categoryList){
         return (
-          <CategoriesList
-            {...handleNav}
-            globalLabels={globalLabels}
-            dbOperation={selectedScreen.dbOperation ?? DB_OPERATIONS.GET_MINION}
-            searchTerm={selectedScreen.searchTerm}
-            actions={selectedScreen.actions ?? []}
+          <CategoryList
+          {...categoryList}
+          {...commonProps}
           />
         );
-      case SCREENS.MINION_DETAILS:
+  }
+      if(minionDetails){
         return (
           <MinionDetails
-            id={selectedScreen.id ?? 666}
-            screenType={selectedScreen.screenType ?? SCREEN_TYPES.SCREEN}
+          {...minionDetails}
+          {...commonProps}
           />
         );
-      case SCREENS.CARD_DETAILS:
+      }
+      if(cardDetails){
         return (
           <CardDetails
-            {...handleNav}
-            globalLabels={globalLabels}
-            id={selectedScreen.id ?? 666}
+          {...cardDetails}
+          {...commonProps}
           />
         );
     }
@@ -138,9 +142,9 @@ export default function App() {
     <div>
       <Nav handleNav={setScreen} />
       {screenRenderer(screen)}
-      <Backdrop open={popupOpen} onClick={handleClose}>
-        <Backdrop open={true} onClick={handleClose}>
-          <Backdrop open={true} onClick={handleClose}>
+      <Backdrop open={popupOpen}>
+        <Backdrop open={true}>
+          <Backdrop open={true} onClick={handlePopupToggle}>
             {screenRenderer(screen.popup)}
           </Backdrop>
         </Backdrop>

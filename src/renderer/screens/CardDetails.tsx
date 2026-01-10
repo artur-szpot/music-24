@@ -2,26 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { IPC_CHANNEL } from '../../constants/channel';
 import { DB_OPERATIONS } from '../../enums/db';
 import { Filter } from '../components/Filter';
-import { Loader, LoaderScreen } from '../components/Loader';
-import { Interactive } from '../components/interactive';
+import { LoaderScreen } from '../components/Loader';
+import { Interactive } from '../interfaces/interactive';
 import Drawer from '@mui/material/Drawer';
 import { MinionDetails } from './MinionDetails';
 import { SCREEN_TYPES } from '../../enums/screens';
+import { CardProps } from '../interfaces/card';
+import { CardDetailsOwnProps } from './CardDetailsProps';
+import { ScreenProps } from '../interfaces/screen';
 
-export interface CardProps {
-  id: number;
-  name: string;
-  category: string;
-  cardType: string;
-  parent?: number | null;
-  view: string | null;
-}
-
-export interface CardDetailsOwnProps {
-  id: number;
-}
-
-export interface CardDetailsProps extends Interactive, CardDetailsOwnProps {}
+export interface CardDetailsProps extends Interactive, CardDetailsOwnProps, ScreenProps {}
 
 export const CardDetails: React.FC<CardDetailsProps> = (
   props: CardDetailsProps,
@@ -42,7 +32,6 @@ export const CardDetails: React.FC<CardDetailsProps> = (
   };
 
   window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    console.log(`Data received: ${JSON.stringify(arg)}`);
     setCard((arg as CardProps[])[0]);
     setIsDataLoading(false);
   });

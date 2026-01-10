@@ -1,5 +1,5 @@
 import { SCREENS } from '../../enums/screens';
-import { Interactive } from './interactive';
+import { Interactive } from '../interfaces/interactive';
 
 export enum MINION_SIZES {
   LIST = 'minion-list',

@@ -1,7 +1,7 @@
 import { DB_OPERATIONS } from '../../enums/db';
 import { SCREENS } from '../../enums/screens';
 import { CategoryOwnProps } from '../components/Category';
-import { SetScreenProps } from '../setScreenProps';
+import { SetScreenProps } from '../interfaces/setScreenProps';
 
 export function Nav(props: { handleNav: (props: SetScreenProps) => void }) {
   const { handleNav } = props;

@@ -3,28 +3,17 @@ import { useEffect, useState } from 'react';
 import { IPC_CHANNEL } from '../../constants/channel';
 import { LIMITS } from '../../constants/limits';
 import { DB_OPERATIONS } from '../../enums/db';
-import { Interactive } from '../components/interactive';
-import { LoaderScreen } from '../components/Loader';
-import { Minion, MinionInteractive, MinionProps } from '../components/Minion';
 import { SCREENS } from '../../enums/screens';
+import { LoaderScreen } from '../components/Loader';
+import { MinionInteractive, MinionProps } from '../components/Minion';
+import { Interactive } from '../interfaces/interactive';
+import { MinionListOwnProps } from './MinionListProps';
+import { ScreenProps } from '../interfaces/screen';
 
-export interface MinionsListQuery {
-  episodes?: number[];
-  ids?: number[];
-  scenes?: number[];
-  cards?: number[];
-  rel?: string;
-  view?: string;
-}
+export interface MinionListProps extends Interactive, MinionListOwnProps, ScreenProps {}
 
-export interface MinionsListOwnProps {
-  query: MinionsListQuery;
-}
-
-export interface MinionsListProps extends Interactive, MinionsListOwnProps {}
-
-export const MinionsList: React.FC<MinionsListProps> = (
-  props: MinionsListProps,
+export const MinionList: React.FC<MinionListProps> = (
+  props: MinionListProps,
 ) => {
   const { query, handleNav } = props;
   const privateChannel = 'minions-list';
@@ -37,13 +26,11 @@ export const MinionsList: React.FC<MinionsListProps> = (
   const [isCountLoading, setIsCountLoading] = useState(true);
 
   window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    console.log(`Data received: ${JSON.stringify(arg)}`);
     setMinions(arg as MinionProps[]);
     setIsDataLoading(false);
   });
 
   window.electron.ipcRenderer.once(privateCountChannel, (arg) => {
-    console.log(`Count received: ${JSON.stringify(arg)}`);
     const totalItems = (arg as any)[0].total as number;
     const totalPages = Math.ceil(totalItems / LIMITS.MINIONS_PER_PAGE);
     setItemTotal(totalItems);

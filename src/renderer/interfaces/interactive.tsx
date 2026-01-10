@@ -1,5 +1,5 @@
 import { GlobalLabels } from '../globalLabels';
-import { SetScreenProps } from '../setScreenProps';
+import { SetScreenProps } from './setScreenProps';
 
 export interface Interactive {
   handleNav: {

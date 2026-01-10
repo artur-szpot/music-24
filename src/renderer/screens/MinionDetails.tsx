@@ -4,13 +4,10 @@ import { DB_OPERATIONS } from '../../enums/db';
 import { LoaderScreen } from '../components/Loader';
 import { Minion, MINION_SIZES, MinionOwnProps } from '../components/Minion';
 import { SCREEN_TYPES } from '../../enums/screens';
+import { MinionDetailsOwnProps } from './MinionDetailsProps';
+import { ScreenProps } from '../interfaces/screen';
 
-export interface MinionDetailsOwnProps {
-  id: number;
-  screenType: SCREEN_TYPES;
-}
-
-export interface MinionDetailsProps extends MinionDetailsOwnProps {}
+export interface MinionDetailsProps extends MinionDetailsOwnProps, ScreenProps {}
 
 export const MinionDetails: React.FC<MinionDetailsProps> = (
   props: MinionDetailsProps,
@@ -22,7 +19,6 @@ export const MinionDetails: React.FC<MinionDetailsProps> = (
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    console.log(`Data received: ${JSON.stringify(arg)}`);
     setMinion({ ...(arg as MinionOwnProps[])[0] });
     setIsDataLoading(false);
   });
