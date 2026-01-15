@@ -4,5 +4,5 @@ export interface CategoryListOwnProps {
   dbOperation: DB_OPERATIONS;
   searchTerm?: string;
   openCategories?: number[];
-  chosenCategories?: {[key:number]: boolean}
+  chosenCategories?: { [key: number]: boolean };
 }

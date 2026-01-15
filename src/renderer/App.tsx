@@ -11,15 +11,13 @@ import { CardDetails } from './screens/CardDetails';
 import { CategoryList } from './screens/CategoryList';
 import { MinionDetails } from './screens/MinionDetails';
 import { MinionList } from './screens/MinionList';
-import { SetScreenProps } from './interfaces/setScreenProps';
+import {
+  placeholderScreenProps,
+  SetScreenProps,
+} from './interfaces/setScreenProps';
 
 export default function App() {
-  const [screen, setScreen] = useState<SetScreenProps>({
-    minionDetails: {
-      id: 666
-    },
-    screenType: SCREEN_TYPES.SCREEN
-  });
+  const [screen, setScreen] = useState<SetScreenProps>(placeholderScreenProps);
   const setPopup = (popup: SetScreenProps) => {
     setScreen({
       ...screen,
@@ -30,7 +28,7 @@ export default function App() {
   const handlePopupToggle = (newOpen: boolean) => {
     setPopupOpen(newOpen);
   };
-  
+
   const handleNav = { handleNav: { setScreen, setPopup } };
   useEffect(() => {
     if (screen.popup !== undefined && !popupOpen) {
@@ -93,48 +91,41 @@ export default function App() {
     return <LoaderScreen />;
   }
 
-  const screenRenderer = (selectedScreen?: SetScreenProps) => {
-   const { cardDetails, categoryList, minionDetails, minionList, screenType}=selectedScreen
-   const screensSelected = [cardDetails,categoryList,minionDetails, minionList].filter(Boolean).length
-   if(screensSelected !== 1){
-      throw new Error(`Wrong number of screens selected. Expected 1, got ${screensSelected}`)
-   }
-   const commonProps = {
+  const screenRenderer = (selectedScreen: SetScreenProps) => {
+    const {
+      cardDetails,
+      categoryList,
+      minionDetails,
+      minionList,
+      screenType = SCREEN_TYPES.SCREEN,
+    } = selectedScreen ?? {};
+    const screensSelected = [
+      cardDetails,
+      categoryList,
+      minionDetails,
+      minionList,
+    ].filter((screen) => screen !== undefined).length;
+    if (screensSelected !== 1) {
+      throw new Error(
+        `Wrong number of screens selected. Expected 1, got ${screensSelected}`,
+      );
+    }
+    const commonProps = {
       ...handleNav,
       globalLabels,
       screenType,
-   }
-if(minionList){
-        return (
-          <MinionList
-          {...minionList}
-          {...commonProps}
-          />
-        );
-}
-      if(categoryList){
-        return (
-          <CategoryList
-          {...categoryList}
-          {...commonProps}
-          />
-        );
-  }
-      if(minionDetails){
-        return (
-          <MinionDetails
-          {...minionDetails}
-          {...commonProps}
-          />
-        );
-      }
-      if(cardDetails){
-        return (
-          <CardDetails
-          {...cardDetails}
-          {...commonProps}
-          />
-        );
+    };
+    if (minionList) {
+      return <MinionList {...minionList} {...commonProps} />;
+    }
+    if (categoryList) {
+      return <CategoryList {...categoryList} {...commonProps} />;
+    }
+    if (minionDetails) {
+      return <MinionDetails {...minionDetails} {...commonProps} />;
+    }
+    if (cardDetails) {
+      return <CardDetails {...cardDetails} {...commonProps} />;
     }
   };
 
@@ -144,8 +135,8 @@ if(minionList){
       {screenRenderer(screen)}
       <Backdrop open={popupOpen}>
         <Backdrop open={true}>
-          <Backdrop open={true} onClick={handlePopupToggle}>
-            {screenRenderer(screen.popup)}
+          <Backdrop open={true} onClick={() => handlePopupToggle(false)}>
+            {screenRenderer(screen.popup ?? placeholderScreenProps)}
           </Backdrop>
         </Backdrop>
       </Backdrop>

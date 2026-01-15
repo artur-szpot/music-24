@@ -3,14 +3,17 @@ import { useEffect, useState } from 'react';
 import { IPC_CHANNEL } from '../../constants/channel';
 import { LIMITS } from '../../constants/limits';
 import { DB_OPERATIONS } from '../../enums/db';
-import { SCREENS } from '../../enums/screens';
 import { LoaderScreen } from '../components/Loader';
 import { MinionInteractive, MinionProps } from '../components/Minion';
 import { Interactive } from '../interfaces/interactive';
-import { MinionListOwnProps } from './MinionListProps';
 import { ScreenProps } from '../interfaces/screen';
+import { navTo } from '../interfaces/setScreenProps';
+import { MinionListOwnProps } from './MinionListProps';
 
-export interface MinionListProps extends Interactive, MinionListOwnProps, ScreenProps {}
+export interface MinionListProps
+  extends Interactive,
+    MinionListOwnProps,
+    ScreenProps {}
 
 export const MinionList: React.FC<MinionListProps> = (
   props: MinionListProps,
@@ -78,10 +81,7 @@ export const MinionList: React.FC<MinionListProps> = (
           <MinionInteractive
             {...minion}
             onClick={() =>
-              handleNav.setPopup({
-                screen: SCREENS.MINION_DETAILS,
-                id: minion.id,
-              })
+              handleNav.setPopup(navTo.minionDetails({ id: minion.id }))
             }
           />
         ))}

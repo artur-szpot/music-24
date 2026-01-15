@@ -12,34 +12,60 @@ import { Interactive } from '../interfaces/interactive';
 import { CategoryActionProps } from './CategoryActionProps';
 import { CategoryOwnProps, satisfiesSearchTerm } from './CategoryProps';
 
-export interface CategoryProps extends Interactive, CategoryOwnProps, CategoryActionProps {
+export interface CategoryProps
+  extends Interactive,
+    CategoryOwnProps,
+    CategoryActionProps {
   expanded?: boolean;
   topCategory?: boolean;
-  handleOpenCategory: (args:{add?:number|undefined, remove?:number|undefined}) => void;
-  handleChosenCategory:     (id: number) =>void
+  handleOpenCategory: (args: {
+    add?: number | undefined;
+    remove?: number | undefined;
+  }) => void;
+  handleChosenCategory: (id: number) => void;
 }
 
-export const Category: React.FC<CategoryProps> = ({id,name,expanded,actions:actionsProps,navActions:navActionsProps,handleNav, subs, searchTerm, topCategory, globalLabels, chosenCategories:chosenCategoriesProps={}, openCategories: openCategoriesProps=[], handleOpenCategory ,handleChosenCategory }: CategoryProps) => {
-const chosen = chosenCategoriesProps[id]
-const passableProps = {
-   searchTerm,
-   handleNav,
-   globalLabels,
-   handleOpenCategory,
-   handleChosenCategory,
-   actions:actionsProps,
-   navActions:navActionsProps}
+export const Category: React.FC<CategoryProps> = ({
+  id,
+  name,
+  total,
+  expanded,
+  actions: actionsProps = [],
+  navActions: navActionsProps = [],
+  handleNav,
+  subs,
+  searchTerm,
+  topCategory,
+  globalLabels,
+  chosenCategories: chosenCategoriesProps = {},
+  openCategories: openCategoriesProps = [],
+  handleOpenCategory,
+  handleChosenCategory,
+}: CategoryProps) => {
+  const chosen = chosenCategoriesProps[id];
+  const passableProps = {
+    searchTerm,
+    handleNav,
+    globalLabels,
+    handleOpenCategory,
+    handleChosenCategory,
+    actions: actionsProps,
+    navActions: navActionsProps,
+  };
+  const actionProps = { id, name, total };
 
-  const [openSub, setOpenSub] = useState<string | undefined>(openCategoriesProps.find((id)=>subs.map((sub)=>sub.id).includes(id)));
+  const [openSub, setOpenSub] = useState<number | undefined>(
+    openCategoriesProps.find((id) => subs.map((sub) => sub.id).includes(id)),
+  );
   const handleOpenSub =
-    (id: number) =>
-    (event: React.SyntheticEvent, newExpanded: boolean) => {
-       newExpanded ? handleOpenCategory({add:id, remove: openSub}) : handleOpenCategory({remove:openSub})
-       setOpenSub(newExpanded ? id : undefined);
-    }; 
-     const handleChosen =
-    (id: number) =>
-    (event: React.SyntheticEvent) => handleChosenCategory(id)
+    (id: number) => (event: React.SyntheticEvent, newExpanded: boolean) => {
+      newExpanded
+        ? handleOpenCategory({ add: id, remove: openSub })
+        : handleOpenCategory({ remove: openSub });
+      setOpenSub(newExpanded ? id : undefined);
+    };
+  const handleChosen = (id: number) => (event: React.SyntheticEvent) =>
+    handleChosenCategory(id);
 
   const actions = actionsProps.filter(
     ({ excludeTopCategories }) => !topCategory || !excludeTopCategories,
@@ -68,9 +94,7 @@ const passableProps = {
             {chosen === false && (
               <HighlightOffIcon onClick={handleChosen(id)} />
             )}
-            {chosen === true && (
-              <CheckBoxIcon onClick={handleChosen(id)} />
-            )}
+            {chosen === true && <CheckBoxIcon onClick={handleChosen(id)} />}
             {chosen === undefined && (
               <CheckBoxOutlineBlankIcon onClick={handleChosen(id)} />
             )}
@@ -82,24 +106,25 @@ const passableProps = {
             <>
               <span
                 className={`accordion-header action ${action.disabled && 'disabled'}`}
-                onClick={() => action.action(props)}
+                onClick={() => action.action(actionProps)}
               >
-                {action.text(props)}
+                {action.text(actionProps)}
               </span>
-              {index !== actions.length - 1 && navActions.length === 0 && (
-                <span className="accordion-header separator">●</span>
-              )}
+              {index !== actions.length - 1 ||
+                (navActions.length > 0 && (
+                  <span className="accordion-header separator">●</span>
+                ))}
             </>
           ))}
           {navActions.map((action, index) => (
             <>
               <span
                 className={`accordion-header action ${action.disabled && 'disabled'}`}
-                onClick={() => handleNav.setScreen( action.action(props))}
+                onClick={() => handleNav.setScreen(action.action(actionProps))}
               >
-                {action.text(props)}
+                {action.text(actionProps)}
               </span>
-              {index !== actions.length - 1 && (
+              {index !== navActions.length - 1 && (
                 <span className="accordion-header separator">●</span>
               )}
             </>

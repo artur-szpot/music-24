@@ -1,6 +1,3 @@
-import { SCREENS } from '../../enums/screens';
-import { Interactive } from '../interfaces/interactive';
-
 export enum MINION_SIZES {
   LIST = 'minion-list',
   SOLO = 'minion-solo',
