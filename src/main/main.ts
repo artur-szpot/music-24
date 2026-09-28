@@ -8,11 +8,27 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, ipcMain, net, protocol, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  net,
+  protocol,
+  shell,
+} from 'electron';
 import path from 'path';
 import url from 'url';
-import { dbOperation } from './db';
+import { dbOperation, initializeDatabase } from './db';
 import MenuBuilder from './menu';
+import {
+  loadRuntimeConfig,
+  resolveAssetPath,
+  RUNTIME_CONFIG_FILENAME,
+  RuntimeConfig,
+  saveRuntimeConfig,
+  validateRuntimeConfig,
+} from './runtimeConfig';
 import { resolveHtmlPath } from './util';
 
 export const DEFAULT_CHANNEL = 'default-channel';
@@ -35,6 +51,125 @@ if (process.env.NODE_ENV === 'production') {
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+
+const selectFile = async (
+  title: string,
+  defaultPath?: string,
+): Promise<string | undefined> => {
+  const result = await dialog.showOpenDialog({
+    title,
+    defaultPath,
+    properties: ['openFile'],
+    filters: [
+      { name: 'SQLite databases', extensions: ['db', 'sqlite', 'sqlite3'] },
+      { name: 'All files', extensions: ['*'] },
+    ],
+  });
+  return result.canceled ? undefined : result.filePaths[0];
+};
+
+const selectDirectory = async (
+  title: string,
+  defaultPath?: string,
+): Promise<string | undefined> => {
+  const result = await dialog.showOpenDialog({
+    title,
+    defaultPath,
+    properties: ['openDirectory'],
+  });
+  return result.canceled ? undefined : result.filePaths[0];
+};
+
+const promptForRuntimeConfig = async (
+  previous?: RuntimeConfig,
+): Promise<RuntimeConfig | undefined> => {
+  const databasePath = await selectFile(
+    'Select the Minion Decider SQLite database',
+    previous?.databasePath,
+  );
+  if (!databasePath) return undefined;
+
+  const minionRoot = await selectDirectory(
+    'Select the minion image root directory',
+    previous?.minionRoot,
+  );
+  if (!minionRoot) return undefined;
+
+  const cardRoot = await selectDirectory(
+    'Select the card image root directory',
+    previous?.cardRoot,
+  );
+  if (!cardRoot) return undefined;
+
+  const fileSystemRoot = await selectDirectory(
+    'Select the general file-system image root directory',
+    previous?.fileSystemRoot,
+  );
+  if (!fileSystemRoot) return undefined;
+
+  return { databasePath, minionRoot, cardRoot, fileSystemRoot };
+};
+
+const ensureRuntimeConfig = async (): Promise<RuntimeConfig | undefined> => {
+  const configPath = path.join(
+    app.getPath('userData'),
+    RUNTIME_CONFIG_FILENAME,
+  );
+  const saved = loadRuntimeConfig(configPath);
+  const forceConfiguration = process.argv.includes('--configure');
+
+  if (saved.config && !forceConfiguration) {
+    return saved.config;
+  }
+
+  const response = await dialog.showMessageBox({
+    type: saved.config ? 'info' : 'warning',
+    title: 'Configure Minion Decider',
+    message: saved.config
+      ? 'Choose the database and image directories to use.'
+      : 'Minion Decider needs a valid database and image directories before it can start.',
+    detail: saved.config ? undefined : saved.errors.join('\n'),
+    buttons: ['Configure', 'Quit'],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true,
+  });
+  if (response.response !== 0) return undefined;
+
+  const selected = await promptForRuntimeConfig(saved.config);
+  if (!selected) return undefined;
+
+  const validation = validateRuntimeConfig(selected);
+  if (!validation.config) {
+    dialog.showErrorBox(
+      'Invalid Minion Decider configuration',
+      validation.errors.join('\n'),
+    );
+    return undefined;
+  }
+
+  try {
+    saveRuntimeConfig(configPath, validation.config);
+    return validation.config;
+  } catch (error) {
+    dialog.showErrorBox(
+      'Could not save Minion Decider configuration',
+      error instanceof Error ? error.message : String(error),
+    );
+    return undefined;
+  }
+};
+
+const registerAssetProtocol = (scheme: string, root: string): void => {
+  protocol.handle(scheme, (request) => {
+    try {
+      const assetPath = resolveAssetPath(root, request.url);
+      return net.fetch(url.pathToFileURL(assetPath).toString());
+    } catch {
+      return new Response('Invalid asset path.', { status: 400 });
+    }
+  });
+};
 
 // if (isDebug) {
 //   require('electron-debug').default();
@@ -116,34 +251,36 @@ app.on('window-all-closed', () => {
 
 app
   .whenReady()
-  .then(() => {
-    protocol.handle('minion', (request) => {
-      const srcPath = 'E:\\programming\\ponypics\\s\\';
-      const reqURL = new URL(request.url);
-      return net.fetch(
-        url.pathToFileURL(path.join(srcPath, reqURL.pathname)).toString(),
-      );
-    });
-    protocol.handle('card', (request) => {
-      const srcPath = 'E:\\programming\\ponypics\\cards\\';
-      const reqURL = new URL(request.url);
-      return net.fetch(
-        url.pathToFileURL(path.join(srcPath, reqURL.pathname)).toString(),
-      );
-    });
-    protocol.handle('file-system', (request) => {
-      const srcPath = 'C:\\Users\\szpot\\Downloads\\';
-      const reqURL = new URL(request.url);
-      return net.fetch(
-        url.pathToFileURL(path.join(srcPath, reqURL.pathname)).toString(),
-      );
-    });
+  .then(async () => {
+    const runtimeConfig = await ensureRuntimeConfig();
+    if (!runtimeConfig) {
+      app.quit();
+      return;
+    }
 
-    createWindow();
+    try {
+      initializeDatabase(runtimeConfig.databasePath);
+    } catch (error) {
+      dialog.showErrorBox(
+        'Could not open the Minion Decider database',
+        error instanceof Error ? error.message : String(error),
+      );
+      app.quit();
+      return;
+    }
+
+    registerAssetProtocol('minion', runtimeConfig.minionRoot);
+    registerAssetProtocol('card', runtimeConfig.cardRoot);
+    registerAssetProtocol('file-system', runtimeConfig.fileSystemRoot);
+
+    await createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
   })
-  .catch(console.log);
+  .catch((error) => {
+    console.error(error);
+    app.quit();
+  });
