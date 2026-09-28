@@ -13,19 +13,25 @@ import {
   BrowserWindow,
   dialog,
   ipcMain,
+  IpcMainInvokeEvent,
   net,
   protocol,
   shell,
 } from 'electron';
 import path from 'path';
 import url from 'url';
+import Database from 'better-sqlite3';
+import {
+  CONFIG_CHANNELS,
+  ConfigUpdateResult,
+  RuntimeConfig,
+} from '../constants/runtimeConfig';
 import { dbOperation, initializeDatabase } from './db';
 import MenuBuilder from './menu';
 import {
   loadRuntimeConfig,
   resolveAssetPath,
   RUNTIME_CONFIG_FILENAME,
-  RuntimeConfig,
   saveRuntimeConfig,
   validateRuntimeConfig,
 } from './runtimeConfig';
@@ -34,6 +40,11 @@ import { resolveHtmlPath } from './util';
 export const DEFAULT_CHANNEL = 'default-channel';
 
 let mainWindow: BrowserWindow | null = null;
+let activeConfig: RuntimeConfig | undefined;
+let restartPending = false;
+
+const configPath = () =>
+  path.join(app.getPath('userData'), RUNTIME_CONFIG_FILENAME);
 
 // Forward a DB operation to its handler
 ipcMain.on(DEFAULT_CHANNEL, async (event, arg) => {
@@ -111,11 +122,7 @@ const promptForRuntimeConfig = async (
 };
 
 const ensureRuntimeConfig = async (): Promise<RuntimeConfig | undefined> => {
-  const configPath = path.join(
-    app.getPath('userData'),
-    RUNTIME_CONFIG_FILENAME,
-  );
-  const saved = loadRuntimeConfig(configPath);
+  const saved = loadRuntimeConfig(configPath());
   const forceConfiguration = process.argv.includes('--configure');
 
   if (saved.config && !forceConfiguration) {
@@ -149,7 +156,7 @@ const ensureRuntimeConfig = async (): Promise<RuntimeConfig | undefined> => {
   }
 
   try {
-    saveRuntimeConfig(configPath, validation.config);
+    saveRuntimeConfig(configPath(), validation.config);
     return validation.config;
   } catch (error) {
     dialog.showErrorBox(
@@ -158,6 +165,133 @@ const ensureRuntimeConfig = async (): Promise<RuntimeConfig | undefined> => {
     );
     return undefined;
   }
+};
+
+const validateDatabaseForSwitch = (
+  databasePath: string,
+): string | undefined => {
+  let probe: Database.Database | undefined;
+  try {
+    probe = new Database(databasePath, { readonly: true, fileMustExist: true });
+    probe.prepare('select id, url, episode, scene from minions limit 0');
+    probe.prepare('select id, name from cards limit 0');
+    probe.prepare('select id, name from episodes limit 0');
+    probe.prepare('select id, name from scenes limit 0');
+    probe.prepare(
+      'select card_id, rel, total from minion_card_relations_counts limit 0',
+    );
+    probe.prepare('select episode, total from minion_episodes_counts limit 0');
+    probe.prepare('select scene, total from minion_scenes_counts limit 0');
+    return undefined;
+  } catch {
+    return 'The selected database could not be opened read-only or is missing required columns.';
+  } finally {
+    probe?.close();
+  }
+};
+
+const registerConfigurationHandlers = (): void => {
+  const fromWindow = (event: IpcMainInvokeEvent) =>
+    event.sender === mainWindow?.webContents &&
+    event.senderFrame === mainWindow.webContents.mainFrame;
+
+  ipcMain.handle(CONFIG_CHANNELS.GET, (event) => {
+    if (!fromWindow(event) || !activeConfig) throw new Error('Unavailable.');
+    return activeConfig;
+  });
+
+  ipcMain.handle(CONFIG_CHANNELS.CHOOSE, async (event, key: unknown) => {
+    if (!fromWindow(event) || !activeConfig || restartPending) {
+      throw new Error('Unavailable.');
+    }
+    switch (key) {
+      case 'databasePath':
+        return (
+          (await selectFile(
+            'Select the Minion Decider SQLite database',
+            activeConfig.databasePath,
+          )) ?? null
+        );
+      case 'minionRoot':
+      case 'cardRoot':
+      case 'fileSystemRoot':
+        return (
+          (await selectDirectory(
+            'Select image root directory',
+            activeConfig[key],
+          )) ?? null
+        );
+      default:
+        throw new Error('Invalid configuration path type.');
+    }
+  });
+
+  ipcMain.handle(
+    CONFIG_CHANNELS.APPLY,
+    (event, candidate: unknown): ConfigUpdateResult => {
+      if (!fromWindow(event) || !activeConfig || restartPending) {
+        return { restarting: false, errors: ['Configuration is unavailable.'] };
+      }
+      const validated = validateRuntimeConfig(candidate);
+      if (!validated.config) {
+        return { restarting: false, errors: validated.errors };
+      }
+      const next = validated.config;
+      const previous = activeConfig;
+      if (
+        Object.keys(previous).every(
+          (key) =>
+            previous[key as keyof RuntimeConfig] ===
+            next[key as keyof RuntimeConfig],
+        )
+      ) {
+        return { restarting: false, errors: [] };
+      }
+      if (next.databasePath !== previous.databasePath) {
+        const error = validateDatabaseForSwitch(next.databasePath);
+        if (error) return { restarting: false, errors: [error] };
+      }
+      try {
+        saveRuntimeConfig(configPath(), next);
+      } catch (error) {
+        return {
+          restarting: false,
+          errors: [
+            error instanceof Error
+              ? error.message
+              : 'Could not save configuration.',
+          ],
+        };
+      }
+
+      restartPending = true;
+      // Restart, rather than hot-swapping SQLite and protocol handlers while
+      // renderer requests may still be in flight. Return the IPC result first.
+      setTimeout(() => {
+        try {
+          app.relaunch({
+            args: process.argv.slice(1).filter((arg) => arg !== '--configure'),
+          });
+          app.quit();
+        } catch {
+          restartPending = false;
+          try {
+            saveRuntimeConfig(configPath(), previous);
+            dialog.showErrorBox(
+              'Restart failed',
+              'Previous configuration restored.',
+            );
+          } catch {
+            dialog.showErrorBox(
+              'Restart failed',
+              'Could not restore the previous configuration. Reconfigure on next launch.',
+            );
+          }
+        }
+      }, 100);
+      return { restarting: true, errors: [] };
+    },
+  );
 };
 
 const registerAssetProtocol = (scheme: string, root: string): void => {
@@ -268,6 +402,9 @@ app
       app.quit();
       return;
     }
+
+    activeConfig = runtimeConfig;
+    registerConfigurationHandlers();
 
     registerAssetProtocol('minion', runtimeConfig.minionRoot);
     registerAssetProtocol('card', runtimeConfig.cardRoot);

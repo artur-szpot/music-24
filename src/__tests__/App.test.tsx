@@ -5,6 +5,11 @@ import App from '../renderer/App';
 describe('App', () => {
   beforeEach(() => {
     window.electron = {
+      config: {
+        get: jest.fn(),
+        choose: jest.fn(),
+        apply: jest.fn(),
+      },
       ipcRenderer: {
         sendMessage: jest.fn(),
         on: jest.fn(() => jest.fn()),
