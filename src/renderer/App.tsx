@@ -1,8 +1,6 @@
 import Backdrop from '@mui/material/Backdrop';
 import { useEffect, useState } from 'react';
-import { IPC_CHANNEL } from '../constants/channel';
-import { DB_OPERATIONS } from '../enums/db';
-import { SCREEN_TYPES, SCREENS } from '../enums/screens';
+import { SCREEN_TYPES } from '../enums/screens';
 import './App.css';
 import { LoaderScreen } from './components/Loader';
 import { GlobalLabels } from './globalLabels';
@@ -38,55 +36,52 @@ export default function App() {
     }
   }, [screen.popup]);
 
-  const privateChannel = `app`;
-
   const [globalLabels, setGlobalLabels] = useState({} as GlobalLabels);
   const [isDataLoading, setIsDataLoading] = useState(true);
-
-  window.electron.ipcRenderer.once(privateChannel, (response) => {
-    const globalLabelsRaw: GlobalLabels = {
-      cards: {},
-      episodes: {},
-      scenes: {},
-      seasons: {
-        0: 'Other',
-        ...Object.fromEntries(
-          Array.from({ length: 9 }).map((_, index) => [
-            index + 1,
-            `Season ${index + 1}`,
-          ]),
-        ),
-      },
-    };
-    const typedResponse = response as {
-      id: number;
-      name: string;
-      category: 'card' | 'scene' | 'episode';
-    }[];
-
-    typedResponse.forEach(({ id, name, category }) => {
-      switch (category) {
-        case 'card':
-          globalLabelsRaw.cards[id] = name;
-          break;
-        case 'scene':
-          globalLabelsRaw.scenes[id] = name;
-          break;
-        case 'episode':
-          globalLabelsRaw.episodes[id] = name;
-          break;
-      }
-    });
-
-    setGlobalLabels(globalLabelsRaw);
-    setIsDataLoading(false);
-  });
+  const [labelsError, setLabelsError] = useState('');
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel,
-      operation: DB_OPERATIONS.INITIALIZE_LABELS,
-    });
+    let active = true;
+    window.electron.database
+      .labels()
+      .then((result) => {
+        if (!active) return undefined;
+        if (!result.ok) {
+          setLabelsError(result.error.message);
+        } else {
+          const labels: GlobalLabels = {
+            cards: {},
+            episodes: {},
+            scenes: {},
+            seasons: {
+              0: 'Other',
+              ...Object.fromEntries(
+                Array.from({ length: 9 }).map((_, index) => [
+                  index + 1,
+                  `Season ${index + 1}`,
+                ]),
+              ),
+            },
+          };
+          result.data.forEach(({ id, name, category }) => {
+            if (category === 'card') labels.cards[id] = name;
+            if (category === 'scene') labels.scenes[id] = name;
+            if (category === 'episode') labels.episodes[id] = name;
+          });
+          setGlobalLabels(labels);
+        }
+        setIsDataLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setLabelsError('Could not load labels.');
+          setIsDataLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (isDataLoading) {
@@ -143,12 +138,14 @@ export default function App() {
           setSettingsOpen(true);
         }}
       />
-      {settingsOpen ? (
-        <Settings onClose={() => setSettingsOpen(false)} />
-      ) : (
-        screenRenderer(screen)
+      {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
+      {!settingsOpen && labelsError && (
+        <main className="screen">
+          <p role="alert">{labelsError}</p>
+        </main>
       )}
-      {!settingsOpen && (
+      {!settingsOpen && !labelsError && screenRenderer(screen)}
+      {!settingsOpen && !labelsError && (
         <Backdrop open={popupOpen}>
           <Backdrop open={true}>
             <Backdrop open={true} onClick={() => handlePopupToggle(false)}>

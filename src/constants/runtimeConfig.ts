@@ -1,3 +1,5 @@
+import { IpcResult } from './dbIpc';
+
 export interface RuntimeConfig {
   databasePath: string;
   minionRoot: string;
@@ -7,10 +9,7 @@ export interface RuntimeConfig {
 
 export type RuntimeConfigKey = keyof RuntimeConfig;
 
-export interface ConfigUpdateResult {
-  restarting: boolean;
-  errors: string[];
-}
+export type ConfigUpdateResult = IpcResult<{ restarting: boolean }>;
 
 export const CONFIG_CHANNELS = {
   GET: 'config:get',

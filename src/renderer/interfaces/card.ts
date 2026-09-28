@@ -1,8 +1,8 @@
 export interface CardProps {
-   id: number;
-   name: string;
-   category: string;
-   cardType: string;
-   parent?: number | null;
-   view: string | null;
- }
+  id: number;
+  name: string;
+  category: string | null;
+  cardType: string;
+  parent?: number | null;
+  view: string | null;
+}

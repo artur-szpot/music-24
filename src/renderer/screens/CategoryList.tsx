@@ -1,7 +1,6 @@
 import TextField from '@mui/material/TextField';
 import { useEffect, useState } from 'react';
-import { IPC_CHANNEL } from '../../constants/channel';
-import { SubCard } from '../../main/db';
+import { CategoryRow } from '../../constants/dbIpc';
 import { Category } from '../components/Category';
 import { CategoryActionProps } from '../components/CategoryActionProps';
 import {
@@ -78,60 +77,75 @@ export const CategoryList: React.FC<CategoryListProps> = ({
   const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     handleSearch(event.target.value);
 
-  const privateChannel = `categories-list-${dbOperation}`;
   const [categories, setCategories] = useState([] as CategoryOwnProps[]);
   const [isDataLoading, setIsDataLoading] = useState(true);
-
-  window.electron.ipcRenderer.once(privateChannel, (response) => {
-    try {
-      const categoryMap = {} as { [key: string]: CategoryOwnProps };
-
-      const subs = response as SubCard[];
-      const processSubs: (targetParent: number) => CategoryOwnProps[] = (
-        targetParent: number,
-      ) =>
-        subs
-          .filter(({ parent }) => parent === targetParent)
-          .map((sub) => ({ ...sub, handleNav, subs: processSubs(sub.id) }));
-      subs
-        .filter(({ parent }) => parent === null)
-        .forEach((sub) => {
-          if (categoryMap[sub.category] === undefined) {
-            categoryMap[sub.category] = {
-              id: -Object.values(categoryMap).length,
-              name: sub.category,
-              subs: [],
-            };
-          }
-          categoryMap[sub.category].subs.push({
-            ...sub,
-            subs: processSubs(sub.id),
-          });
-        });
-
-      const parsedCategories = Object.values(categoryMap);
-      setCategories(parsedCategories);
-      setOpenCategory(
-        parsedCategories.find((category) =>
-          openCategoriesProps.includes(category.id),
-        )?.id,
-      );
-      setIsDataLoading(false);
-    } catch (e) {
-      alert(`Error encountered while loading data for CategoryList: ${e}`);
-    }
-  });
+  const [error, setError] = useState('');
+  const openCategoryIds = openCategoriesProps.join(',');
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel,
-      operation: dbOperation,
-    });
-  }, [dbOperation]);
+    let active = true;
+    setIsDataLoading(true);
+    window.electron.database
+      .categories(dbOperation)
+      .then((result) => {
+        if (!active) return undefined;
+        if (!result.ok) {
+          setError(result.error.message);
+        } else {
+          const categoryMap: Record<string, CategoryOwnProps> = {};
+          const subs: CategoryRow[] = result.data;
+          const processSubs = (targetParent: number): CategoryOwnProps[] =>
+            subs
+              .filter(({ parent }) => parent === targetParent)
+              .map((sub) => ({ ...sub, subs: processSubs(sub.id) }));
+          subs
+            .filter(({ parent }) => parent === null)
+            .forEach((sub) => {
+              if (categoryMap[sub.category] === undefined) {
+                categoryMap[sub.category] = {
+                  id: -Object.values(categoryMap).length,
+                  name: sub.category,
+                  subs: [],
+                };
+              }
+              categoryMap[sub.category].subs.push({
+                ...sub,
+                subs: processSubs(sub.id),
+              });
+            });
+          const parsedCategories = Object.values(categoryMap);
+          setCategories(parsedCategories);
+          setOpenCategory(
+            parsedCategories.find((category) =>
+              openCategoryIds.split(',').includes(String(category.id)),
+            )?.id,
+          );
+          setError('');
+        }
+        setIsDataLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setError('Could not load categories.');
+          setIsDataLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [dbOperation, openCategoryIds]);
 
   if (isDataLoading) {
     return <LoaderScreen />;
   }
+
+  if (error)
+    return (
+      <div className="screen" role="alert">
+        {error}
+      </div>
+    );
 
   const passableProps = {
     searchTerm,

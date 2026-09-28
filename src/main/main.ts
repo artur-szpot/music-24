@@ -26,7 +26,9 @@ import {
   ConfigUpdateResult,
   RuntimeConfig,
 } from '../constants/runtimeConfig';
-import { dbOperation, initializeDatabase } from './db';
+import { DB_CHANNELS } from '../constants/dbIpc';
+import { dbOperation, initializeDatabase, viewExists } from './db';
+import createDbHandlers from './dbHandlers';
 import MenuBuilder from './menu';
 import {
   loadRuntimeConfig,
@@ -37,23 +39,12 @@ import {
 } from './runtimeConfig';
 import { resolveHtmlPath } from './util';
 
-export const DEFAULT_CHANNEL = 'default-channel';
-
 let mainWindow: BrowserWindow | null = null;
 let activeConfig: RuntimeConfig | undefined;
 let restartPending = false;
 
 const configPath = () =>
   path.join(app.getPath('userData'), RUNTIME_CONFIG_FILENAME);
-
-// Forward a DB operation to its handler
-ipcMain.on(DEFAULT_CHANNEL, async (event, arg) => {
-  if (arg.privateChannel) {
-    event.reply(arg.privateChannel, dbOperation(arg));
-  } else if (arg.log) {
-    console.log(arg.log);
-  }
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -192,37 +183,60 @@ const validateDatabaseForSwitch = (
 
 const registerConfigurationHandlers = (): void => {
   const fromWindow = (event: IpcMainInvokeEvent) =>
+    Boolean(mainWindow) &&
     event.sender === mainWindow?.webContents &&
-    event.senderFrame === mainWindow.webContents.mainFrame;
+    event.senderFrame === mainWindow?.webContents.mainFrame;
 
   ipcMain.handle(CONFIG_CHANNELS.GET, (event) => {
-    if (!fromWindow(event) || !activeConfig) throw new Error('Unavailable.');
-    return activeConfig;
+    if (!fromWindow(event) || !activeConfig) {
+      return {
+        ok: false,
+        error: { code: 'UNAVAILABLE', message: 'Configuration unavailable.' },
+      };
+    }
+    return { ok: true, data: activeConfig };
   });
 
   ipcMain.handle(CONFIG_CHANNELS.CHOOSE, async (event, key: unknown) => {
     if (!fromWindow(event) || !activeConfig || restartPending) {
-      throw new Error('Unavailable.');
+      return {
+        ok: false,
+        error: { code: 'UNAVAILABLE', message: 'Configuration unavailable.' },
+      };
     }
-    switch (key) {
-      case 'databasePath':
-        return (
-          (await selectFile(
-            'Select the Minion Decider SQLite database',
-            activeConfig.databasePath,
-          )) ?? null
-        );
-      case 'minionRoot':
-      case 'cardRoot':
-      case 'fileSystemRoot':
-        return (
-          (await selectDirectory(
-            'Select image root directory',
-            activeConfig[key],
-          )) ?? null
-        );
-      default:
-        throw new Error('Invalid configuration path type.');
+    try {
+      switch (key) {
+        case 'databasePath':
+          return {
+            ok: true,
+            data:
+              (await selectFile(
+                'Select the Minion Decider SQLite database',
+                activeConfig.databasePath,
+              )) ?? null,
+          };
+        case 'minionRoot':
+        case 'cardRoot':
+        case 'fileSystemRoot':
+          return {
+            ok: true,
+            data:
+              (await selectDirectory(
+                'Select image root directory',
+                activeConfig[key],
+              )) ?? null,
+          };
+        default:
+          return {
+            ok: false,
+            error: { code: 'INVALID_REQUEST', message: 'Invalid path type.' },
+          };
+      }
+    } catch {
+      return {
+        ok: false,
+        error: { code: 'UNAVAILABLE', message: 'Could not select a path.' },
+      };
     }
   });
 
@@ -230,11 +244,20 @@ const registerConfigurationHandlers = (): void => {
     CONFIG_CHANNELS.APPLY,
     (event, candidate: unknown): ConfigUpdateResult => {
       if (!fromWindow(event) || !activeConfig || restartPending) {
-        return { restarting: false, errors: ['Configuration is unavailable.'] };
+        return {
+          ok: false,
+          error: { code: 'UNAVAILABLE', message: 'Configuration unavailable.' },
+        };
       }
       const validated = validateRuntimeConfig(candidate);
       if (!validated.config) {
-        return { restarting: false, errors: validated.errors };
+        return {
+          ok: false,
+          error: {
+            code: 'INVALID_REQUEST',
+            message: validated.errors.join(' '),
+          },
+        };
       }
       const next = validated.config;
       const previous = activeConfig;
@@ -245,22 +268,28 @@ const registerConfigurationHandlers = (): void => {
             next[key as keyof RuntimeConfig],
         )
       ) {
-        return { restarting: false, errors: [] };
+        return { ok: true, data: { restarting: false } };
       }
       if (next.databasePath !== previous.databasePath) {
         const error = validateDatabaseForSwitch(next.databasePath);
-        if (error) return { restarting: false, errors: [error] };
+        if (error)
+          return {
+            ok: false,
+            error: { code: 'INVALID_REQUEST', message: error },
+          };
       }
       try {
         saveRuntimeConfig(configPath(), next);
       } catch (error) {
         return {
-          restarting: false,
-          errors: [
-            error instanceof Error
-              ? error.message
-              : 'Could not save configuration.',
-          ],
+          ok: false,
+          error: {
+            code: 'UNAVAILABLE',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Could not save configuration.',
+          },
         };
       }
 
@@ -289,9 +318,26 @@ const registerConfigurationHandlers = (): void => {
           }
         }
       }, 100);
-      return { restarting: true, errors: [] };
+      return { ok: true, data: { restarting: true } };
     },
   );
+};
+
+const registerDatabaseHandlers = (): void => {
+  const trusted = (event: unknown) => {
+    const request = event as IpcMainInvokeEvent;
+    return (
+      Boolean(mainWindow) &&
+      request?.sender === mainWindow?.webContents &&
+      request.senderFrame === mainWindow?.webContents.mainFrame
+    );
+  };
+  const handlers = createDbHandlers(dbOperation, trusted, viewExists);
+  ipcMain.handle(DB_CHANNELS.LABELS, handlers.labels);
+  ipcMain.handle(DB_CHANNELS.CATEGORIES, handlers.categories);
+  ipcMain.handle(DB_CHANNELS.CARDS, handlers.cards);
+  ipcMain.handle(DB_CHANNELS.MINIONS, handlers.minions);
+  ipcMain.handle(DB_CHANNELS.MINION_COUNT, handlers.minionCount);
 };
 
 const registerAssetProtocol = (scheme: string, root: string): void => {
@@ -405,6 +451,7 @@ app
 
     activeConfig = runtimeConfig;
     registerConfigurationHandlers();
+    registerDatabaseHandlers();
 
     registerAssetProtocol('minion', runtimeConfig.minionRoot);
     registerAssetProtocol('card', runtimeConfig.cardRoot);

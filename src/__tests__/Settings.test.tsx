@@ -18,19 +18,21 @@ describe('Settings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    get.mockResolvedValue(paths);
+    get.mockResolvedValue({ ok: true, data: paths });
     window.electron = {
       config: { get, choose, apply },
-      ipcRenderer: {
-        sendMessage: jest.fn(),
-        on: jest.fn(() => jest.fn()),
-        once: jest.fn(),
+      database: {
+        labels: jest.fn(),
+        categories: jest.fn(),
+        cards: jest.fn(),
+        minions: jest.fn(),
+        minionCount: jest.fn(),
       },
     };
   });
 
   it('shows active paths and discards an unsaved selection on cancel', async () => {
-    choose.mockResolvedValue('C:\\other\\minions');
+    choose.mockResolvedValue({ ok: true, data: 'C:\\other\\minions' });
     render(<Settings onClose={onClose} />);
     expect(
       await screen.findByDisplayValue(paths.minionRoot),
@@ -49,10 +51,10 @@ describe('Settings', () => {
   });
 
   it('retains the draft when validation fails and retries the full configuration', async () => {
-    choose.mockResolvedValue('C:\\other\\minions');
+    choose.mockResolvedValue({ ok: true, data: 'C:\\other\\minions' });
     apply.mockResolvedValueOnce({
-      restarting: false,
-      errors: ['Invalid image root.'],
+      ok: false,
+      error: { code: 'INVALID_REQUEST', message: 'Invalid image root.' },
     });
     render(<Settings onClose={onClose} />);
     await screen.findByDisplayValue(paths.minionRoot);
@@ -74,7 +76,7 @@ describe('Settings', () => {
   });
 
   it('announces restart and prevents further changes after saving', async () => {
-    apply.mockResolvedValue({ restarting: true, errors: [] });
+    apply.mockResolvedValue({ ok: true, data: { restarting: true } });
     render(<Settings onClose={onClose} />);
     await screen.findByDisplayValue(paths.databasePath);
     fireEvent.click(screen.getByRole('button', { name: 'Save and restart' }));

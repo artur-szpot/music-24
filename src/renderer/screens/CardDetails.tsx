@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { IPC_CHANNEL } from '../../constants/channel';
-import { DB_OPERATIONS } from '../../enums/db';
 import { Filter } from '../components/Filter';
 import { LoaderScreen } from '../components/Loader';
 import { Interactive } from '../interfaces/interactive';
@@ -11,16 +9,18 @@ import { CardProps } from '../interfaces/card';
 import { CardDetailsOwnProps } from './CardDetailsProps';
 import { ScreenProps } from '../interfaces/screen';
 
-export interface CardDetailsProps extends Interactive, CardDetailsOwnProps, ScreenProps {}
+export interface CardDetailsProps
+  extends Interactive,
+    CardDetailsOwnProps,
+    ScreenProps {}
 
 export const CardDetails: React.FC<CardDetailsProps> = (
   props: CardDetailsProps,
 ) => {
   const { id, globalLabels } = props;
-  const privateChannel = 'card-details';
-
   const [card, setCard] = useState<CardProps | undefined>(undefined);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const [sidePanelContent, setSidePanelContent] = React.useState(
     <MinionDetails id={666} screenType={SCREEN_TYPES.SIDE_PANEL} />,
@@ -31,25 +31,45 @@ export const CardDetails: React.FC<CardDetailsProps> = (
     setSidePanelOpen(newOpen);
   };
 
-  window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    setCard((arg as CardProps[])[0]);
-    setIsDataLoading(false);
-  });
-
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel,
-      operation: DB_OPERATIONS.GET_CARDS,
-      query: { ids: [id] },
-    });
+    let active = true;
+    setIsDataLoading(true);
+    window.electron.database
+      .cards([id])
+      .then((result) => {
+        if (!active) return undefined;
+        if (result.ok) {
+          setCard(result.data[0]);
+          setError(result.data.length ? '' : 'Card not found.');
+        } else {
+          setError(result.error.message);
+        }
+        setIsDataLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setError('Could not load card.');
+          setIsDataLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [id]);
 
-  if (isDataLoading || !card) {
+  if (isDataLoading) {
     return <LoaderScreen />;
   }
+  if (error || !card)
+    return (
+      <div className="screen" role="alert">
+        {error || 'Card not found.'}
+      </div>
+    );
 
   const { name, category, view: viewRaw } = card;
-  const view = JSON.parse(viewRaw ?? '');
+  const view = viewRaw ? JSON.parse(viewRaw) : null;
 
   return (
     <div className="screen card-details-screen">

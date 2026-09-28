@@ -1,11 +1,6 @@
-export interface MinionListQuery {
-  episodes?: number[];
-  ids?: number[];
-  scenes?: number[];
-  cards?: number[];
-  rel?: string;
-  view?: string;
-}
+import { MinionQuery } from '../../constants/dbIpc';
+
+export type MinionListQuery = MinionQuery;
 
 export interface MinionListOwnProps {
   query: MinionListQuery;

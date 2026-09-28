@@ -1,7 +1,7 @@
-import { DB_OPERATIONS } from '../../enums/db';
+import { CategoryKind } from '../../constants/dbIpc';
 
 export interface CategoryListOwnProps {
-  dbOperation: DB_OPERATIONS;
+  dbOperation: CategoryKind;
   searchTerm?: string;
   openCategories?: number[];
   chosenCategories?: { [key: number]: boolean };
