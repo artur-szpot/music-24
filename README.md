@@ -1,159 +1,162 @@
-<img src=".erb/img/erb-banner.svg" width="100%" />
+# Minion Decider
 
-<br>
+Minion Decider is a Windows-oriented Electron and React desktop application for browsing a locally maintained image collection and exploring its metadata. In the current codebase, an image is called a **minion**, while **cards** represent tags or reusable filters.
 
-<p>
-  Electron React Boilerplate uses <a href="https://electron.atom.io/">Electron</a>, <a href="https://facebook.github.io/react/">React</a>, <a href="https://github.com/reactjs/react-router">React Router</a>, <a href="https://webpack.js.org/">Webpack</a> and <a href="https://www.npmjs.com/package/react-refresh">React Fast Refresh</a>.
-</p>
+This repository is an in-progress, machine-specific application derived from Electron React Boilerplate. It is not currently a portable or generally installable image manager.
 
-<br>
+## Current scope
 
-<div align="center">
+The implemented UI can:
 
-[![Build Status][github-actions-status]][github-actions-url]
-[![Github Tag][github-tag-image]][github-tag-url]
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Fjy3vfgy5q)
+- browse images in pages of 12;
+- open an individual image in screen, popup, side-panel, or tooltip contexts;
+- filter images by image IDs, episodes, scenes, cards/tags, card relationships, or database views;
+- browse searchable, hierarchical tag/card categories;
+- browse episode and scene categories;
+- inspect card details and JSON-defined compound filters; and
+- load image and metadata records from a local SQLite database.
 
-[![OpenCollective](https://opencollective.com/electron-react-boilerplate-594/backers/badge.svg)](#backers)
-[![OpenCollective](https://opencollective.com/electron-react-boilerplate-594/sponsors/badge.svg)](#sponsors)
-[![StackOverflow][stackoverflow-img]][stackoverflow-url]
+Despite the project's tagging purpose, the current source only exposes read operations. It does **not** provide UI or database operations for creating, editing, assigning, or deleting tags.
 
-</div>
+## Architecture
 
-## Install
+The application has three runtime layers:
 
-Clone the repo and install dependencies:
+1. **Electron main process** — creates the window, registers custom image protocols, owns the SQLite connection, and handles database requests.
+2. **Preload bridge** — exposes a small `ipcRenderer` wrapper through `contextBridge`.
+3. **React renderer** — renders navigation, category lists, image grids, details, filters, pagination, popups, and side panels.
 
-```bash
-git clone --depth 1 --branch main https://github.com/electron-react-boilerplate/electron-react-boilerplate.git your-project-name
-cd your-project-name
+Renderer requests are sent over one default IPC channel. Each request includes a private reply-channel name and a database operation. The main process executes the operation synchronously through `better-sqlite3` and replies on that private channel.
+
+The project uses:
+
+- Electron 35;
+- React 19 and TypeScript 5;
+- Material UI 7;
+- `better-sqlite3`;
+- Webpack through Electron React Boilerplate; and
+- Jest, Testing Library, ESLint, and Prettier for validation.
+
+## Current data prerequisites
+
+The application currently depends on resources at hard-coded Windows paths:
+
+- database: `E:\programming\ponypics\year45.db`;
+- minion images: `E:\programming\ponypics\s\`;
+- card images: `E:\programming\ponypics\cards\`; and
+- general file-system images: `C:\Users\szpot\Downloads\`.
+
+The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. No schema, migration, seed data, sample database, or import workflow is included.
+
+As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The paths must exist and the database must match the implicit schema expected by the queries.
+
+## Development
+
+### Requirements
+
+- Node.js 22 is the version used by GitHub Actions. Package metadata currently advertises Node.js 14 or newer, but this has not been reconciled with CI or the current dependency set.
+- npm 7 or newer.
+- A supported native build toolchain for Electron and `better-sqlite3`.
+- The machine-specific database and image directories listed above.
+
+### Install and start
+
+```sh
 npm install
-```
-
-**Having issues installing? See our [debugging guide](https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues/400)**
-
-## Starting Development
-
-Start the app in the `dev` environment:
-
-```bash
 npm start
 ```
 
-## Packaging for Production
+`npm install` runs the repository's post-install tasks, installs Electron native dependencies, and builds the development DLL. The development server uses port `666` unless `PORT` is set.
 
-To package apps for the local platform:
+### Useful commands
 
-```bash
-npm run package
+| Command               | Purpose                                                                      |
+| --------------------- | ---------------------------------------------------------------------------- |
+| `npm start`           | Build development bundles, run the renderer dev server, and launch Electron. |
+| `npm test`            | Run the Jest test suite.                                                     |
+| `npm run lint`        | Run ESLint over JavaScript and TypeScript sources.                           |
+| `npm exec tsc`        | Run strict TypeScript checking without emitting output.                      |
+| `npm run build`       | Build production main and renderer bundles.                                  |
+| `npm run package`     | Build and package the app for the current platform.                          |
+| `npm run rebuild`     | Rebuild native dependencies in `release/app`.                                |
+| `npm run rebuild-sql` | Force-rebuild `better-sqlite3` for Electron.                                 |
+
+Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets, but the hard-coded Windows paths make the current application effectively Windows- and machine-specific.
+
+## Project structure
+
+```text
+.
+├── .erb/                   Electron React Boilerplate build configuration
+├── .github/workflows/      CI, publishing, and CodeQL workflows
+├── assets/                 Application icons and platform assets
+├── release/app/            Production runtime package and native dependency
+├── src/
+│   ├── __tests__/          Jest tests
+│   ├── constants/          Shared IPC and pagination constants
+│   ├── enums/              Database operations/tables and screen contexts
+│   ├── main/               Electron main process, SQLite, menu, and preload
+│   └── renderer/           React application, navigation, screens, and components
+├── AGENTS.md               Contributor and coding-agent guidance
+├── package.json            Scripts, dependencies, Jest, Prettier, and packaging
+└── tsconfig.json           Strict TypeScript configuration
 ```
 
-## Docs
+## Tests and automated checks
 
-See our [docs and guides here](https://electron-react-boilerplate.js.org/docs/installation)
+Only one automated test is currently present: a smoke test that renders `App` and checks that rendering returns a truthy result. There are no focused tests for:
 
-## Community
+- SQLite query construction or database operations;
+- IPC request/reply behavior;
+- custom protocol path handling;
+- category tree construction and filtering;
+- navigation and screen selection;
+- pagination; or
+- failure and empty-data states.
 
-Join our Discord: https://discord.gg/Fjy3vfgy5q
+GitHub Actions runs packaging, linting, TypeScript checking, and Jest on pushes and pull requests. The broad CI commands are more comprehensive than the current behavioral test coverage.
 
-## Sponsors
+## Coding standards observed in the repository
 
-<a href="https://palette.dev">
-  <img src=".erb/img/palette-sponsor-banner.svg" width="100%" />
-</a>
+- TypeScript is configured with strict mode and the React JSX transform.
+- EditorConfig requires UTF-8, LF line endings, two-space indentation, trimmed trailing whitespace, and a final newline.
+- Prettier uses single quotes; existing TypeScript follows semicolon and trailing-comma conventions from the inherited tooling.
+- ESLint extends the Electron React Boilerplate configuration with TypeScript support and several relaxed import and shadowing rules.
+- React code uses function components and hooks.
+- Shared constants and enums live outside the renderer when they are used across process boundaries.
+- Component and screen prop types are generally kept in adjacent files, although naming and file extensions are not fully consistent.
 
-## Donations
+See `AGENTS.md` for contributor-focused constraints and validation guidance.
 
-**Donations will ensure the following:**
+## Known limitations
 
-- 🔨 Long term maintenance of the project
-- 🛣 Progress on the [roadmap](https://electron-react-boilerplate.js.org/docs/roadmap)
-- 🐛 Quick responses to bug reports and help requests
+- Database and asset locations are hard-coded to one workstation.
+- The database schema and required image-directory layout are undocumented outside the source and are not versioned.
+- Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
+- The single IPC endpoint accepts loosely typed operation objects, and several database paths interpolate values into SQL.
+- The preload API permits arbitrary channel names rather than exposing a domain-specific API.
+- Most renderer data subscriptions are registered during render instead of inside effects.
+- Several production-facing values are placeholders or hard-coded, including navigation IDs and default detail content.
+- Error handling is mostly console logging; the renderer has no consistent error state.
+- There is no state-management or routing library in active use despite `react-router-dom` being installed.
+- Accessibility is incomplete, including clickable images without equivalent button semantics or alternative text.
+- Automated behavior coverage is minimal.
 
-## Backers
+## Suggested cleanup — not implemented
 
-Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/electron-react-boilerplate-594#backer)]
+The following items are recommendations only; they do not describe completed work:
 
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/0/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/0/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/1/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/1/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/2/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/2/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/3/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/3/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/4/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/4/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/5/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/5/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/6/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/6/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/7/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/7/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/8/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/8/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/9/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/9/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/10/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/10/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/11/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/11/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/12/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/12/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/13/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/13/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/14/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/14/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/15/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/15/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/16/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/16/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/17/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/17/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/18/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/18/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/19/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/19/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/20/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/20/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/21/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/21/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/22/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/22/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/23/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/23/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/24/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/24/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/25/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/25/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/26/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/26/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/27/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/27/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/28/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/28/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/29/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/29/avatar.svg"></a>
-
-## Sponsors
-
-Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/electron-react-boilerplate-594-594#sponsor)]
-
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/0/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/1/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/2/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/3/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/4/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/5/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/6/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/7/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/8/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/9/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/9/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/10/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/10/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/11/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/11/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/12/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/12/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/13/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/13/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/14/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/14/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/15/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/15/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/16/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/16/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/17/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/17/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/18/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/18/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/19/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/19/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/20/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/20/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/21/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/21/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/22/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/22/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/23/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/23/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/24/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/24/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/25/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/25/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/26/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/26/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/27/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/27/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/28/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/28/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/29/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/29/avatar.svg"></a>
-
-## Maintainers
-
-- [Amila Welihinda](https://github.com/amilajack)
-- [John Tran](https://github.com/jooohhn)
-- [C. T. Lin](https://github.com/chentsulin)
-- [Jhen-Jie Hong](https://github.com/jhen0409)
+1. **Externalize local configuration.** Select or configure the database and asset roots at runtime, validate them at startup, and store them in Electron's user-data directory.
+2. **Version the data contract.** Add a schema, migrations, representative fixtures, and documentation for image naming and directory layout.
+3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
+4. **Constrain the process boundary.** Replace the generic IPC pass-through with typed, allow-listed methods using `ipcMain.handle`/`ipcRenderer.invoke`, validate all inputs, and return structured errors.
+5. **Harden database access.** Parameterize every value, allow-list table/view identifiers, separate query construction from execution, and add unit tests around both.
+6. **Stabilize renderer effects.** Register and clean up IPC listeners in effects, avoid subscriptions during render, and handle loading, empty, and error states consistently.
+7. **Clarify domain terminology.** Decide whether public UI and code should use image, minion, card, tag, and filter, then document and apply that vocabulary consistently.
+8. **Expand tests.** Prioritize query builders, IPC handlers, category transforms, navigation, filters, pagination, and representative component interactions.
+9. **Review dependencies and boilerplate.** Remove unused packages and inherited build/release files only after confirming they are unnecessary.
+10. **Improve UX and accessibility.** Replace placeholder navigation, add semantic controls and image alternatives, and document supported workflows.
 
 ## License
 
-MIT © [Electron React Boilerplate](https://github.com/electron-react-boilerplate)
-
-[github-actions-status]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/workflows/Test/badge.svg
-[github-actions-url]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/actions
-[github-tag-image]: https://img.shields.io/github/tag/electron-react-boilerplate/electron-react-boilerplate.svg?label=version
-[github-tag-url]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/releases/latest
-[stackoverflow-img]: https://img.shields.io/badge/stackoverflow-electron_react_boilerplate-blue.svg
-[stackoverflow-url]: https://stackoverflow.com/questions/tagged/electron-react-boilerplate
+This repository contains an MIT license. See `LICENSE` for its current terms and attribution.
