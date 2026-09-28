@@ -27,7 +27,7 @@ The present application browses and filters data. No write path for assigning or
 | Runtime configuration                                | `src/main/runtimeConfig.ts`                 | Validates and persists paths and confines asset requests to configured roots.                          |
 | Database operations                                  | `src/main/db.ts`                            | Initializes configured SQLite and contains all current SQL/query construction.                         |
 | Data contract                                        | `data/`                                     | Version 1 SQLite baseline, disposable fixture, and image-path notes.                                   |
-| Renderer bridge                                      | `src/main/preload.ts`                       | Exposes generic `sendMessage`, `on`, and `once` methods.                                               |
+| Renderer bridge                                      | `src/main/preload.ts`                       | Exposes existing IPC methods and dedicated configuration methods.                                      |
 | Shared process constants                             | `src/constants/`, `src/enums/`              | IPC channel, page size, DB operations/tables, and screen contexts.                                     |
 | Renderer composition                                 | `src/renderer/App.tsx`                      | Loads global labels and selects exactly one primary screen.                                            |
 | Navigation descriptors                               | `src/renderer/interfaces/setScreenProps.ts` | Builds screen-state objects; the app does not currently use URL routing.                               |
@@ -50,12 +50,13 @@ Do not infer the database schema from TypeScript interfaces alone. `data/migrati
 7. The main process calls `dbOperation()` and replies on the requested private channel.
 8. `App` first requests card, scene, and episode labels, then renders one screen selected through a `SetScreenProps` object.
 9. List screens request rows and counts separately; minion lists paginate with 12 records per page.
+10. Settings reads the active paths through dedicated preload methods. The main process validates a complete replacement, saves it atomically, then relaunches so SQLite and asset protocols use the new roots together.
 
 This request/reply mechanism is current behavior, not a preferred template for new APIs. If a task changes this boundary, account for the main process, preload declaration, renderer callers, and tests together.
 
 ## Runtime data assumptions
 
-Runtime paths are selected by the user and stored outside the repository in Electron's per-user `userData` directory. The source no longer assumes one developer's paths. A version 1 schema and disposable fixture are in `data/`; the application has no migration runner or import process. Image naming beyond the minion URL construction is not established. Never apply the baseline migration or fixture to an existing collection.
+Runtime paths are selected by the user and stored outside the repository in Electron's per-user `userData` directory. The source no longer assumes one developer's paths. Settings can review paths and use native selectors for replacement; cancelling keeps the existing resources, and applying changes restarts the app. A version 1 schema and disposable fixture are in `data/`; the application has no migration runner or import process. Image naming beyond the minion URL construction is not established. Never apply the baseline migration or fixture to an existing collection.
 
 Never commit a personal runtime configuration, database, image corpus, credentials, or other local-only data. Configuration tests must use temporary files and directories.
 
@@ -90,7 +91,7 @@ Some prop-only modules use `.tsx` despite containing no JSX, and prop types are 
 
 ## Testing and validation
 
-The renderer baseline is one smoke test in `src/__tests__/App.test.tsx`. It only verifies that rendering `App` returns a truthy result. `src/__tests__/runtimeConfig.test.ts` adds focused path validation, persistence, asset resolution, and traversal coverage. Do not claim broad application coverage from these tests.
+The renderer baseline is one smoke test in `src/__tests__/App.test.tsx`. It only verifies that rendering `App` returns a truthy result. `src/__tests__/runtimeConfig.test.ts` adds focused path validation, atomic persistence, asset resolution, and traversal coverage; `src/__tests__/Settings.test.tsx` covers settings interactions. Do not claim broad application coverage from these tests.
 
 Use the checks relevant to a change:
 
@@ -148,7 +149,7 @@ Keep cleanup work incremental and separately reviewable. Suggested order:
 
 1. Capture representative behavior with tests before structural changes.
 2. Verify compatibility with the version 1 baseline and image layout; add separately numbered migrations for later changes.
-3. Add in-application configuration management and a controlled resource reload/restart flow.
+3. Extend configuration management with deeper schema and image availability checks if needed; in-app path selection and a controlled restart exist.
 4. Define typed request/response contracts and replace generic IPC forwarding with allow-listed handlers.
 5. Extract and test query builders; parameterize values and allow-list identifiers.
 6. Move renderer listener registration into effects with cleanup and structured error handling.

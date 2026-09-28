@@ -55,6 +55,42 @@ describe('runtime configuration', () => {
     expect(loadRuntimeConfig(configPath)).toEqual({ config, errors: [] });
   });
 
+  it('keeps the previous configuration when a replacement is invalid', () => {
+    const configPath = path.join(tempRoot, 'runtime-config.json');
+    saveRuntimeConfig(configPath, config);
+    const original = fs.readFileSync(configPath, 'utf8');
+
+    expect(() =>
+      saveRuntimeConfig(configPath, {
+        ...config,
+        cardRoot: path.join(tempRoot, 'missing'),
+      }),
+    ).toThrow();
+    expect(fs.readFileSync(configPath, 'utf8')).toBe(original);
+  });
+
+  it('keeps the previous configuration if the atomic replacement fails', () => {
+    const configPath = path.join(tempRoot, 'runtime-config.json');
+    saveRuntimeConfig(configPath, config);
+    const original = fs.readFileSync(configPath, 'utf8');
+    const otherRoot = path.join(tempRoot, 'other');
+    fs.mkdirSync(otherRoot);
+    const rename = jest.spyOn(fs, 'renameSync').mockImplementationOnce(() => {
+      throw new Error('rename failed');
+    });
+    try {
+      expect(() =>
+        saveRuntimeConfig(configPath, { ...config, cardRoot: otherRoot }),
+      ).toThrow('rename failed');
+      expect(fs.readFileSync(configPath, 'utf8')).toBe(original);
+      expect(
+        fs.readdirSync(tempRoot).filter((name) => name.endsWith('.tmp')),
+      ).toEqual([]);
+    } finally {
+      rename.mockRestore();
+    }
+  });
+
   it('resolves asset paths within their configured root', () => {
     expect(resolveAssetPath(config.minionRoot, 'minion:///1/image.png')).toBe(
       path.join(config.minionRoot, '1', 'image.png'),

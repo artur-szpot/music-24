@@ -1,7 +1,10 @@
 import { navTo, SetScreenProps } from '../interfaces/setScreenProps';
 
-export function Nav(props: { handleNav: (props: SetScreenProps) => void }) {
-  const { handleNav } = props;
+export function Nav(props: {
+  handleNav: (props: SetScreenProps) => void;
+  onSettings: () => void;
+}) {
+  const { handleNav, onSettings } = props;
   return (
     <div id="nav">
       <button onClick={() => handleNav(navTo.minionDetails({ id: 1003 }))}>
@@ -17,6 +20,9 @@ export function Nav(props: { handleNav: (props: SetScreenProps) => void }) {
       <button onClick={() => handleNav(navTo.scenesList({}))}>Scenes</button>
       <button onClick={() => handleNav(navTo.cardImplementationsList({}))}>
         Card implementations
+      </button>
+      <button type="button" onClick={onSettings}>
+        Settings
       </button>
     </div>
   );

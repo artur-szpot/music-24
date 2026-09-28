@@ -1,14 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { RuntimeConfig } from '../constants/runtimeConfig';
+
+export type { RuntimeConfig } from '../constants/runtimeConfig';
 
 export const RUNTIME_CONFIG_FILENAME = 'runtime-config.json';
-
-export interface RuntimeConfig {
-  databasePath: string;
-  minionRoot: string;
-  cardRoot: string;
-  fileSystemRoot: string;
-}
 
 export interface RuntimeConfigResult {
   config?: RuntimeConfig;
@@ -104,11 +100,17 @@ export function saveRuntimeConfig(
   }
 
   fs.mkdirSync(path.dirname(configPath), { recursive: true });
-  fs.writeFileSync(
-    configPath,
-    `${JSON.stringify(validation.config, null, 2)}\n`,
-    'utf8',
-  );
+  const temporaryPath = `${configPath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    fs.writeFileSync(
+      temporaryPath,
+      `${JSON.stringify(validation.config, null, 2)}\n`,
+      { encoding: 'utf8', flag: 'wx', mode: 0o600 },
+    );
+    fs.renameSync(temporaryPath, configPath);
+  } finally {
+    if (fs.existsSync(temporaryPath)) fs.unlinkSync(temporaryPath);
+  }
 }
 
 export function resolveAssetPath(root: string, requestUrl: string): string {

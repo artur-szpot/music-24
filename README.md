@@ -45,6 +45,8 @@ The selected paths are saved as `runtime-config.json` in Electron's per-user app
 
 Launch the application with the `--configure` argument to replace an existing valid configuration. The previous configuration remains on disk until a complete replacement is selected and validated.
 
+While the application is running, select **Settings** in the left navigation to review the four active paths. Use **Choose…** beside a path to select a replacement with a native dialog; Cancel discards the draft. **Save and restart** validates the complete selection, probes a changed SQLite file read-only for essential tables and count views, saves the configuration atomically, and relaunches the application. If validation or saving fails, the current session and saved configuration remain unchanged. A restart is required so the database connection and all image protocol roots switch together. The `--configure` startup option remains available.
+
 The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. The supplied version 1 baseline, a disposable test fixture, and image-path notes are in [data/README.md](data/README.md). The application does not run migrations or install fixtures; **never apply the baseline or fixture to an existing collection**. No production database, image corpus, or import workflow is included.
 
 As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The user must select an existing image collection and a database compatible with the queries. Compatibility with the version 1 baseline is not checked automatically.
@@ -104,7 +106,7 @@ Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets. Run
 
 ## Tests and automated checks
 
-The suite contains a renderer smoke test and focused runtime-configuration tests covering path validation, persistence/loading, in-root asset resolution, and traversal rejection. There are no focused tests for:
+The suite contains a renderer smoke test, settings interaction tests, and focused runtime-configuration tests covering path validation, atomic replacement failure, persistence/loading, in-root asset resolution, and traversal rejection. There are no focused tests for:
 
 - SQLite query construction or database operations;
 - IPC request/reply behavior;
@@ -130,7 +132,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 
 ## Known limitations
 
-- Runtime configuration uses sequential native dialogs and has no in-application settings screen.
+- Initial runtime configuration uses sequential native dialogs; in-app settings require a restart and do not verify full database schema compatibility or the presence of image files.
 - A version 1 SQLite baseline is documented, but there is no migration runner or automatic compatibility check for existing databases. Image naming beyond the renderer's minion URL construction is not established.
 - Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
 - The single IPC endpoint accepts loosely typed operation objects, and several database paths interpolate values into SQL.
@@ -147,7 +149,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 The following items are recommendations only; they do not describe completed work:
 
 1. **Extend the data contract.** Verify existing-database compatibility, document remaining image naming conventions, and add new numbered migrations as the contract evolves. A version 1 baseline and disposable fixture are already in `data/`.
-2. **Add configuration management UI.** Allow paths to be reviewed and changed from the running application, then safely reload or restart affected resources.
+2. **Extend configuration management.** The Settings screen now reviews and replaces paths with a controlled restart; consider richer validation of database compatibility and image availability.
 3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
 4. **Constrain the process boundary.** Replace the generic IPC pass-through with typed, allow-listed methods using `ipcMain.handle`/`ipcRenderer.invoke`, validate all inputs, and return structured errors.
 5. **Harden database access.** Parameterize every value, allow-list table/view identifiers, separate query construction from execution, and add unit tests around both.

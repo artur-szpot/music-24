@@ -49,6 +49,35 @@ div.screen {
   height: calc(100vh - 20px);
 }
 
+main.settings-screen {
+  width: calc(100vw - 100px);
+  height: calc(100vh - 20px);
+  position: absolute;
+  left: 100px;
+  top: 0;
+  box-sizing: border-box;
+  padding: 24px;
+  text-align: left;
+  overflow-y: auto;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.settings-row label {
+  min-width: 200px;
+}
+
+.settings-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+}
+
 div.screen-popup {
   width: calc(100vw - 104px);
   position: absolute;

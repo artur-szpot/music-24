@@ -11,6 +11,7 @@ import { CardDetails } from './screens/CardDetails';
 import { CategoryList } from './screens/CategoryList';
 import { MinionDetails } from './screens/MinionDetails';
 import { MinionList } from './screens/MinionList';
+import Settings from './screens/Settings';
 import {
   placeholderScreenProps,
   SetScreenProps,
@@ -18,6 +19,7 @@ import {
 
 export default function App() {
   const [screen, setScreen] = useState<SetScreenProps>(placeholderScreenProps);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const setPopup = (popup: SetScreenProps) => {
     setScreen({
       ...screen,
@@ -131,15 +133,30 @@ export default function App() {
 
   return (
     <div>
-      <Nav handleNav={setScreen} />
-      {screenRenderer(screen)}
-      <Backdrop open={popupOpen}>
-        <Backdrop open={true}>
-          <Backdrop open={true} onClick={() => handlePopupToggle(false)}>
-            {screenRenderer(screen.popup ?? placeholderScreenProps)}
+      <Nav
+        handleNav={(next) => {
+          setSettingsOpen(false);
+          setScreen(next);
+        }}
+        onSettings={() => {
+          setPopupOpen(false);
+          setSettingsOpen(true);
+        }}
+      />
+      {settingsOpen ? (
+        <Settings onClose={() => setSettingsOpen(false)} />
+      ) : (
+        screenRenderer(screen)
+      )}
+      {!settingsOpen && (
+        <Backdrop open={popupOpen}>
+          <Backdrop open={true}>
+            <Backdrop open={true} onClick={() => handlePopupToggle(false)}>
+              {screenRenderer(screen.popup ?? placeholderScreenProps)}
+            </Backdrop>
           </Backdrop>
         </Backdrop>
-      </Backdrop>
+      )}
     </div>
   );
 }
