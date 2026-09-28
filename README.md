@@ -45,9 +45,9 @@ The selected paths are saved as `runtime-config.json` in Electron's per-user app
 
 Launch the application with the `--configure` argument to replace an existing valid configuration. The previous configuration remains on disk until a complete replacement is selected and validated.
 
-The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. No schema, migration, seed data, sample database, or import workflow is included.
+The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. The supplied version 1 baseline, a disposable test fixture, and image-path notes are in [data/README.md](data/README.md). The application does not run migrations or install fixtures; **never apply the baseline or fixture to an existing collection**. No production database, image corpus, or import workflow is included.
 
-As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The user must select an existing image collection, and the database must match the implicit schema expected by the queries.
+As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The user must select an existing image collection and a database compatible with the queries. Compatibility with the version 1 baseline is not checked automatically.
 
 ## Development
 
@@ -89,6 +89,7 @@ Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets. Run
 ├── .erb/                   Electron React Boilerplate build configuration
 ├── .github/workflows/      CI, publishing, and CodeQL workflows
 ├── assets/                 Application icons and platform assets
+├── data/                   SQLite baseline, disposable fixture, and data-contract notes
 ├── release/app/            Production runtime package and native dependency
 ├── src/
 │   ├── __tests__/          Jest tests
@@ -130,7 +131,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 ## Known limitations
 
 - Runtime configuration uses sequential native dialogs and has no in-application settings screen.
-- The database schema and required image-directory layout are undocumented outside the source and are not versioned.
+- A version 1 SQLite baseline is documented, but there is no migration runner or automatic compatibility check for existing databases. Image naming beyond the renderer's minion URL construction is not established.
 - Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
 - The single IPC endpoint accepts loosely typed operation objects, and several database paths interpolate values into SQL.
 - The preload API permits arbitrary channel names rather than exposing a domain-specific API.
@@ -145,7 +146,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 
 The following items are recommendations only; they do not describe completed work:
 
-1. **Version the data contract.** Add a schema, migrations, representative fixtures, and documentation for image naming and directory layout.
+1. **Extend the data contract.** Verify existing-database compatibility, document remaining image naming conventions, and add new numbered migrations as the contract evolves. A version 1 baseline and disposable fixture are already in `data/`.
 2. **Add configuration management UI.** Allow paths to be reviewed and changed from the running application, then safely reload or restart affected resources.
 3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
 4. **Constrain the process boundary.** Replace the generic IPC pass-through with typed, allow-listed methods using `ipcMain.handle`/`ipcRenderer.invoke`, validate all inputs, and return structured errors.
