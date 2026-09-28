@@ -2,7 +2,7 @@
 
 Minion Decider is a Windows-oriented Electron and React desktop application for browsing a locally maintained image collection and exploring its metadata. In the current codebase, an image is called a **minion**, while **cards** represent tags or reusable filters.
 
-This repository is an in-progress, machine-specific application derived from Electron React Boilerplate. It is not currently a portable or generally installable image manager.
+This repository is an in-progress application derived from Electron React Boilerplate. It requires an existing, schema-compatible SQLite database and image collection; neither is distributed with the repository.
 
 ## Current scope
 
@@ -37,18 +37,17 @@ The project uses:
 - Webpack through Electron React Boilerplate; and
 - Jest, Testing Library, ESLint, and Prettier for validation.
 
-## Current data prerequisites
+## Runtime configuration and data prerequisites
 
-The application currently depends on resources at hard-coded Windows paths:
+On first start, the application displays native selectors for the SQLite database file, minion image root, card image root, and general file-system image root. Each path is validated for existence and expected file type before it is accepted.
 
-- database: `E:\programming\ponypics\year45.db`;
-- minion images: `E:\programming\ponypics\s\`;
-- card images: `E:\programming\ponypics\cards\`; and
-- general file-system images: `C:\Users\szpot\Downloads\`.
+The selected paths are saved as `runtime-config.json` in Electron's per-user application-data directory and validated again on later starts. The database is opened before the application window is created. Cancelling configuration or selecting an inaccessible resource exits without opening the renderer.
+
+Launch the application with the `--configure` argument to replace an existing valid configuration. The previous configuration remains on disk until a complete replacement is selected and validated.
 
 The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. No schema, migration, seed data, sample database, or import workflow is included.
 
-As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The paths must exist and the database must match the implicit schema expected by the queries.
+As a result, cloning and starting the repository on another machine is not enough to obtain a working application. The user must select an existing image collection, and the database must match the implicit schema expected by the queries.
 
 ## Development
 
@@ -57,7 +56,7 @@ As a result, cloning and starting the repository on another machine is not enoug
 - Node.js 22 is the version used by GitHub Actions. Package metadata currently advertises Node.js 14 or newer, but this has not been reconciled with CI or the current dependency set.
 - npm 7 or newer.
 - A supported native build toolchain for Electron and `better-sqlite3`.
-- The machine-specific database and image directories listed above.
+- A schema-compatible database and its corresponding image directories.
 
 ### Install and start
 
@@ -81,7 +80,7 @@ npm start
 | `npm run rebuild`     | Rebuild native dependencies in `release/app`.                                |
 | `npm run rebuild-sql` | Force-rebuild `better-sqlite3` for Electron.                                 |
 
-Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets, but the hard-coded Windows paths make the current application effectively Windows- and machine-specific.
+Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets. Runtime path selection is cross-platform, but packaged behavior has not been verified on every target.
 
 ## Project structure
 
@@ -95,7 +94,7 @@ Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets, but
 │   ├── __tests__/          Jest tests
 │   ├── constants/          Shared IPC and pagination constants
 │   ├── enums/              Database operations/tables and screen contexts
-│   ├── main/               Electron main process, SQLite, menu, and preload
+│   ├── main/               Electron main process, runtime config, SQLite, menu, and preload
 │   └── renderer/           React application, navigation, screens, and components
 ├── AGENTS.md               Contributor and coding-agent guidance
 ├── package.json            Scripts, dependencies, Jest, Prettier, and packaging
@@ -104,11 +103,11 @@ Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets, but
 
 ## Tests and automated checks
 
-Only one automated test is currently present: a smoke test that renders `App` and checks that rendering returns a truthy result. There are no focused tests for:
+The suite contains a renderer smoke test and focused runtime-configuration tests covering path validation, persistence/loading, in-root asset resolution, and traversal rejection. There are no focused tests for:
 
 - SQLite query construction or database operations;
 - IPC request/reply behavior;
-- custom protocol path handling;
+- Electron custom protocol registration and responses;
 - category tree construction and filtering;
 - navigation and screen selection;
 - pagination; or
@@ -130,7 +129,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 
 ## Known limitations
 
-- Database and asset locations are hard-coded to one workstation.
+- Runtime configuration uses sequential native dialogs and has no in-application settings screen.
 - The database schema and required image-directory layout are undocumented outside the source and are not versioned.
 - Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
 - The single IPC endpoint accepts loosely typed operation objects, and several database paths interpolate values into SQL.
@@ -146,8 +145,8 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 
 The following items are recommendations only; they do not describe completed work:
 
-1. **Externalize local configuration.** Select or configure the database and asset roots at runtime, validate them at startup, and store them in Electron's user-data directory.
-2. **Version the data contract.** Add a schema, migrations, representative fixtures, and documentation for image naming and directory layout.
+1. **Version the data contract.** Add a schema, migrations, representative fixtures, and documentation for image naming and directory layout.
+2. **Add configuration management UI.** Allow paths to be reviewed and changed from the running application, then safely reload or restart affected resources.
 3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
 4. **Constrain the process boundary.** Replace the generic IPC pass-through with typed, allow-listed methods using `ipcMain.handle`/`ipcRenderer.invoke`, validate all inputs, and return structured errors.
 5. **Harden database access.** Parameterize every value, allow-list table/view identifiers, separate query construction from execution, and add unit tests around both.

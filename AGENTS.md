@@ -23,8 +23,9 @@ The present application browses and filters data. No write path for assigning or
 | npm scripts, dependencies, Jest, Prettier, packaging | `package.json`                              | Still contains inherited Electron React Boilerplate identity.                                          |
 | Production native dependency                         | `release/app/package.json`                  | Contains `better-sqlite3`, rebuilt for Electron.                                                       |
 | Build system                                         | `.erb/`                                     | Inherited Webpack/Electron build and packaging support. Avoid editing without a build-specific reason. |
-| Electron lifecycle and IPC                           | `src/main/main.ts`                          | Creates the window, handles the default IPC channel, and registers asset protocols.                    |
-| Database operations                                  | `src/main/db.ts`                            | Opens SQLite at module load and contains all current SQL/query construction.                           |
+| Electron lifecycle and IPC                           | `src/main/main.ts`                          | Loads configuration, creates the window, handles IPC, and registers asset protocols.                   |
+| Runtime configuration                                | `src/main/runtimeConfig.ts`                 | Validates and persists paths and confines asset requests to configured roots.                          |
+| Database operations                                  | `src/main/db.ts`                            | Initializes configured SQLite and contains all current SQL/query construction.                         |
 | Renderer bridge                                      | `src/main/preload.ts`                       | Exposes generic `sendMessage`, `on`, and `once` methods.                                               |
 | Shared process constants                             | `src/constants/`, `src/enums/`              | IPC channel, page size, DB operations/tables, and screen contexts.                                     |
 | Renderer composition                                 | `src/renderer/App.tsx`                      | Loads global labels and selects exactly one primary screen.                                            |
@@ -39,26 +40,23 @@ Do not infer the database schema from TypeScript interfaces alone. The SQL in `s
 
 ## Runtime flow
 
-1. The main process opens the hard-coded SQLite database when `src/main/db.ts` is imported.
-2. Electron registers privileged `minion`, `card`, and `file-system` schemes and maps them to hard-coded local directories.
-3. The preload script exposes `window.electron.ipcRenderer` through `contextBridge`.
-4. The renderer sends an object on `default-channel`. The object includes an operation and usually a private reply channel.
-5. The main process calls `dbOperation()` and replies on the requested private channel.
-6. `App` first requests card, scene, and episode labels, then renders one screen selected through a `SetScreenProps` object.
-7. List screens request rows and counts separately; minion lists paginate with 12 records per page.
+1. After Electron is ready, the main process loads and validates `runtime-config.json` from Electron's `userData` directory.
+2. Missing or invalid configuration, or the `--configure` argument, starts native file/directory selection. A complete valid selection is persisted; cancellation exits the app.
+3. The main process initializes SQLite with the configured database before creating a window.
+4. Electron registers `minion`, `card`, and `file-system` protocol handlers rooted in the configured directories. Resolved paths are confined to those roots.
+5. The preload script exposes `window.electron.ipcRenderer` through `contextBridge`.
+6. The renderer sends an object on `default-channel`. The object includes an operation and usually a private reply channel.
+7. The main process calls `dbOperation()` and replies on the requested private channel.
+8. `App` first requests card, scene, and episode labels, then renders one screen selected through a `SetScreenProps` object.
+9. List screens request rows and counts separately; minion lists paginate with 12 records per page.
 
 This request/reply mechanism is current behavior, not a preferred template for new APIs. If a task changes this boundary, account for the main process, preload declaration, renderer callers, and tests together.
 
-## Machine-specific assumptions
+## Runtime data assumptions
 
-Current source assumes these exact paths:
+Runtime paths are selected by the user and stored outside the repository in Electron's per-user `userData` directory. The source no longer assumes one developer's paths. The database schema and image layout are still implicit: no migrations, schema definition, fixtures, or import process are present.
 
-- `E:\programming\ponypics\year45.db` in `src/main/db.ts`;
-- `E:\programming\ponypics\s\` for `minion://` requests;
-- `E:\programming\ponypics\cards\` for `card://` requests; and
-- `C:\Users\szpot\Downloads\` for `file-system://` requests.
-
-Do not describe the application as portable until these paths and the implicit database contract have been replaced by a validated configuration mechanism. Never commit a personal database, image corpus, credentials, or other local-only data.
+Never commit a personal runtime configuration, database, image corpus, credentials, or other local-only data. Configuration tests must use temporary files and directories.
 
 ## Coding conventions
 
@@ -91,7 +89,7 @@ Some prop-only modules use `.tsx` despite containing no JSX, and prop types are 
 
 ## Testing and validation
 
-The existing test baseline is one smoke test in `src/__tests__/App.test.tsx`. It only verifies that rendering `App` returns a truthy result. Do not claim meaningful feature coverage from this test.
+The renderer baseline is one smoke test in `src/__tests__/App.test.tsx`. It only verifies that rendering `App` returns a truthy result. `src/__tests__/runtimeConfig.test.ts` adds focused path validation, persistence, asset resolution, and traversal coverage. Do not claim broad application coverage from these tests.
 
 Use the checks relevant to a change:
 
@@ -112,7 +110,7 @@ When behavior changes, add focused tests where practical:
 - database behavior: fixture-backed integration tests using a temporary database; and
 - custom protocols: tests for valid paths, malformed URLs, traversal, and missing files.
 
-Tests must not depend on the developer's hard-coded database or personal image directories.
+Tests must not depend on a developer's saved runtime configuration, database, or personal image directories.
 
 ## Change discipline
 
@@ -141,15 +139,15 @@ Before completion:
 
 ## Known test and design gaps
 
-No focused automated coverage currently exists for SQL construction, operation dispatch, IPC, custom protocols, category-tree transforms, navigation, filters, pagination, loading/error states, or accessibility. High-risk implementation details include dynamic SQL, arbitrary IPC channel names, listeners registered during React rendering, implicit database schema, and local absolute paths.
+No focused automated coverage currently exists for SQL construction, operation dispatch, IPC, Electron protocol registration, category-tree transforms, navigation, filters, pagination, loading/error states, or accessibility. High-risk implementation details include dynamic SQL, arbitrary IPC channel names, listeners registered during React rendering, and the implicit database schema.
 
 ## Suggested cleanup backlog — not implemented
 
 Keep cleanup work incremental and separately reviewable. Suggested order:
 
 1. Capture representative behavior with tests before structural changes.
-2. Introduce validated runtime configuration for database and asset roots.
-3. Add a versioned schema, migrations, and non-personal fixtures.
+2. Add a versioned schema, migrations, and non-personal fixtures.
+3. Add in-application configuration management and a controlled resource reload/restart flow.
 4. Define typed request/response contracts and replace generic IPC forwarding with allow-listed handlers.
 5. Extract and test query builders; parameterize values and allow-list identifiers.
 6. Move renderer listener registration into effects with cleanup and structured error handling.

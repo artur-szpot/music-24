@@ -2,8 +2,13 @@ import Database from 'better-sqlite3';
 import { DB_OPERATIONS, DB_TABLES } from '../enums/db';
 import { LIMITS } from '../constants/limits';
 
-const db = new Database('E:\\programming\\ponypics\\year45.db');
-db.pragma('journal_mode = WAL');
+let db: Database.Database | undefined;
+
+export function initializeDatabase(databasePath: string): void {
+  db?.close();
+  db = new Database(databasePath);
+  db.pragma('journal_mode = WAL');
+}
 
 interface Query {
   statement: string;
@@ -19,6 +24,10 @@ export interface SubCard {
 }
 
 export function dbOperation(args: any) {
+  if (!db) {
+    throw new Error('Database has not been initialized.');
+  }
+
   const { operation } = args;
   switch (operation) {
     case DB_OPERATIONS.GET_COUNT:
@@ -114,6 +123,10 @@ export function dbOperation(args: any) {
 }
 
 function getAll(query: Query) {
+  if (!db) {
+    throw new Error('Database has not been initialized.');
+  }
+
   const { statement, params } = query;
   console.log(`Execute SQL: ${statement}`);
   try {
