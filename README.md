@@ -14,9 +14,12 @@ The implemented UI can:
 - browse searchable, hierarchical tag/card categories;
 - browse episode and scene categories;
 - inspect card details and JSON-defined compound filters; and
+- view filter match counts and matching minions, edit and save existing filter conditions, and inspect a representative related minion;
+- inspect a minion's season, episode, scene, related-card hierarchy, and source file; and
+- reveal a source image in Explorer or copy it to an optional output directory configured in Settings; and
 - load image and metadata records from a local SQLite database.
 
-Despite the project's tagging purpose, the current source only exposes read operations. It does **not** provide UI or database operations for creating, editing, assigning, or deleting tags.
+The application can save edits to a card's compound filter. It does **not** provide UI or database operations for creating, editing, assigning, or deleting tags or card relations.
 
 ## Architecture
 
@@ -26,7 +29,7 @@ The application has three runtime layers:
 2. **Preload bridge** — exposes typed database and configuration methods through `contextBridge`.
 3. **React renderer** — renders navigation, category lists, image grids, details, filters, pagination, popups, and side panels.
 
-Renderer database requests use dedicated `ipcRenderer.invoke` methods for labels, categories, cards, minions, and counts. The main process registers matching `ipcMain.handle` endpoints, validates the caller and input, and returns either data or a structured error. Configuration uses separate allow-listed methods. No arbitrary IPC channel or SQL operation is exposed to the renderer.
+Renderer database requests use dedicated `ipcRenderer.invoke` methods for labels, categories, cards, minions, counts, related-card hierarchies, and card-filter updates. The main process registers matching `ipcMain.handle` endpoints, validates the caller and input, and returns either data or a structured error. Configuration and minion source/copy actions use separate allow-listed methods. No arbitrary IPC channel, SQL operation, or renderer-supplied filesystem path is exposed.
 
 The project uses:
 
@@ -45,7 +48,7 @@ The selected paths are saved as `runtime-config.json` in Electron's per-user app
 
 Launch the application with the `--configure` argument to replace an existing valid configuration. The previous configuration remains on disk until a complete replacement is selected and validated.
 
-While the application is running, select **Settings** in the left navigation to review the four active paths. Use **Choose…** beside a path to select a replacement with a native dialog; Cancel discards the draft. **Save and restart** validates the complete selection, probes a changed SQLite file read-only for essential tables and count views, saves the configuration atomically, and relaunches the application. If validation or saving fails, the current session and saved configuration remain unchanged. A restart is required so the database connection and all image protocol roots switch together. The `--configure` startup option remains available.
+While the application is running, select **Settings** in the left navigation to review the active paths. Use **Choose…** beside a path to select a replacement with a native dialog; Cancel discards the draft. The minion copy output directory is optional. **Save and restart** validates the complete selection, probes a changed SQLite file read-only for essential tables and count views, saves the configuration atomically, and relaunches the application. If validation or saving fails, the current session and saved configuration remain unchanged. A restart is required so the database connection and all image protocol roots switch together. The `--configure` startup option remains available.
 
 The SQLite database is expected to contain the tables, views, and columns referenced in `src/main/db.ts`, including `minions`, `cards`, `episodes`, `scenes`, relationship tables, and precomputed count views. The supplied version 1 baseline, a disposable test fixture, and image-path notes are in [data/README.md](data/README.md). The application does not run migrations or install fixtures; **never apply the baseline or fixture to an existing collection**. No production database, image corpus, or import workflow is included.
 

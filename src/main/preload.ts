@@ -6,8 +6,11 @@ import {
   DB_CHANNELS,
   IpcResult,
   LabelRow,
+  MinionCardRow,
+  MinionFilter,
   MinionQuery,
   MinionRow,
+  MinionSource,
 } from '../constants/dbIpc';
 import {
   CONFIG_CHANNELS,
@@ -43,6 +46,24 @@ const electronHandler = {
     },
     minionCount(query: MinionQuery): Promise<IpcResult<number>> {
       return ipcRenderer.invoke(DB_CHANNELS.MINION_COUNT, query);
+    },
+    updateCardFilter(
+      cardId: number,
+      filter: MinionFilter,
+    ): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.UPDATE_CARD_FILTER, cardId, filter);
+    },
+    minionCards(minionId: number): Promise<IpcResult<MinionCardRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.MINION_CARDS, minionId);
+    },
+    minionSource(minionId: number): Promise<IpcResult<MinionSource>> {
+      return ipcRenderer.invoke(DB_CHANNELS.MINION_SOURCE, minionId);
+    },
+    revealMinion(minionId: number): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.REVEAL_MINION, minionId);
+    },
+    copyMinion(minionId: number): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.COPY_MINION, minionId);
     },
   },
 };

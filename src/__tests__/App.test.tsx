@@ -6,7 +6,15 @@ describe('App', () => {
   beforeEach(() => {
     window.electron = {
       config: {
-        get: jest.fn(),
+        get: jest.fn().mockResolvedValue({
+          ok: true,
+          data: {
+            databasePath: 'C:\\data\\collection.db',
+            minionRoot: 'C:\\images\\minions',
+            cardRoot: 'C:\\images\\cards',
+            fileSystemRoot: 'C:\\images\\files',
+          },
+        }),
         choose: jest.fn(),
         apply: jest.fn(),
       },
@@ -16,6 +24,17 @@ describe('App', () => {
         cards: jest.fn(),
         minions: jest.fn().mockResolvedValue({ ok: true, data: [] }),
         minionCount: jest.fn().mockResolvedValue({ ok: true, data: 0 }),
+        updateCardFilter: jest.fn(),
+        minionCards: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+        minionSource: jest.fn().mockResolvedValue({
+          ok: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Minion source file was not found.',
+          },
+        }),
+        revealMinion: jest.fn(),
+        copyMinion: jest.fn(),
       },
     };
   });

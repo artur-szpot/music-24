@@ -5,6 +5,7 @@ export interface RuntimeConfig {
   minionRoot: string;
   cardRoot: string;
   fileSystemRoot: string;
+  outputDirectory?: string;
 }
 
 export type RuntimeConfigKey = keyof RuntimeConfig;

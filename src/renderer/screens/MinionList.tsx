@@ -102,6 +102,9 @@ export const MinionList: React.FC<MinionListProps> = (
         {query.episodes && (
           <p>{`One of episodes: ${query.episodes.join(', ')}`}</p>
         )}
+        {query.seasons && (
+          <p>{`One of seasons: ${query.seasons.join(', ')}`}</p>
+        )}
         {query.scenes && <p>{`One of scenes: ${query.scenes.join(', ')}`}</p>}
         {query.ids && <p>{`One of IDs: ${query.ids.join(', ')}`}</p>}
         {query.view && <p>{`Coming from view: ${query.view}`}</p>}
