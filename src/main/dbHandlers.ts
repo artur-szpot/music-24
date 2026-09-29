@@ -5,6 +5,8 @@ import {
   IpcErrorCode,
   IpcResult,
   LabelRow,
+  MinionCardRow,
+  MinionFilter,
   MinionQuery,
   MinionRow,
 } from '../constants/dbIpc';
@@ -20,6 +22,12 @@ export type DbRequest =
         | DB_OPERATIONS.GET_SCENES;
     }
   | { operation: DB_OPERATIONS.GET_CARDS; query: { ids: number[] } }
+  | {
+      operation: DB_OPERATIONS.UPDATE_CARD_FILTER;
+      cardId: number;
+      filter: MinionFilter;
+    }
+  | { operation: DB_OPERATIONS.GET_MINION_CARDS; minionId: number }
   | {
       operation: DB_OPERATIONS.GET_MINIONS | DB_OPERATIONS.GET_MINIONS_COUNT;
       query: MinionQuery;
@@ -54,20 +62,107 @@ function ids(value: unknown): number[] {
   return value;
 }
 
+function parseFilter(value: unknown): MinionFilter {
+  let nodeCount = 0;
+  let totalIds = 0;
+
+  const parseNode = (node: unknown, depth: number): MinionFilter => {
+    nodeCount += 1;
+    if (
+      depth > 8 ||
+      nodeCount > 100 ||
+      !isRecord(node) ||
+      Object.keys(node).some(
+        (key) =>
+          ![
+            'logic',
+            'cards',
+            'seasons',
+            'episodes',
+            'scenes',
+            'views',
+          ].includes(key),
+      ) ||
+      (node.logic !== 'any' && node.logic !== 'all')
+    ) {
+      return invalid('Invalid minion filter.');
+    }
+
+    const filter: MinionFilter = { logic: node.logic };
+    let conditionCount = 0;
+    (['cards', 'seasons', 'episodes', 'scenes'] as const).forEach((key) => {
+      const rawCategory = node[key];
+      if (rawCategory === undefined) return;
+      if (
+        !isRecord(rawCategory) ||
+        Object.keys(rawCategory).some(
+          (operator) => !['oneOf', 'allOf', 'noneOf'].includes(operator),
+        )
+      ) {
+        return invalid('Invalid minion filter category.');
+      }
+      const category = {} as NonNullable<MinionFilter[typeof key]>;
+      (['oneOf', 'allOf', 'noneOf'] as const).forEach((operator) => {
+        if (rawCategory[operator] !== undefined) {
+          const values = ids(rawCategory[operator]);
+          totalIds += values.length;
+          if (totalIds > 2000) {
+            return invalid('Filters may contain at most 2000 IDs.');
+          }
+          category[operator] = [...new Set(values)];
+          conditionCount += 1;
+        }
+      });
+      if (!Object.keys(category).length) {
+        return invalid('Filter categories must contain conditions.');
+      }
+      filter[key] = category;
+    });
+
+    if (node.views !== undefined) {
+      if (
+        !Array.isArray(node.views) ||
+        !node.views.length ||
+        node.views.length > 100
+      ) {
+        return invalid('Invalid nested minion filters.');
+      }
+      filter.views = node.views.map((child) => parseNode(child, depth + 1));
+      conditionCount += filter.views.length;
+    }
+    if (!conditionCount) return invalid('Minion filters need conditions.');
+    return filter;
+  };
+
+  return parseNode(value, 0);
+}
+
 function parseQuery(value: unknown, viewExists: ViewChecker): MinionQuery {
   if (
     !isRecord(value) ||
     Object.keys(value).some(
       (key) =>
-        !['ids', 'episodes', 'scenes', 'cards', 'rel', 'view'].includes(key),
+        ![
+          'ids',
+          'episodes',
+          'seasons',
+          'scenes',
+          'cards',
+          'rel',
+          'filter',
+          'random',
+          'view',
+        ].includes(key),
     )
   ) {
     return invalid('Invalid minion query.');
   }
   const query: MinionQuery = {};
-  (['ids', 'episodes', 'scenes', 'cards'] as const).forEach((key) => {
-    if (value[key] !== undefined) query[key] = ids(value[key]);
-  });
+  (['ids', 'episodes', 'seasons', 'scenes', 'cards'] as const).forEach(
+    (key) => {
+      if (value[key] !== undefined) query[key] = ids(value[key]);
+    },
+  );
   if (value.rel !== undefined) {
     if (
       typeof value.rel !== 'string' ||
@@ -78,11 +173,18 @@ function parseQuery(value: unknown, viewExists: ViewChecker): MinionQuery {
     }
     query.rel = value.rel;
   }
+  if (value.filter !== undefined) query.filter = parseFilter(value.filter);
+  if (value.random !== undefined) {
+    if (typeof value.random !== 'boolean') {
+      return invalid('Invalid random query option.');
+    }
+    query.random = value.random;
+  }
   if (value.view !== undefined) {
     if (
       typeof value.view !== 'string' ||
       !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value.view) ||
-      Object.keys(query).length ||
+      Object.keys(query).some((key) => key !== 'view') ||
       !viewExists(value.view)
     ) {
       return invalid('Unknown or incompatible database view.');
@@ -199,6 +301,40 @@ export default function createDbHandlers(
           throw new Error('Invalid database count.');
         }
         return response[0].total;
+      }),
+    updateCardFilter: (
+      event: unknown,
+      cardId: unknown,
+      filter: unknown,
+    ): IpcResult<boolean> =>
+      execute(event, () => {
+        if (!Number.isSafeInteger(cardId) || (cardId as number) < 0) {
+          return invalid('Card ID must be a nonnegative integer.');
+        }
+        const result = run({
+          operation: DB_OPERATIONS.UPDATE_CARD_FILTER,
+          cardId: cardId as number,
+          filter: parseFilter(filter),
+        });
+        if (!isRecord(result) || !Number.isSafeInteger(result.changes)) {
+          throw new Error('Unexpected database update result.');
+        }
+        return result.changes === 1;
+      }),
+    minionCards: (
+      event: unknown,
+      minionId: unknown,
+    ): IpcResult<MinionCardRow[]> =>
+      execute(event, () => {
+        if (!Number.isSafeInteger(minionId) || (minionId as number) < 0) {
+          return invalid('Minion ID must be a nonnegative integer.');
+        }
+        return rows<MinionCardRow>(
+          run({
+            operation: DB_OPERATIONS.GET_MINION_CARDS,
+            minionId: minionId as number,
+          }),
+        );
       }),
   };
 }

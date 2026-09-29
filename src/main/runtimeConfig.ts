@@ -18,7 +18,7 @@ const CONFIG_KEYS: (keyof RuntimeConfig)[] = [
   'fileSystemRoot',
 ];
 
-const CONFIG_LABELS: Record<keyof RuntimeConfig, string> = {
+const CONFIG_LABELS: Partial<Record<keyof RuntimeConfig, string>> = {
   databasePath: 'Database',
   minionRoot: 'Minion image root',
   cardRoot: 'Card image root',
@@ -39,7 +39,7 @@ export function validateRuntimeConfig(value: unknown): RuntimeConfigResult {
 
   CONFIG_KEYS.forEach((key) => {
     const configuredPath = value[key];
-    const label = CONFIG_LABELS[key];
+    const label = CONFIG_LABELS[key] ?? 'Output directory';
 
     if (typeof configuredPath !== 'string' || !configuredPath.trim()) {
       errors.push(`${label} must be configured.`);
@@ -68,6 +68,26 @@ export function validateRuntimeConfig(value: unknown): RuntimeConfigResult {
       errors.push(`${label} does not exist or cannot be accessed.`);
     }
   });
+
+  if (value.outputDirectory !== undefined) {
+    const outputDirectory = value.outputDirectory;
+    if (typeof outputDirectory !== 'string' || !outputDirectory.trim()) {
+      errors.push('Output directory must be a nonempty path when configured.');
+    } else if (!path.isAbsolute(outputDirectory)) {
+      errors.push('Output directory must be an absolute path.');
+    } else {
+      const normalizedPath = path.normalize(outputDirectory);
+      try {
+        if (!fs.statSync(normalizedPath).isDirectory()) {
+          errors.push('Output directory must point to a directory.');
+        } else {
+          candidate.outputDirectory = normalizedPath;
+        }
+      } catch {
+        errors.push('Output directory does not exist or cannot be accessed.');
+      }
+    }
+  }
 
   return errors.length ? { errors } : { config: candidate, errors: [] };
 }

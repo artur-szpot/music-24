@@ -34,6 +34,22 @@ describe('runtime configuration', () => {
     expect(validateRuntimeConfig(config)).toEqual({ config, errors: [] });
   });
 
+  it('keeps output directory optional and validates it when configured', () => {
+    const outputDirectory = path.join(tempRoot, 'output');
+    fs.mkdirSync(outputDirectory);
+    expect(validateRuntimeConfig(config)).toEqual({ config, errors: [] });
+    expect(validateRuntimeConfig({ ...config, outputDirectory })).toEqual({
+      config: { ...config, outputDirectory },
+      errors: [],
+    });
+    expect(
+      validateRuntimeConfig({
+        ...config,
+        outputDirectory: path.join(tempRoot, 'missing'),
+      }).errors,
+    ).toContain('Output directory does not exist or cannot be accessed.');
+  });
+
   it('rejects missing and incorrectly typed paths', () => {
     const result = validateRuntimeConfig({
       ...config,

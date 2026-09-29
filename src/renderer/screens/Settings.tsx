@@ -6,6 +6,7 @@ const PATHS: { key: RuntimeConfigKey; label: string }[] = [
   { key: 'minionRoot', label: 'Minion image root' },
   { key: 'cardRoot', label: 'Card image root' },
   { key: 'fileSystemRoot', label: 'General file-system image root' },
+  { key: 'outputDirectory', label: 'Minion copy output directory' },
 ];
 
 export default function Settings({ onClose }: { onClose: () => void }) {
@@ -83,7 +84,7 @@ export default function Settings({ onClose }: { onClose: () => void }) {
           {PATHS.map(({ key, label }) => (
             <div className="settings-row" key={key}>
               <label htmlFor={`settings-${key}`}>{label}</label>
-              <input id={`settings-${key}`} value={paths[key]} readOnly />
+              <input id={`settings-${key}`} value={paths[key] ?? ''} readOnly />
               <button
                 type="button"
                 disabled={busy || restarting}
@@ -93,6 +94,9 @@ export default function Settings({ onClose }: { onClose: () => void }) {
               </button>
             </div>
           ))}
+          {!paths.outputDirectory && (
+            <p>Choose an output directory to enable copying minions.</p>
+          )}
           <p>Changes are not saved until you select Save and restart.</p>
           <button type="button" disabled={busy || restarting} onClick={apply}>
             Save and restart

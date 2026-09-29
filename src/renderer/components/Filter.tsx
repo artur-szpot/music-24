@@ -1,14 +1,9 @@
 import { GlobalLabels } from '../globalLabels';
-import { FilterRow, ViewCategoryProps } from './FilterRow';
+import { MinionFilter } from '../../constants/dbIpc';
+import { FilterRow } from './FilterRow';
 
-export interface FilterProps {
-  logic: 'any' | 'all';
+export interface FilterProps extends MinionFilter {
   globalLabels: GlobalLabels;
-  cards?: ViewCategoryProps;
-  episodes?: ViewCategoryProps;
-  scenes?: ViewCategoryProps;
-  seasons?: ViewCategoryProps;
-  views?: FilterProps[];
   openSidePanel: () => void;
 }
 

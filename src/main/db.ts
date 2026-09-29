@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { DB_OPERATIONS } from '../enums/db';
 import { buildDbQuery, SqlQuery } from './dbQueries';
 import { DbRequest } from './dbHandlers';
 
@@ -37,5 +38,9 @@ export function dbOperation(args: DbRequest) {
     typeof requestedView === 'string' && viewExists(requestedView)
       ? [requestedView]
       : [];
-  return executeQuery(db, buildDbQuery(args, allowedViews));
+  const query = buildDbQuery(args, allowedViews);
+  if (args.operation === DB_OPERATIONS.UPDATE_CARD_FILTER) {
+    return db.prepare(query.statement).run(...query.params);
+  }
+  return executeQuery(db, query);
 }

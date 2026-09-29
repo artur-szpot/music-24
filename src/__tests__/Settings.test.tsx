@@ -27,6 +27,17 @@ describe('Settings', () => {
         cards: jest.fn(),
         minions: jest.fn(),
         minionCount: jest.fn(),
+        updateCardFilter: jest.fn(),
+        minionCards: jest.fn(),
+        minionSource: jest.fn().mockResolvedValue({
+          ok: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Minion source file was not found.',
+          },
+        }),
+        revealMinion: jest.fn(),
+        copyMinion: jest.fn(),
       },
     };
   });
@@ -84,5 +95,26 @@ describe('Settings', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Restarting'),
     );
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+  });
+
+  it('lets users select and save an optional output directory', async () => {
+    const outputDirectory = 'C:\\images\\output';
+    choose.mockResolvedValue({ ok: true, data: outputDirectory });
+    apply.mockResolvedValue({ ok: true, data: { restarting: true } });
+    render(<Settings onClose={onClose} />);
+    await screen.findByDisplayValue(paths.databasePath);
+    expect(
+      screen.getByText('Choose an output directory to enable copying minions.'),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen
+        .getByLabelText('Minion copy output directory')
+        .parentElement!.querySelector('button')!,
+    );
+    await screen.findByDisplayValue(outputDirectory);
+    fireEvent.click(screen.getByRole('button', { name: 'Save and restart' }));
+    await waitFor(() =>
+      expect(apply).toHaveBeenCalledWith({ ...paths, outputDirectory }),
+    );
   });
 });

@@ -9,6 +9,7 @@ export interface MinionOwnProps {
   url: string;
   episode: number;
   scene: number;
+  season?: number | null;
   caption?: string;
   size?: MINION_SIZES;
   onClick?: () => void;

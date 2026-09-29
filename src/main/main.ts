@@ -26,9 +26,11 @@ import {
   ConfigUpdateResult,
   RuntimeConfig,
 } from '../constants/runtimeConfig';
-import { DB_CHANNELS } from '../constants/dbIpc';
+import { DB_CHANNELS, MinionRow } from '../constants/dbIpc';
+import { DB_OPERATIONS } from '../enums/db';
 import { dbOperation, initializeDatabase, viewExists } from './db';
 import createDbHandlers from './dbHandlers';
+import createMinionFileHandlers from './minionFileHandlers';
 import MenuBuilder from './menu';
 import {
   loadRuntimeConfig,
@@ -218,11 +220,14 @@ const registerConfigurationHandlers = (): void => {
         case 'minionRoot':
         case 'cardRoot':
         case 'fileSystemRoot':
+        case 'outputDirectory':
           return {
             ok: true,
             data:
               (await selectDirectory(
-                'Select image root directory',
+                key === 'outputDirectory'
+                  ? 'Select minion copy output directory'
+                  : 'Select image root directory',
                 activeConfig[key],
               )) ?? null,
           };
@@ -261,13 +266,11 @@ const registerConfigurationHandlers = (): void => {
       }
       const next = validated.config;
       const previous = activeConfig;
-      if (
-        Object.keys(previous).every(
-          (key) =>
-            previous[key as keyof RuntimeConfig] ===
-            next[key as keyof RuntimeConfig],
-        )
-      ) {
+      const configKeys = new Set([
+        ...Object.keys(previous),
+        ...Object.keys(next),
+      ] as (keyof RuntimeConfig)[]);
+      if (Array.from(configKeys).every((key) => previous[key] === next[key])) {
         return { ok: true, data: { restarting: false } };
       }
       if (next.databasePath !== previous.databasePath) {
@@ -333,11 +336,31 @@ const registerDatabaseHandlers = (): void => {
     );
   };
   const handlers = createDbHandlers(dbOperation, trusted, viewExists);
+  const fileHandlers = createMinionFileHandlers(
+    (id) => {
+      const rows = dbOperation({
+        operation: DB_OPERATIONS.GET_MINIONS,
+        query: { ids: [id] },
+        page: 0,
+      });
+      return Array.isArray(rows)
+        ? (rows[0] as MinionRow | undefined)
+        : undefined;
+    },
+    trusted,
+    () => activeConfig,
+    (sourcePath) => shell.showItemInFolder(sourcePath),
+  );
   ipcMain.handle(DB_CHANNELS.LABELS, handlers.labels);
   ipcMain.handle(DB_CHANNELS.CATEGORIES, handlers.categories);
   ipcMain.handle(DB_CHANNELS.CARDS, handlers.cards);
   ipcMain.handle(DB_CHANNELS.MINIONS, handlers.minions);
   ipcMain.handle(DB_CHANNELS.MINION_COUNT, handlers.minionCount);
+  ipcMain.handle(DB_CHANNELS.UPDATE_CARD_FILTER, handlers.updateCardFilter);
+  ipcMain.handle(DB_CHANNELS.MINION_CARDS, handlers.minionCards);
+  ipcMain.handle(DB_CHANNELS.MINION_SOURCE, fileHandlers.source);
+  ipcMain.handle(DB_CHANNELS.REVEAL_MINION, fileHandlers.reveal);
+  ipcMain.handle(DB_CHANNELS.COPY_MINION, fileHandlers.copy);
 };
 
 const registerAssetProtocol = (scheme: string, root: string): void => {

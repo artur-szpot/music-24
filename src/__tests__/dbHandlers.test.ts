@@ -103,4 +103,91 @@ describe('database IPC handlers', () => {
       error: { code: 'INVALID_REQUEST' },
     });
   });
+
+  it('accepts validated season filters', () => {
+    expect(handlers.minions(sender, { seasons: [1, 3] }, 0)).toEqual({
+      ok: true,
+      data: [],
+    });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.GET_MINIONS,
+      query: { seasons: [1, 3] },
+      page: 0,
+    });
+    expect(handlers.minions(sender, { seasons: [1.5] }, 0)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
+
+  it('validates nested filter shapes and accepts supported conditions', () => {
+    const filter = {
+      logic: 'all',
+      cards: { oneOf: [1, 2], noneOf: [4] },
+      views: [{ logic: 'any', scenes: { allOf: [5] } }],
+    };
+    expect(handlers.minions(sender, { filter }, 0)).toEqual({
+      ok: true,
+      data: [],
+    });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.GET_MINIONS,
+      query: { filter },
+      page: 0,
+    });
+    expect(
+      handlers.minions(
+        sender,
+        { filter: { logic: 'xor', cards: { oneOf: [1] } } },
+        0,
+      ),
+    ).toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } });
+    expect(
+      handlers.minions(
+        sender,
+        { filter: { logic: 'all', cards: { oneOf: [] } } },
+        0,
+      ),
+    ).toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } });
+  });
+
+  it('accepts only boolean random-order options', () => {
+    expect(handlers.minions(sender, { cards: [1], random: true }, 0)).toEqual({
+      ok: true,
+      data: [],
+    });
+    expect(
+      handlers.minions(sender, { cards: [1], random: 'yes' }, 0),
+    ).toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } });
+  });
+
+  it('validates and dispatches card filter updates', () => {
+    run.mockReturnValue({ changes: 1 });
+    const filter = { logic: 'all', cards: { oneOf: [1] } };
+    expect(handlers.updateCardFilter(sender, 9, filter)).toEqual({
+      ok: true,
+      data: true,
+    });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.UPDATE_CARD_FILTER,
+      cardId: 9,
+      filter,
+    });
+    expect(handlers.updateCardFilter(sender, -1, filter)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
+
+  it('validates and dispatches related-card queries', () => {
+    expect(handlers.minionCards(sender, 42)).toEqual({ ok: true, data: [] });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.GET_MINION_CARDS,
+      minionId: 42,
+    });
+    expect(handlers.minionCards(sender, -1)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
 });
