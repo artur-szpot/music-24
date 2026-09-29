@@ -1,39 +1,58 @@
 import React, { useEffect, useState } from 'react';
-import { IPC_CHANNEL } from '../../constants/channel';
-import { DB_OPERATIONS } from '../../enums/db';
 import { LoaderScreen } from '../components/Loader';
 import { Minion, MINION_SIZES, MinionOwnProps } from '../components/Minion';
 import { SCREEN_TYPES } from '../../enums/screens';
 import { MinionDetailsOwnProps } from './MinionDetailsProps';
 import { ScreenProps } from '../interfaces/screen';
 
-export interface MinionDetailsProps extends MinionDetailsOwnProps, ScreenProps {}
+export interface MinionDetailsProps
+  extends MinionDetailsOwnProps,
+    ScreenProps {}
 
 export const MinionDetails: React.FC<MinionDetailsProps> = (
   props: MinionDetailsProps,
 ) => {
   const { id, screenType } = props;
-  const privateChannel = 'minion-details';
-
   const [minion, setMinion] = useState<MinionOwnProps | undefined>(undefined);
   const [isDataLoading, setIsDataLoading] = useState(true);
-
-  window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    setMinion({ ...(arg as MinionOwnProps[])[0] });
-    setIsDataLoading(false);
-  });
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel,
-      operation: DB_OPERATIONS.GET_MINIONS,
-      query: { ids: [id] },
-    });
+    let active = true;
+    setIsDataLoading(true);
+    window.electron.database
+      .minions({ ids: [id] }, 0)
+      .then((result) => {
+        if (!active) return undefined;
+        if (result.ok) {
+          setMinion(result.data[0]);
+          setError(result.data.length ? '' : 'Image not found.');
+        } else {
+          setError(result.error.message);
+        }
+        setIsDataLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setError('Could not load image.');
+          setIsDataLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [id]);
 
-  if (isDataLoading || !minion) {
+  if (isDataLoading) {
     return <LoaderScreen />;
   }
+  if (error || !minion)
+    return (
+      <div className={screenType} role="alert">
+        {error || 'Image not found.'}
+      </div>
+    );
 
   const size = ((_screenType: SCREEN_TYPES) => {
     switch (_screenType) {

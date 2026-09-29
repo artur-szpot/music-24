@@ -1,10 +1,9 @@
 import Pagination from '@mui/material/Pagination';
 import { useEffect, useState } from 'react';
-import { IPC_CHANNEL } from '../../constants/channel';
+import { MinionRow } from '../../constants/dbIpc';
 import { LIMITS } from '../../constants/limits';
-import { DB_OPERATIONS } from '../../enums/db';
 import { LoaderScreen } from '../components/Loader';
-import { MinionInteractive, MinionProps } from '../components/Minion';
+import { MinionInteractive } from '../components/Minion';
 import { Interactive } from '../interfaces/interactive';
 import { ScreenProps } from '../interfaces/screen';
 import { navTo } from '../interfaces/setScreenProps';
@@ -19,49 +18,80 @@ export const MinionList: React.FC<MinionListProps> = (
   props: MinionListProps,
 ) => {
   const { query, handleNav } = props;
-  const privateChannel = 'minions-list';
-  const privateCountChannel = 'minions-list-count';
-  const [minions, setMinions] = useState([] as MinionProps[]);
-  const [page, setPage] = useState(-1);
+  const [minions, setMinions] = useState<MinionRow[]>([]);
+  const [page, setPage] = useState(0);
   const [itemTotal, setItemTotal] = useState(0);
   const [pageTotal, setPageTotal] = useState(1);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isCountLoading, setIsCountLoading] = useState(true);
-
-  window.electron.ipcRenderer.once(privateChannel, (arg) => {
-    setMinions(arg as MinionProps[]);
-    setIsDataLoading(false);
-  });
-
-  window.electron.ipcRenderer.once(privateCountChannel, (arg) => {
-    const totalItems = (arg as any)[0].total as number;
-    const totalPages = Math.ceil(totalItems / LIMITS.MINIONS_PER_PAGE);
-    setItemTotal(totalItems);
-    setPageTotal(totalPages);
-    setPage(0);
-    setIsCountLoading(false);
-  });
+  const [listError, setListError] = useState('');
+  const [countError, setCountError] = useState('');
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel,
-      operation: DB_OPERATIONS.GET_MINIONS,
-      query,
-      page,
-    });
+    let active = true;
+    setIsDataLoading(true);
+    setListError('');
+    window.electron.database
+      .minions(query, page)
+      .then((result) => {
+        if (!active) return undefined;
+        if (result.ok) {
+          setMinions(result.data);
+        } else {
+          setListError(result.error.message);
+        }
+        setIsDataLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setListError('Could not load images.');
+          setIsDataLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [query, page]);
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage(IPC_CHANNEL, {
-      privateChannel: privateCountChannel,
-      operation: DB_OPERATIONS.GET_MINIONS_COUNT,
-      query,
-    });
+    let active = true;
+    setPage(0);
+    setIsCountLoading(true);
+    setCountError('');
+    window.electron.database
+      .minionCount(query)
+      .then((result) => {
+        if (!active) return undefined;
+        if (result.ok) {
+          setItemTotal(result.data);
+          setPageTotal(Math.ceil(result.data / LIMITS.MINIONS_PER_PAGE));
+        } else {
+          setCountError(result.error.message);
+        }
+        setIsCountLoading(false);
+        return undefined;
+      })
+      .catch(() => {
+        if (active) {
+          setCountError('Could not count images.');
+          setIsCountLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [query]);
 
   if (isDataLoading || isCountLoading) {
     return <LoaderScreen />;
   }
+  if (listError || countError)
+    return (
+      <div className="screen" role="alert">
+        {listError || countError}
+      </div>
+    );
 
   return (
     <div className="screen">
@@ -77,9 +107,11 @@ export const MinionList: React.FC<MinionListProps> = (
         {query.view && <p>{`Coming from view: ${query.view}`}</p>}
       </div>
       <div className="minion-screen-contents">
+        {!minions.length && <p>No images found.</p>}
         {minions.map((minion) => (
           <MinionInteractive
             {...minion}
+            key={minion.id}
             onClick={() =>
               handleNav.setPopup(navTo.minionDetails({ id: minion.id }))
             }
@@ -87,7 +119,7 @@ export const MinionList: React.FC<MinionListProps> = (
         ))}
       </div>
       <div className="screen-pagination">
-        <p className="pagination-info">{`${page * LIMITS.MINIONS_PER_PAGE + 1}-${Math.min((page + 1) * LIMITS.MINIONS_PER_PAGE, itemTotal)} of ${itemTotal}`}</p>
+        <p className="pagination-info">{`${itemTotal ? page * LIMITS.MINIONS_PER_PAGE + 1 : 0}-${Math.min((page + 1) * LIMITS.MINIONS_PER_PAGE, itemTotal)} of ${itemTotal}`}</p>
         <Pagination
           count={pageTotal}
           color="secondary"

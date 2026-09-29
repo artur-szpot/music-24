@@ -1,4 +1,3 @@
-import { DB_OPERATIONS } from '../../enums/db';
 import { SCREEN_TYPES } from '../../enums/screens';
 import { CategoryActionProps } from '../components/CategoryActionProps';
 import {
@@ -53,7 +52,7 @@ export const navTo: NavTo = {
   }),
   tagsList: ({ searchTerm, screenType }) => ({
     categoryList: {
-      dbOperation: DB_OPERATIONS.GET_TAG_CATEGORIES,
+      dbOperation: 'tags',
       searchTerm,
       navActions: [
         {
@@ -78,7 +77,7 @@ export const navTo: NavTo = {
   }),
   cardImplementationsList: ({ searchTerm, screenType }) => ({
     categoryList: {
-      dbOperation: DB_OPERATIONS.GET_IMPLEMENTATION_CATEGORIES,
+      dbOperation: 'implementations',
       searchTerm,
       actions: [],
     },
@@ -86,7 +85,7 @@ export const navTo: NavTo = {
   }),
   scenesList: ({ searchTerm, screenType }) => ({
     categoryList: {
-      dbOperation: DB_OPERATIONS.GET_SCENES,
+      dbOperation: 'scenes',
       searchTerm,
       navActions: [
         {

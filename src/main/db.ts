@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3';
 import { DB_OPERATIONS, DB_TABLES } from '../enums/db';
 import { LIMITS } from '../constants/limits';
+import { MinionQuery } from '../constants/dbIpc';
+import { DbRequest } from './dbHandlers';
 
 let db: Database.Database | undefined;
 
@@ -10,34 +12,27 @@ export function initializeDatabase(databasePath: string): void {
   db.pragma('journal_mode = WAL');
 }
 
+export function viewExists(name: string): boolean {
+  if (!db) throw new Error('Database has not been initialized.');
+  return Boolean(
+    db
+      .prepare("select 1 from sqlite_master where type = 'view' and name = ?")
+      .get(name),
+  );
+}
+
 interface Query {
   statement: string;
   params?: any[];
 }
 
-export interface SubCard {
-  id: number;
-  name: string;
-  parent: number | null;
-  category: string;
-  total: number;
-}
-
-export function dbOperation(args: any) {
+export function dbOperation(args: DbRequest) {
   if (!db) {
     throw new Error('Database has not been initialized.');
   }
 
   const { operation } = args;
   switch (operation) {
-    case DB_OPERATIONS.GET_COUNT:
-      const { table } = args;
-      return getAll({ statement: `select count(1) as total from ${table}` });
-    case DB_OPERATIONS.GET_MINION:
-      const { id } = args;
-      return getAll({
-        statement: `select id, url, episode, scene, filter from ${DB_TABLES.MINIONS} where id = ${id}`,
-      });
     case DB_OPERATIONS.GET_MINIONS:
       return getAll(minionListQuery(args));
     case DB_OPERATIONS.GET_MINIONS_COUNT:
@@ -97,7 +92,7 @@ export function dbOperation(args: any) {
     case DB_OPERATIONS.GET_CARDS:
       const { query } = args;
       const { ids } = query;
-      const params: any[] = [];
+      const params: number[] = [];
       params.push(...ids);
       return getAll({
         statement: `
@@ -118,7 +113,7 @@ export function dbOperation(args: any) {
            `,
       });
     default:
-      throw new Error(`Operation not implemented for ${args[0]}`);
+      throw new Error('Operation not implemented.');
   }
 }
 
@@ -128,21 +123,13 @@ function getAll(query: Query) {
   }
 
   const { statement, params } = query;
-  console.log(`Execute SQL: ${statement}`);
-  try {
-    const retval = db.prepare(statement).all(...(params ?? []));
-    console.log(`Rows returned: ${retval.length}`);
-    if (retval.length > 0) {
-      console.log(`Row 0: ${JSON.stringify(retval[0])}`);
-    }
-    return retval;
-  } catch (e) {
-    console.log(`SQL error: ${e}`);
-    return [];
-  }
+  return db.prepare(statement).all(...(params ?? []));
 }
 
-function minionListQueryCount(args: any): Query {
+function minionListQueryCount(args: {
+  query: MinionQuery;
+  page?: number;
+}): Query {
   const where = minionListQueryWhere(args);
   const { page = 0, query } = args;
   const statement = (({ view, cards, rel }) => {
@@ -175,7 +162,7 @@ function minionListQueryCount(args: any): Query {
   return { statement, params: where.params };
 }
 
-function minionListQuery(args: any): Query {
+function minionListQuery(args: { query: MinionQuery; page?: number }): Query {
   const where = minionListQueryWhere(args);
   const { page = 0, query } = args;
   const statement = (({ view, cards, rel }) => {
@@ -208,11 +195,11 @@ function minionListQuery(args: any): Query {
   return { statement, params: where.params };
 }
 
-function minionListQueryWhere(args: any): Query {
+function minionListQueryWhere(args: { query: MinionQuery }): Query {
   const { query } = args;
-  const { episodes, ids, cards, scenes, view } = query;
+  const { episodes, ids, scenes } = query;
   const where: string[] = [];
-  const params: any[] = [];
+  const params: number[] = [];
   if (ids) {
     where.push(`id in (${ids.map(() => '?').join(', ')})`);
     params.push(...ids);

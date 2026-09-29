@@ -18,8 +18,11 @@ export default function Settings({ onClose }: { onClose: () => void }) {
     let mounted = true;
     window.electron.config
       .get()
-      .then((config) => {
-        if (mounted) setPaths(config);
+      .then((result) => {
+        if (mounted) {
+          if (result.ok) setPaths(result.data);
+          else setError(result.error.message);
+        }
         return undefined;
       })
       .catch(() => {
@@ -34,9 +37,10 @@ export default function Settings({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setError('');
     try {
-      const selected = await window.electron.config.choose(key);
-      if (selected)
-        setPaths((current) => current && { ...current, [key]: selected });
+      const result = await window.electron.config.choose(key);
+      if (!result.ok) setError(result.error.message);
+      else if (result.data)
+        setPaths((current) => current && { ...current, [key]: result.data });
     } catch {
       setError('Could not select a path.');
     } finally {
@@ -50,9 +54,9 @@ export default function Settings({ onClose }: { onClose: () => void }) {
     setError('');
     try {
       const result = await window.electron.config.apply(paths);
-      if (result.errors.length) {
-        setError(result.errors.join(' '));
-      } else if (result.restarting) {
+      if (!result.ok) {
+        setError(result.error.message);
+      } else if (result.data.restarting) {
         setRestarting(true);
       } else {
         onClose();

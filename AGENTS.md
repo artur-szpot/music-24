@@ -25,10 +25,10 @@ The present application browses and filters data. No write path for assigning or
 | Build system                                         | `.erb/`                                     | Inherited Webpack/Electron build and packaging support. Avoid editing without a build-specific reason. |
 | Electron lifecycle and IPC                           | `src/main/main.ts`                          | Loads configuration, creates the window, handles IPC, and registers asset protocols.                   |
 | Runtime configuration                                | `src/main/runtimeConfig.ts`                 | Validates and persists paths and confines asset requests to configured roots.                          |
-| Database operations                                  | `src/main/db.ts`                            | Initializes configured SQLite and contains all current SQL/query construction.                         |
+| Database operations                                  | `src/main/db.ts`, `src/main/dbHandlers.ts`  | SQLite queries plus validated, allow-listed IPC handlers.                                              |
 | Data contract                                        | `data/`                                     | Version 1 SQLite baseline, disposable fixture, and image-path notes.                                   |
-| Renderer bridge                                      | `src/main/preload.ts`                       | Exposes existing IPC methods and dedicated configuration methods.                                      |
-| Shared process constants                             | `src/constants/`, `src/enums/`              | IPC channel, page size, DB operations/tables, and screen contexts.                                     |
+| Renderer bridge                                      | `src/main/preload.ts`                       | Exposes typed database and configuration methods; no arbitrary channel pass-through.                   |
+| Shared process constants                             | `src/constants/`, `src/enums/`              | Typed IPC contracts, page size, internal DB operations/tables, and screen contexts.                    |
 | Renderer composition                                 | `src/renderer/App.tsx`                      | Loads global labels and selects exactly one primary screen.                                            |
 | Navigation descriptors                               | `src/renderer/interfaces/setScreenProps.ts` | Builds screen-state objects; the app does not currently use URL routing.                               |
 | Screens                                              | `src/renderer/screens/`                     | Lists and details for minions, cards, and categories.                                                  |
@@ -45,14 +45,14 @@ Do not infer the database schema from TypeScript interfaces alone. `data/migrati
 2. Missing or invalid configuration, or the `--configure` argument, starts native file/directory selection. A complete valid selection is persisted; cancellation exits the app.
 3. The main process initializes SQLite with the configured database before creating a window.
 4. Electron registers `minion`, `card`, and `file-system` protocol handlers rooted in the configured directories. Resolved paths are confined to those roots.
-5. The preload script exposes `window.electron.ipcRenderer` through `contextBridge`.
-6. The renderer sends an object on `default-channel`. The object includes an operation and usually a private reply channel.
-7. The main process calls `dbOperation()` and replies on the requested private channel.
+5. The preload script exposes typed `window.electron.database` and `window.electron.config` methods through `contextBridge`.
+6. The renderer invokes one of the allow-listed database methods. The main process validates the caller and request before running a database operation.
+7. The handler returns a structured success or error response; there are no private reply channels.
 8. `App` first requests card, scene, and episode labels, then renders one screen selected through a `SetScreenProps` object.
 9. List screens request rows and counts separately; minion lists paginate with 12 records per page.
 10. Settings reads the active paths through dedicated preload methods. The main process validates a complete replacement, saves it atomically, then relaunches so SQLite and asset protocols use the new roots together.
 
-This request/reply mechanism is current behavior, not a preferred template for new APIs. If a task changes this boundary, account for the main process, preload declaration, renderer callers, and tests together.
+When changing this boundary, account for the main process, preload declaration, renderer callers, and tests together.
 
 ## Runtime data assumptions
 
@@ -82,7 +82,7 @@ Some prop-only modules use `.tsx` despite containing no JSX, and prop types are 
 
 - Treat renderer input and database content as untrusted at the process boundary.
 - Do not add renderer access to Node.js, Electron primitives, arbitrary filesystem paths, or raw database handles.
-- Do not expand the generic IPC API without validation and an explicit allow-list.
+- Keep IPC methods domain-specific; validate requests in the main process and return structured failures.
 - Parameterize SQL values. Table and view identifiers cannot be parameterized in SQLite, so allow-list them before interpolation.
 - Preserve `contextBridge` isolation and avoid enabling `nodeIntegration`.
 - Validate custom-protocol paths before resolving or fetching them; path traversal and escaping an asset root must not be possible.
@@ -141,7 +141,7 @@ Before completion:
 
 ## Known test and design gaps
 
-No focused automated coverage currently exists for SQL construction, operation dispatch, IPC, Electron protocol registration, category-tree transforms, navigation, filters, pagination, loading/error states, or accessibility. High-risk implementation details include dynamic SQL, arbitrary IPC channel names, listeners registered during React rendering, and database compatibility with the version 1 baseline.
+No focused automated coverage currently exists for SQL construction, Electron-backed IPC transport, Electron protocol registration, category-tree transforms, navigation, filters, pagination, or accessibility. Handler validation has unit tests, but database compatibility with the version 1 baseline and remaining dynamic SQL are high-risk.
 
 ## Suggested cleanup backlog — not implemented
 
@@ -150,7 +150,7 @@ Keep cleanup work incremental and separately reviewable. Suggested order:
 1. Capture representative behavior with tests before structural changes.
 2. Verify compatibility with the version 1 baseline and image layout; add separately numbered migrations for later changes.
 3. Extend configuration management with deeper schema and image availability checks if needed; in-app path selection and a controlled restart exist.
-4. Define typed request/response contracts and replace generic IPC forwarding with allow-listed handlers.
+4. Expand Electron-backed integration and response validation tests for the new typed IPC handlers.
 5. Extract and test query builders; parameterize values and allow-list identifiers.
 6. Move renderer listener registration into effects with cleanup and structured error handling.
 7. Replace placeholder IDs/content and settle public domain terminology.

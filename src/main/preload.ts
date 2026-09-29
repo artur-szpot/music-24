@@ -1,6 +1,14 @@
-// Disable no-unused-vars, broken for spread args
-/* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
+import {
+  CardRow,
+  CategoryKind,
+  CategoryRow,
+  DB_CHANNELS,
+  IpcResult,
+  LabelRow,
+  MinionQuery,
+  MinionRow,
+} from '../constants/dbIpc';
 import {
   CONFIG_CHANNELS,
   ConfigUpdateResult,
@@ -8,35 +16,33 @@ import {
   RuntimeConfigKey,
 } from '../constants/runtimeConfig';
 
-// export type Channels = 'default-channel' | 'count-channel';
-
 const electronHandler = {
   config: {
-    get(): Promise<RuntimeConfig> {
+    get(): Promise<IpcResult<RuntimeConfig>> {
       return ipcRenderer.invoke(CONFIG_CHANNELS.GET);
     },
-    choose(key: RuntimeConfigKey): Promise<string | null> {
+    choose(key: RuntimeConfigKey): Promise<IpcResult<string | null>> {
       return ipcRenderer.invoke(CONFIG_CHANNELS.CHOOSE, key);
     },
     apply(config: RuntimeConfig): Promise<ConfigUpdateResult> {
       return ipcRenderer.invoke(CONFIG_CHANNELS.APPLY, config);
     },
   },
-  ipcRenderer: {
-    sendMessage(channel: string, ...args: unknown[]) {
-      ipcRenderer.send(channel, ...args);
+  database: {
+    labels(): Promise<IpcResult<LabelRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.LABELS);
     },
-    on(channel: string, func: (...args: unknown[]) => void) {
-      const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
-        func(...args);
-      ipcRenderer.on(channel, subscription);
-
-      return () => {
-        ipcRenderer.removeListener(channel, subscription);
-      };
+    categories(kind: CategoryKind): Promise<IpcResult<CategoryRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.CATEGORIES, kind);
     },
-    once(channel: string, func: (...args: unknown[]) => void) {
-      ipcRenderer.once(channel, (_event, ...args) => func(...args));
+    cards(ids: number[]): Promise<IpcResult<CardRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.CARDS, ids);
+    },
+    minions(query: MinionQuery, page: number): Promise<IpcResult<MinionRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.MINIONS, query, page);
+    },
+    minionCount(query: MinionQuery): Promise<IpcResult<number>> {
+      return ipcRenderer.invoke(DB_CHANNELS.MINION_COUNT, query);
     },
   },
 };

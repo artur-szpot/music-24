@@ -23,10 +23,10 @@ Despite the project's tagging purpose, the current source only exposes read oper
 The application has three runtime layers:
 
 1. **Electron main process** — creates the window, registers custom image protocols, owns the SQLite connection, and handles database requests.
-2. **Preload bridge** — exposes a small `ipcRenderer` wrapper through `contextBridge`.
+2. **Preload bridge** — exposes typed database and configuration methods through `contextBridge`.
 3. **React renderer** — renders navigation, category lists, image grids, details, filters, pagination, popups, and side panels.
 
-Renderer requests are sent over one default IPC channel. Each request includes a private reply-channel name and a database operation. The main process executes the operation synchronously through `better-sqlite3` and replies on that private channel.
+Renderer database requests use dedicated `ipcRenderer.invoke` methods for labels, categories, cards, minions, and counts. The main process registers matching `ipcMain.handle` endpoints, validates the caller and input, and returns either data or a structured error. Configuration uses separate allow-listed methods. No arbitrary IPC channel or SQL operation is exposed to the renderer.
 
 The project uses:
 
@@ -106,10 +106,10 @@ Packaging is configured for Windows NSIS, Linux AppImage, and macOS targets. Run
 
 ## Tests and automated checks
 
-The suite contains a renderer smoke test, settings interaction tests, and focused runtime-configuration tests covering path validation, atomic replacement failure, persistence/loading, in-root asset resolution, and traversal rejection. There are no focused tests for:
+The suite contains a renderer smoke test, settings interaction tests, database IPC validation tests, and focused runtime-configuration tests covering path validation, atomic replacement failure, persistence/loading, in-root asset resolution, and traversal rejection. There are no focused tests for:
 
 - SQLite query construction or database operations;
-- IPC request/reply behavior;
+- Electron-backed IPC registration or end-to-end transport;
 - Electron custom protocol registration and responses;
 - category tree construction and filtering;
 - navigation and screen selection;
@@ -135,9 +135,8 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 - Initial runtime configuration uses sequential native dialogs; in-app settings require a restart and do not verify full database schema compatibility or the presence of image files.
 - A version 1 SQLite baseline is documented, but there is no migration runner or automatic compatibility check for existing databases. Image naming beyond the renderer's minion URL construction is not established.
 - Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
-- The single IPC endpoint accepts loosely typed operation objects, and several database paths interpolate values into SQL.
-- The preload API permits arbitrary channel names rather than exposing a domain-specific API.
-- Most renderer data subscriptions are registered during render instead of inside effects.
+- Database queries still interpolate some values into SQL; query construction and SQL parameterization need further work.
+- Other renderer data/effect behavior needs additional validation and consistent error-state coverage.
 - Several production-facing values are placeholders or hard-coded, including navigation IDs and default detail content.
 - Error handling is mostly console logging; the renderer has no consistent error state.
 - There is no state-management or routing library in active use despite `react-router-dom` being installed.
@@ -151,7 +150,7 @@ The following items are recommendations only; they do not describe completed wor
 1. **Extend the data contract.** Verify existing-database compatibility, document remaining image naming conventions, and add new numbered migrations as the contract evolves. A version 1 baseline and disposable fixture are already in `data/`.
 2. **Extend configuration management.** The Settings screen now reviews and replaces paths with a controlled restart; consider richer validation of database compatibility and image availability.
 3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
-4. **Constrain the process boundary.** Replace the generic IPC pass-through with typed, allow-listed methods using `ipcMain.handle`/`ipcRenderer.invoke`, validate all inputs, and return structured errors.
+4. **Extend process-boundary coverage.** Typed, allow-listed database and configuration methods replace the generic pass-through; add Electron-backed integration tests and review response validation.
 5. **Harden database access.** Parameterize every value, allow-list table/view identifiers, separate query construction from execution, and add unit tests around both.
 6. **Stabilize renderer effects.** Register and clean up IPC listeners in effects, avoid subscriptions during render, and handle loading, empty, and error states consistently.
 7. **Clarify domain terminology.** Decide whether public UI and code should use image, minion, card, tag, and filter, then document and apply that vocabulary consistently.
