@@ -135,7 +135,7 @@ See `AGENTS.md` for contributor-focused constraints and validation guidance.
 - Initial runtime configuration uses sequential native dialogs; in-app settings require a restart and do not verify full database schema compatibility or the presence of image files.
 - A version 1 SQLite baseline is documented, but there is no migration runner or automatic compatibility check for existing databases. Image naming beyond the renderer's minion URL construction is not established.
 - Package name, description, product name, author, repository links, and portions of release configuration still identify Electron React Boilerplate.
-- Database queries still interpolate some values into SQL; query construction and SQL parameterization need further work.
+- Database query construction is separated from execution, dynamic values are parameterized, and dynamic view identifiers are checked against existing database views. Fixture-backed coverage for representative query behavior is still missing.
 - Other renderer data/effect behavior needs additional validation and consistent error-state coverage.
 - Several production-facing values are placeholders or hard-coded, including navigation IDs and default detail content.
 - Error handling is mostly console logging; the renderer has no consistent error state.
@@ -151,7 +151,7 @@ The following items are recommendations only; they do not describe completed wor
 2. **Extend configuration management.** The Settings screen now reviews and replaces paths with a controlled restart; consider richer validation of database compatibility and image availability.
 3. **Rename inherited metadata.** Update package, product, repository, author, release, badge, and changelog references to this application.
 4. **Extend process-boundary coverage.** Typed, allow-listed database and configuration methods replace the generic pass-through; add Electron-backed integration tests and review response validation.
-5. **Harden database access.** Parameterize every value, allow-list table/view identifiers, separate query construction from execution, and add unit tests around both.
+5. **Extend database query coverage.** Add fixture-backed integration tests for schema compatibility and representative SQL behavior.
 6. **Stabilize renderer effects.** Register and clean up IPC listeners in effects, avoid subscriptions during render, and handle loading, empty, and error states consistently.
 7. **Clarify domain terminology.** Decide whether public UI and code should use image, minion, card, tag, and filter, then document and apply that vocabulary consistently.
 8. **Expand tests.** Prioritize query builders, IPC handlers, category transforms, navigation, filters, pagination, and representative component interactions.
