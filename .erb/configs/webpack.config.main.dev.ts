@@ -29,7 +29,7 @@ const configuration: webpack.Configuration = {
   },
 
   output: {
-    path: webpackPaths.dllPath,
+    path: webpackPaths.distDevPath,
     filename: '[name].bundle.dev.js',
     library: {
       type: 'umd',
