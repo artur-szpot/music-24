@@ -20,6 +20,9 @@ const srcNodeModulesPath = path.join(srcPath, 'node_modules');
 const distPath = path.join(appPath, 'dist');
 const distMainPath = path.join(distPath, 'main');
 const distRendererPath = path.join(distPath, 'renderer');
+// Development main/preload bundles live under release/app so that Node resolves
+// native dependencies from release/app/node_modules, which is built for Electron.
+const distDevPath = path.join(distPath, 'dev');
 
 const buildPath = path.join(releasePath, 'build');
 
@@ -38,5 +41,6 @@ export default {
   distPath,
   distMainPath,
   distRendererPath,
+  distDevPath,
   buildPath,
 };

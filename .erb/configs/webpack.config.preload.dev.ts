@@ -22,7 +22,7 @@ const configuration: webpack.Configuration = {
   entry: path.join(webpackPaths.srcMainPath, 'preload.ts'),
 
   output: {
-    path: webpackPaths.dllPath,
+    path: webpackPaths.distDevPath,
     filename: 'preload.js',
     library: {
       type: 'umd',
