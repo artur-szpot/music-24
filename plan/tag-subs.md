@@ -1,1 +1,1 @@
-Tags form a hierarchical structure. Currently, the app shows the existing tags but the "Edit subs" is just a disabled label. Implement a screen showing the details of a tag - what subs it has, how many minions are in the tag and in its subs, all clickable and leading to the filtered minions list screen.
+In "up to parent" button, add the parent name in parentheses

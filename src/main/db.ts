@@ -28,6 +28,13 @@ export function executeQuery(
   return database.prepare(query.statement).all(...query.params);
 }
 
+const MUTATIONS: ReadonlySet<DB_OPERATIONS> = new Set([
+  DB_OPERATIONS.UPDATE_CARD_FILTER,
+  DB_OPERATIONS.CREATE_CARD,
+  DB_OPERATIONS.RENAME_CARD,
+  DB_OPERATIONS.DELETE_CARD,
+]);
+
 export function dbOperation(args: DbRequest) {
   if (!db) {
     throw new Error('Database has not been initialized.');
@@ -39,7 +46,7 @@ export function dbOperation(args: DbRequest) {
       ? [requestedView]
       : [];
   const query = buildDbQuery(args, allowedViews);
-  if (args.operation === DB_OPERATIONS.UPDATE_CARD_FILTER) {
+  if (MUTATIONS.has(args.operation)) {
     return db.prepare(query.statement).run(...query.params);
   }
   return executeQuery(db, query);

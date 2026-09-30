@@ -35,6 +35,10 @@ describe('App', () => {
         }),
         revealMinion: jest.fn(),
         copyMinion: jest.fn(),
+        cardSubs: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+        createCard: jest.fn(),
+        renameCard: jest.fn(),
+        deleteCard: jest.fn(),
       },
     };
   });

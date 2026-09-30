@@ -1,4 +1,5 @@
 import { SCREEN_TYPES } from '../../enums/screens';
+import { TAG_RELATION } from '../../constants/dbIpc';
 import { CategoryActionProps } from '../components/CategoryActionProps';
 import {
   CategoryBasicProps,
@@ -11,12 +12,14 @@ import {
   MinionListOwnProps,
   MinionListQuery,
 } from '../screens/MinionListProps';
+import { TagDetailsOwnProps } from '../screens/TagDetailsProps';
 
 export interface SetScreenProps {
   cardDetails?: CardDetailsOwnProps;
   categoryList?: CategoryListOwnProps & CategoryActionProps;
   minionDetails?: MinionDetailsOwnProps;
   minionList?: MinionListOwnProps;
+  tagDetails?: TagDetailsOwnProps;
   popup?: SetScreenProps;
   screenType: SCREEN_TYPES;
 }
@@ -34,6 +37,7 @@ interface NavToCommon {
 
 interface NavTo {
   cardDetails: (args: { id: number } & NavToCommon) => SetScreenProps;
+  tagDetails: (args: { id: number } & NavToCommon) => SetScreenProps;
   tagsList: (args: { searchTerm?: string } & NavToCommon) => SetScreenProps;
   cardImplementationsList: (
     args: { searchTerm?: string } & NavToCommon,
@@ -50,6 +54,10 @@ export const navTo: NavTo = {
     cardDetails: { id },
     screenType: screenType ?? SCREEN_TYPES.SCREEN,
   }),
+  tagDetails: ({ id, screenType }) => ({
+    tagDetails: { id },
+    screenType: screenType ?? SCREEN_TYPES.SCREEN,
+  }),
   tagsList: ({ searchTerm, screenType }) => ({
     categoryList: {
       dbOperation: 'tags',
@@ -62,14 +70,15 @@ export const navTo: NavTo = {
             navTo.minionList({
               query: {
                 cards: [props.id!],
-                rel: 'p',
+                rel: TAG_RELATION,
               },
             }),
         },
         {
+          excludeTopCategories: true,
           text: () => 'Edit subs',
-          action: () => navTo.tagsList({}),
-          disabled: true,
+          action: (props: CategoryBasicProps) =>
+            navTo.tagDetails({ id: props.id! }),
         },
       ],
     },

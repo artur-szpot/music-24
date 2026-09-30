@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import {
   CardRow,
+  CardSubRow,
   CategoryKind,
   CategoryRow,
   DB_CHANNELS,
@@ -64,6 +65,18 @@ const electronHandler = {
     },
     copyMinion(minionId: number): Promise<IpcResult<boolean>> {
       return ipcRenderer.invoke(DB_CHANNELS.COPY_MINION, minionId);
+    },
+    cardSubs(cardId: number): Promise<IpcResult<CardSubRow[]>> {
+      return ipcRenderer.invoke(DB_CHANNELS.CARD_SUBS, cardId);
+    },
+    createCard(parentId: number, name: string): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.CREATE_CARD, parentId, name);
+    },
+    renameCard(cardId: number, name: string): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.RENAME_CARD, cardId, name);
+    },
+    deleteCard(cardId: number): Promise<IpcResult<boolean>> {
+      return ipcRenderer.invoke(DB_CHANNELS.DELETE_CARD, cardId);
     },
   },
 };

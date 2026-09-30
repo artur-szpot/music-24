@@ -15,11 +15,13 @@ The implemented UI can:
 - browse episode and scene categories;
 - inspect card details and JSON-defined compound filters; and
 - view filter match counts and matching minions, edit and save existing filter conditions, and inspect a representative related minion;
+- open a tag's details to see its subs, its direct image count, and the distinct image count of its whole subtree, and jump from any of those counts to the filtered image list;
+- create, rename, and remove tags from the tag details screen;
 - inspect a minion's season, episode, scene, related-card hierarchy, and source file; and
 - reveal a source image in Explorer or copy it to an optional output directory configured in Settings; and
 - load image and metadata records from a local SQLite database.
 
-The application can save edits to a card's compound filter. It does **not** provide UI or database operations for creating, editing, assigning, or deleting tags or card relations.
+The application can save edits to a card's compound filter, add a sub tag, rename a tag, and remove a tag. Removal is refused for any tag that still has subs or image relations, so no relation is ever deleted implicitly. There is still no UI or database operation for assigning or unassigning tags on individual images.
 
 ## Architecture
 

@@ -285,6 +285,31 @@ body {
   color: #5c6967;
 }
 
+.tag-subs {
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e9e7;
+}
+
+.tag-sub-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-sub-list > li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eef3f1;
+}
+
+.tag-counts,
+.tag-actions,
+.tag-form {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .loading {
   margin: 0 0 12px;
 }

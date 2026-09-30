@@ -71,6 +71,10 @@ describe('MinionDetails', () => {
         }),
         revealMinion: jest.fn().mockResolvedValue({ ok: true, data: true }),
         copyMinion: jest.fn().mockResolvedValue({ ok: true, data: true }),
+        cardSubs: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+        createCard: jest.fn(),
+        renameCard: jest.fn(),
+        deleteCard: jest.fn(),
       },
     };
 

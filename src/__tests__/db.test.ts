@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DB_OPERATIONS } from '../enums/db';
-import { MinionCardRow } from '../constants/dbIpc';
+import { CardSubRow, MinionCardRow } from '../constants/dbIpc';
 import { executeQuery } from '../main/db';
 import { buildDbQuery, SqlQuery } from '../main/dbQueries';
 
@@ -133,6 +133,111 @@ describe('database query execution', () => {
         }
       ).view,
     ).toBe(JSON.stringify(updatedFilter));
+    database.close();
+  });
+
+  it('reports tag subtree counts and applies guarded card mutations', () => {
+    const database = new Database(':memory:');
+    database.exec(
+      readFileSync(
+        resolve(__dirname, '../../data/migrations/001_initial.sql'),
+        'utf8',
+      ),
+    );
+    database.exec(
+      readFileSync(
+        resolve(__dirname, '../../data/fixtures/representative.sql'),
+        'utf8',
+      ),
+    );
+    database.exec(`
+      insert into cards
+        (id, name, card_type, category, parent, nest_level, detailing_done)
+      values
+        (10, 'Root tag', 'tag', 'Tags', null, 0, 0),
+        (11, 'Alpha sub', 'tag', 'Tags', 10, 1, 0),
+        (12, 'Beta sub', 'tag', 'Tags', 10, 1, 0),
+        (13, 'Deep sub', 'tag', 'Tags', 11, 2, 0);
+      insert into minions
+        (id, url, episode, scene, card_relations, all_characters_done, all_details_done, comments)
+      values
+        (2, 'second-image.png', 1, 1, '', 0, '', ''),
+        (3, 'third-image.png', 1, 1, '', 0, '', '');
+      insert into minion_card_relations
+        (minion_id, card_id, rel, scene_id, episode_id)
+      values
+        (2, 10, 'p', 1, 1),
+        (2, 11, 'p', 1, 1),
+        (3, 13, 'p', 1, 1),
+        (3, 12, 'x', 1, 1);
+    `);
+
+    const subs = executeQuery(
+      database,
+      buildDbQuery({ operation: DB_OPERATIONS.GET_CARD_SUBS, cardId: 10 }),
+    ) as CardSubRow[];
+
+    expect(
+      subs.map(({ id, total, subtreeTotal }) => ({ id, total, subtreeTotal })),
+    ).toEqual([
+      { id: 11, total: 1, subtreeTotal: 2 },
+      { id: 12, total: 0, subtreeTotal: 0 },
+      { id: 13, total: 1, subtreeTotal: 1 },
+      { id: 10, total: 1, subtreeTotal: 2 },
+    ]);
+
+    const runMutation = (request: Parameters<typeof buildDbQuery>[0]) => {
+      const query = buildDbQuery(request);
+      return database.prepare(query.statement).run(...query.params);
+    };
+
+    expect(
+      runMutation({
+        operation: DB_OPERATIONS.CREATE_CARD,
+        parentId: 12,
+        name: 'Created sub',
+      }).changes,
+    ).toBe(1);
+    expect(
+      database
+        .prepare(
+          'select name, card_type, category, parent, nest_level from cards where parent = 12',
+        )
+        .get(),
+    ).toEqual({
+      name: 'Created sub',
+      card_type: 'tag',
+      category: 'Tags',
+      parent: 12,
+      nest_level: 2,
+    });
+
+    expect(
+      runMutation({
+        operation: DB_OPERATIONS.RENAME_CARD,
+        cardId: 12,
+        name: 'Renamed sub',
+      }).changes,
+    ).toBe(1);
+    expect(
+      database.prepare('select name from cards where id = 12').get(),
+    ).toEqual({ name: 'Renamed sub' });
+
+    // A tag with subs, and a tag with relations, must both survive deletion.
+    expect(
+      runMutation({ operation: DB_OPERATIONS.DELETE_CARD, cardId: 12 }).changes,
+    ).toBe(0);
+    expect(
+      runMutation({ operation: DB_OPERATIONS.DELETE_CARD, cardId: 13 }).changes,
+    ).toBe(0);
+
+    const created = database
+      .prepare('select id from cards where name = ?')
+      .get('Created sub') as { id: number };
+    expect(
+      runMutation({ operation: DB_OPERATIONS.DELETE_CARD, cardId: created.id })
+        .changes,
+    ).toBe(1);
     database.close();
   });
 });

@@ -14,6 +14,7 @@ import { CategoryList } from './screens/CategoryList';
 import { MinionDetails } from './screens/MinionDetails';
 import { MinionList } from './screens/MinionList';
 import Settings from './screens/Settings';
+import { TagDetails } from './screens/TagDetails';
 import theme from './theme';
 import {
   placeholderScreenProps,
@@ -99,6 +100,7 @@ function AppContent() {
       categoryList,
       minionDetails,
       minionList,
+      tagDetails,
       screenType = SCREEN_TYPES.SCREEN,
     } = selectedScreen ?? {};
     const screensSelected = [
@@ -106,6 +108,7 @@ function AppContent() {
       categoryList,
       minionDetails,
       minionList,
+      tagDetails,
     ].filter((screen) => screen !== undefined).length;
     if (screensSelected !== 1) {
       throw new Error(
@@ -128,6 +131,9 @@ function AppContent() {
     }
     if (cardDetails) {
       return <CardDetails {...cardDetails} {...commonProps} />;
+    }
+    if (tagDetails) {
+      return <TagDetails {...tagDetails} {...commonProps} />;
     }
   };
 

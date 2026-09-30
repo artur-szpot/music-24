@@ -9,7 +9,14 @@ export const DB_CHANNELS = {
   MINION_SOURCE: 'db:minion-source',
   REVEAL_MINION: 'db:reveal-minion',
   COPY_MINION: 'db:copy-minion',
+  CARD_SUBS: 'db:card-subs',
+  CREATE_CARD: 'db:create-card',
+  RENAME_CARD: 'db:rename-card',
+  DELETE_CARD: 'db:delete-card',
 } as const;
+
+// The relation that links a minion to the tag it is primarily tagged with.
+export const TAG_RELATION = 'p';
 
 export type CategoryKind = 'tags' | 'implementations' | 'scenes' | 'episodes';
 
@@ -69,6 +76,16 @@ export interface CardRow {
   category: string | null;
   cardType: string;
   view: string | null;
+}
+
+export interface CardSubRow {
+  id: number;
+  name: string;
+  parent: number | null;
+  category: string | null;
+  cardType: string;
+  total: number;
+  subtreeTotal: number;
 }
 
 export interface CategoryRow {

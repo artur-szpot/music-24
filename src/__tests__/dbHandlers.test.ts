@@ -190,4 +190,65 @@ describe('database IPC handlers', () => {
       error: { code: 'INVALID_REQUEST' },
     });
   });
+
+  it('validates and dispatches tag sub queries', () => {
+    expect(handlers.cardSubs(sender, 7)).toEqual({ ok: true, data: [] });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.GET_CARD_SUBS,
+      cardId: 7,
+    });
+    expect(handlers.cardSubs(sender, '7')).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
+
+  it('trims card names and rejects blank or control-character names', () => {
+    run.mockReturnValue({ changes: 1 });
+    expect(handlers.createCard(sender, 3, '  New sub  ')).toEqual({
+      ok: true,
+      data: true,
+    });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.CREATE_CARD,
+      parentId: 3,
+      name: 'New sub',
+    });
+    expect(handlers.renameCard(sender, 3, 'Renamed')).toEqual({
+      ok: true,
+      data: true,
+    });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.RENAME_CARD,
+      cardId: 3,
+      name: 'Renamed',
+    });
+    run.mockClear();
+    expect(handlers.createCard(sender, 3, '   ')).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+    expect(handlers.renameCard(sender, 3, 'bad\u0000name')).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+    expect(handlers.renameCard(sender, 3, 'x'.repeat(201))).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('reports refused card deletions without failing the request', () => {
+    run.mockReturnValue({ changes: 0 });
+    expect(handlers.deleteCard(sender, 3)).toEqual({ ok: true, data: false });
+    expect(run).toHaveBeenCalledWith({
+      operation: DB_OPERATIONS.DELETE_CARD,
+      cardId: 3,
+    });
+    expect(handlers.deleteCard(sender, 'all')).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
 });

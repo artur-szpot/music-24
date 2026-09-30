@@ -1,5 +1,6 @@
 import {
   CardRow,
+  CardSubRow,
   CategoryKind,
   CategoryRow,
   IpcErrorCode,
@@ -10,6 +11,7 @@ import {
   MinionQuery,
   MinionRow,
 } from '../constants/dbIpc';
+import { LIMITS } from '../constants/limits';
 import { DB_OPERATIONS } from '../enums/db';
 
 export type DbRequest =
@@ -28,6 +30,10 @@ export type DbRequest =
       filter: MinionFilter;
     }
   | { operation: DB_OPERATIONS.GET_MINION_CARDS; minionId: number }
+  | { operation: DB_OPERATIONS.GET_CARD_SUBS; cardId: number }
+  | { operation: DB_OPERATIONS.CREATE_CARD; parentId: number; name: string }
+  | { operation: DB_OPERATIONS.RENAME_CARD; cardId: number; name: string }
+  | { operation: DB_OPERATIONS.DELETE_CARD; cardId: number }
   | {
       operation: DB_OPERATIONS.GET_MINIONS | DB_OPERATIONS.GET_MINIONS_COUNT;
       query: MinionQuery;
@@ -52,14 +58,42 @@ function ids(value: unknown): number[] {
   if (
     !Array.isArray(value) ||
     !value.length ||
-    value.length > 500 ||
+    value.length > LIMITS.MAX_QUERY_IDS ||
     !value.every((id) => Number.isSafeInteger(id) && id >= 0)
   ) {
     return invalid(
-      'IDs must be a nonempty list of at most 500 nonnegative integers.',
+      `IDs must be a nonempty list of at most ${LIMITS.MAX_QUERY_IDS} nonnegative integers.`,
     );
   }
   return value;
+}
+
+function identifier(value: unknown, label: string): number {
+  if (!Number.isSafeInteger(value) || (value as number) < 0) {
+    return invalid(`${label} must be a nonnegative integer.`);
+  }
+  return value as number;
+}
+
+function cardName(value: unknown): string {
+  const name = typeof value === 'string' ? value.trim() : '';
+  if (
+    !name ||
+    name.length > LIMITS.MAX_CARD_NAME ||
+    Array.from(name).some((character) => character.charCodeAt(0) < 32)
+  ) {
+    return invalid(
+      `Card names must be 1 to ${LIMITS.MAX_CARD_NAME} printable characters.`,
+    );
+  }
+  return name;
+}
+
+function changed(result: unknown): boolean {
+  if (!isRecord(result) || !Number.isSafeInteger(result.changes)) {
+    throw new Error('Unexpected database update result.');
+  }
+  return result.changes === 1;
 }
 
 function parseFilter(value: unknown): MinionFilter {
@@ -307,34 +341,72 @@ export default function createDbHandlers(
       cardId: unknown,
       filter: unknown,
     ): IpcResult<boolean> =>
-      execute(event, () => {
-        if (!Number.isSafeInteger(cardId) || (cardId as number) < 0) {
-          return invalid('Card ID must be a nonnegative integer.');
-        }
-        const result = run({
-          operation: DB_OPERATIONS.UPDATE_CARD_FILTER,
-          cardId: cardId as number,
-          filter: parseFilter(filter),
-        });
-        if (!isRecord(result) || !Number.isSafeInteger(result.changes)) {
-          throw new Error('Unexpected database update result.');
-        }
-        return result.changes === 1;
-      }),
+      execute(event, () =>
+        changed(
+          run({
+            operation: DB_OPERATIONS.UPDATE_CARD_FILTER,
+            cardId: identifier(cardId, 'Card ID'),
+            filter: parseFilter(filter),
+          }),
+        ),
+      ),
     minionCards: (
       event: unknown,
       minionId: unknown,
     ): IpcResult<MinionCardRow[]> =>
-      execute(event, () => {
-        if (!Number.isSafeInteger(minionId) || (minionId as number) < 0) {
-          return invalid('Minion ID must be a nonnegative integer.');
-        }
-        return rows<MinionCardRow>(
+      execute(event, () =>
+        rows<MinionCardRow>(
           run({
             operation: DB_OPERATIONS.GET_MINION_CARDS,
-            minionId: minionId as number,
+            minionId: identifier(minionId, 'Minion ID'),
           }),
-        );
-      }),
+        ),
+      ),
+    cardSubs: (event: unknown, cardId: unknown): IpcResult<CardSubRow[]> =>
+      execute(event, () =>
+        rows<CardSubRow>(
+          run({
+            operation: DB_OPERATIONS.GET_CARD_SUBS,
+            cardId: identifier(cardId, 'Card ID'),
+          }),
+        ),
+      ),
+    createCard: (
+      event: unknown,
+      parentId: unknown,
+      name: unknown,
+    ): IpcResult<boolean> =>
+      execute(event, () =>
+        changed(
+          run({
+            operation: DB_OPERATIONS.CREATE_CARD,
+            parentId: identifier(parentId, 'Parent card ID'),
+            name: cardName(name),
+          }),
+        ),
+      ),
+    renameCard: (
+      event: unknown,
+      cardId: unknown,
+      name: unknown,
+    ): IpcResult<boolean> =>
+      execute(event, () =>
+        changed(
+          run({
+            operation: DB_OPERATIONS.RENAME_CARD,
+            cardId: identifier(cardId, 'Card ID'),
+            name: cardName(name),
+          }),
+        ),
+      ),
+    deleteCard: (event: unknown, cardId: unknown): IpcResult<boolean> =>
+      execute(event, () =>
+        changed(
+          run({
+            operation: DB_OPERATIONS.DELETE_CARD,
+            cardId: identifier(cardId, 'Card ID'),
+          }),
+        ),
+      ),
   };
 }
