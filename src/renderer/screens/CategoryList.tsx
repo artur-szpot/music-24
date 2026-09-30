@@ -28,26 +28,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({
   openCategories: openCategoriesProps = [],
   searchTerm: searchTermProps,
 }: CategoryListProps) => {
-  useState<number[]>(openCategoriesProps);
   const [openCategory, setOpenCategory] = useState<number | undefined>(
     undefined,
   );
-  const [openCategories, setOpenCategories] =
-    useState<number[]>(openCategoriesProps);
-  const handleOpenCategory = (args: {
-    add?: number | undefined;
-    remove?: number | undefined;
-  }) => {
-    const newOpenCategories = [...openCategories, args.add].filter(
-      (category) => ![undefined, args.remove].includes(category),
-    ) as number[];
-    setOpenCategories(newOpenCategories);
-    setOpenCategory(
-      newOpenCategories.find((category) =>
-        categories.map((cat) => cat.id).includes(category),
-      ),
-    );
-  };
+  const handleToggleCategory = (id: number, isExpanded: boolean) =>
+    setOpenCategory(isExpanded ? id : undefined);
 
   const [chosenCategories, setChosenCategories] = useState<{
     [key: number]: boolean;
@@ -151,7 +136,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({
     searchTerm,
     handleNav,
     globalLabels,
-    handleOpenCategory,
     handleChosenCategory,
     actions,
     navActions,
@@ -169,6 +153,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
             {...passableProps}
             key={category.name}
             expanded={searchTerm ? true : category.id === openCategory}
+            onToggle={handleToggleCategory}
             topCategory={true}
           />
         ))}
