@@ -14,6 +14,15 @@ module.exports = {
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
   },
+  overrides: [
+    {
+      files: [
+        '.erb/configs/webpack.config.base.ts',
+        '.erb/scripts/electron-rebuild.js',
+      ],
+      rules: { 'import/no-relative-packages': 'off' },
+    },
+  ],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',

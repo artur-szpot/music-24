@@ -19,7 +19,7 @@ const configuration: webpack.Configuration = {
 
   target: 'electron-preload',
 
-  entry: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+  entry: path.join(webpackPaths.srcMainPath, 'musicPreload.ts'),
 
   output: {
     path: webpackPaths.distDevPath,

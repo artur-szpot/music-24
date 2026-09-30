@@ -1,5 +1,0 @@
-export const LIMITS = {
-  MINIONS_PER_PAGE: 12,
-  MAX_QUERY_IDS: 500,
-  MAX_CARD_NAME: 200,
-};
