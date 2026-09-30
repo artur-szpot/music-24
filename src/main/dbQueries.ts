@@ -1,4 +1,9 @@
-import { FilterCategory, MinionFilter, MinionQuery } from '../constants/dbIpc';
+import {
+  FilterCategory,
+  MinionFilter,
+  MinionQuery,
+  TAG_RELATION,
+} from '../constants/dbIpc';
 import { LIMITS } from '../constants/limits';
 import { DB_OPERATIONS, DB_TABLES } from '../enums/db';
 import { DbRequest } from './dbHandlers';
@@ -291,6 +296,71 @@ export function buildDbQuery(
       return {
         statement: `update ${DB_TABLES.CARDS} set view = ? where id = ?`,
         params: [JSON.stringify(request.filter), request.cardId],
+      };
+    case DB_OPERATIONS.GET_CARD_SUBS:
+      return {
+        statement: `
+          with recursive sub(id) as (
+            select id from ${DB_TABLES.CARDS} where id = ?
+            union
+            select c.id from ${DB_TABLES.CARDS} c
+            join sub s on c.parent = s.id
+          ), tree(root, id) as (
+            select id, id from sub
+            union
+            select t.root, c.id from ${DB_TABLES.CARDS} c
+            join tree t on c.parent = t.id
+          ), totals(root, subtreeTotal) as (
+            select t.root, count(distinct mcr.minion_id)
+            from tree t
+            left join minion_card_relations mcr
+              on mcr.card_id = t.id and mcr.rel = ?
+            group by t.root
+          )
+          select c.id, c.name, c.parent, c.category,
+            c.card_type as cardType,
+            coalesce(mc.total, 0) as total,
+            coalesce(totals.subtreeTotal, 0) as subtreeTotal
+          from sub s
+          join ${DB_TABLES.CARDS} c on c.id = s.id
+          left join minion_card_relations_counts mc
+            on mc.card_id = c.id and mc.rel = ?
+          left join totals on totals.root = c.id
+          order by c.name asc
+        `,
+        params: [request.cardId, TAG_RELATION, TAG_RELATION],
+      };
+    case DB_OPERATIONS.CREATE_CARD:
+      return {
+        statement: `
+          insert into ${DB_TABLES.CARDS}
+            (name, card_type, category, parent, nest_level, detailing_done)
+          select ?, card_type, category, id, nest_level + 1, 0
+          from ${DB_TABLES.CARDS} where id = ?
+        `,
+        params: [request.name, request.parentId],
+      };
+    case DB_OPERATIONS.RENAME_CARD:
+      return {
+        statement: `update ${DB_TABLES.CARDS} set name = ? where id = ?`,
+        params: [request.name, request.cardId],
+      };
+    case DB_OPERATIONS.DELETE_CARD:
+      // Refuses tags that still have subs or images so no relation is lost.
+      return {
+        statement: `
+          delete from ${DB_TABLES.CARDS}
+          where id = ?
+            and not exists (
+              select 1 from ${DB_TABLES.CARDS} sub
+              where sub.parent = ${DB_TABLES.CARDS}.id
+            )
+            and not exists (
+              select 1 from minion_card_relations mcr
+              where mcr.card_id = ${DB_TABLES.CARDS}.id
+            )
+        `,
+        params: [request.cardId],
       };
     case DB_OPERATIONS.GET_MINION_CARDS:
       return {

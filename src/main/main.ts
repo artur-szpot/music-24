@@ -358,6 +358,10 @@ const registerDatabaseHandlers = (): void => {
   ipcMain.handle(DB_CHANNELS.MINION_COUNT, handlers.minionCount);
   ipcMain.handle(DB_CHANNELS.UPDATE_CARD_FILTER, handlers.updateCardFilter);
   ipcMain.handle(DB_CHANNELS.MINION_CARDS, handlers.minionCards);
+  ipcMain.handle(DB_CHANNELS.CARD_SUBS, handlers.cardSubs);
+  ipcMain.handle(DB_CHANNELS.CREATE_CARD, handlers.createCard);
+  ipcMain.handle(DB_CHANNELS.RENAME_CARD, handlers.renameCard);
+  ipcMain.handle(DB_CHANNELS.DELETE_CARD, handlers.deleteCard);
   ipcMain.handle(DB_CHANNELS.MINION_SOURCE, fileHandlers.source);
   ipcMain.handle(DB_CHANNELS.REVEAL_MINION, fileHandlers.reveal);
   ipcMain.handle(DB_CHANNELS.COPY_MINION, fileHandlers.copy);

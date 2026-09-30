@@ -38,6 +38,10 @@ describe('Settings', () => {
         }),
         revealMinion: jest.fn(),
         copyMinion: jest.fn(),
+        cardSubs: jest.fn(),
+        createCard: jest.fn(),
+        renameCard: jest.fn(),
+        deleteCard: jest.fn(),
       },
     };
   });

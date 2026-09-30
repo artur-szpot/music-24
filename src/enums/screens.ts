@@ -3,6 +3,7 @@ export enum SCREENS {
   CATEGORIES_LIST,
   MINION_DETAILS,
   CARD_DETAILS,
+  TAG_DETAILS,
 }
 
 export enum SCREEN_TYPES {
