@@ -1,4 +1,8 @@
-import Backdrop from '@mui/material/Backdrop';
+import Alert from '@mui/material/Alert';
+import CssBaseline from '@mui/material/CssBaseline';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import { ThemeProvider } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { SCREEN_TYPES } from '../enums/screens';
 import './App.css';
@@ -10,12 +14,13 @@ import { CategoryList } from './screens/CategoryList';
 import { MinionDetails } from './screens/MinionDetails';
 import { MinionList } from './screens/MinionList';
 import Settings from './screens/Settings';
+import theme from './theme';
 import {
   placeholderScreenProps,
   SetScreenProps,
 } from './interfaces/setScreenProps';
 
-export default function App() {
+function AppContent() {
   const [screen, setScreen] = useState<SetScreenProps>(placeholderScreenProps);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const setPopup = (popup: SetScreenProps) => {
@@ -127,7 +132,7 @@ export default function App() {
   };
 
   return (
-    <div>
+    <div className="app-shell">
       <Nav
         handleNav={(next) => {
           setSettingsOpen(false);
@@ -138,22 +143,39 @@ export default function App() {
           setSettingsOpen(true);
         }}
       />
-      {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
-      {!settingsOpen && labelsError && (
-        <main className="screen">
-          <p role="alert">{labelsError}</p>
-        </main>
-      )}
-      {!settingsOpen && !labelsError && screenRenderer(screen)}
+      <div className="app-content">
+        {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
+        {!settingsOpen && labelsError && (
+          <main className="screen">
+            <Alert severity="error" role="alert">
+              {labelsError}
+            </Alert>
+          </main>
+        )}
+        {!settingsOpen && !labelsError && screenRenderer(screen)}
+      </div>
       {!settingsOpen && !labelsError && (
-        <Backdrop open={popupOpen}>
-          <Backdrop open={true}>
-            <Backdrop open={true} onClick={() => handlePopupToggle(false)}>
-              {screenRenderer(screen.popup ?? placeholderScreenProps)}
-            </Backdrop>
-          </Backdrop>
-        </Backdrop>
+        <Dialog
+          open={popupOpen}
+          onClose={() => handlePopupToggle(false)}
+          maxWidth="xl"
+          fullWidth
+          scroll="paper"
+        >
+          <DialogContent sx={{ p: 0 }}>
+            {screenRenderer(screen.popup ?? placeholderScreenProps)}
+          </DialogContent>
+        </Dialog>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AppContent />
+    </ThemeProvider>
   );
 }
