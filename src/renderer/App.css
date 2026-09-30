@@ -1,262 +1,321 @@
-/*
- * @NOTE: Prepend a `~` to css file paths that are in your node_modules
- *        See https://github.com/webpack-contrib/sass-loader#imports
- */
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  height: 100%;
+  margin: 0;
+}
 
 body {
-  position: relative;
-  color: white;
+  overflow: hidden;
+}
+
+.app-shell {
+  display: flex;
+  width: 100%;
   height: 100vh;
-  background: #9e9e9e;
-  font-family: sans-serif;
-  overflow-y: hidden;
-  display: flex;
-  justify-content: center;
+  min-height: 0;
+}
+
+.nav-brand {
+  min-height: 76px;
   align-items: center;
-  margin: 0;
 }
 
-div {
-  overflow-x: hidden;
-  overflow-y: hidden;
-}
-
-p {
-  margin: 0;
-}
-
-div#nav {
-  background-color: black;
-  color: white;
-  position: absolute;
-  height: 100vw;
-  left: 0;
-  top: 0;
-  padding: 10px;
-  width: 80px;
-}
-
-div.screen-pagination nav ul li button {
-  font-size: 1.2rem;
-}
-
-div.screen {
-  width: calc(100vw - 100px);
-  position: absolute;
-  left: 100px;
-  top: 0;
-  text-align: center;
-  height: calc(100vh - 20px);
-}
-
-main.settings-screen {
-  width: calc(100vw - 100px);
-  height: calc(100vh - 20px);
-  position: absolute;
-  left: 100px;
-  top: 0;
-  box-sizing: border-box;
-  padding: 24px;
-  text-align: left;
-  overflow-y: auto;
-}
-
-.settings-row {
+.app-content {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-}
-
-.settings-row label {
-  min-width: 200px;
-}
-
-.settings-row input {
   flex: 1;
   min-width: 0;
-  padding: 8px;
+  min-height: 0;
+  overflow: hidden;
 }
 
-div.screen-popup {
-  width: calc(100vw - 104px);
-  position: absolute;
-  left: 100px;
-  top: 0;
-  text-align: center;
-  height: calc(100vh - 20px);
-  border: 2px solid red;
-}
-
-div.screen-side {
-  width: 25vw;
-  text-align: center;
-  height: calc(100vh - 20px);
-}
-
-div.screen-tooltip {
-  width: 250px;
-  text-align: center;
-}
-
-div.accordion-screen {
-  width: calc(100vw - 120px);
-  overflow-y: scroll;
-  padding: 10px;
-}
-
-div.accordion-box {
-  padding-left: 60px;
-}
-
-div.minion-screen-contents {
-  margin: auto;
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-  display: block;
-}
-
-div.screen-pagination {
-  width: 100%;
-  position: absolute;
-  left: 0;
-  margin: auto;
-  bottom: 0;
-  padding-bottom: 10px;
-  height: auto;
-  text-align: center;
+.screen {
   display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px 28px;
+  overflow: auto;
+}
+
+.screen-popup {
+  width: 100%;
+  max-height: none;
+  padding: 24px;
+  overflow: visible;
+  border: 0;
+  background: #fff;
+  color: #202a29;
+}
+
+.screen-side {
+  width: min(460px, 90vw);
+  height: 100%;
+  padding: 24px;
+  overflow: auto;
+  background: #fff;
+}
+
+.screen-tooltip {
+  width: 280px;
+  padding: 16px;
+  background: #fff;
+  color: #202a29;
+}
+
+.settings-screen {
+  padding: 32px;
+}
+
+.settings-content {
+  width: min(760px, 100%);
+}
+
+.settings-paths {
+  margin-top: 24px;
+}
+
+.screen-pagination {
+  position: sticky;
+  bottom: -24px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: 64px;
+  margin: auto -28px -24px;
+  padding: 8px 16px;
+  border-top: 1px solid #e2e9e7;
+  background: rgb(243 246 245 / 96%);
 }
 
-div.screen-pagination button {
-  min-width: 50px;
-  height: 50px;
-}
-
-p.pagination-info {
-  float: right;
+.pagination-info {
   position: absolute;
-  right: 5px;
+  right: 20px;
   margin: 0;
-  bottom: 0;
-  font-size: 0.7em;
-  color: black;
+  color: #5c6967;
+  font-size: 0.8rem;
 }
 
-div.minion {
-  display: inline-block;
-  padding: 10px;
-  padding-bottom: 10px;
+.minion-screen-query {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+  color: #5c6967;
+}
+
+.minion-screen-query p {
+  margin: 0;
+}
+
+.minion-screen-contents {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 16px;
+  margin: auto;
+}
+
+.minion {
+  min-width: 0;
+  max-width: 24%;
+  padding: 4px;
   text-align: left;
-  overflow-y: hidden;
-  max-width: 22%;
 }
 
-div.minion-solo {
-  max-width: 66%;
+.minion-list {
+  flex: 1 1 220px;
 }
 
-div.minion-full {
+.minion-solo {
+  width: min(100%, 900px);
   max-width: 100%;
 }
 
-div.minion > img {
+.minion-full {
   width: 100%;
-  height: auto;
+  max-width: 100%;
 }
 
-img {
-  border: 2px solid black;
-}
-
-span.action {
-  color: #b568c7;
-  text-align: left;
-}
-
-span.action:hover {
+.minion img {
+  display: block;
+  width: 100%;
+  max-height: 290px;
+  object-fit: contain;
+  border: 1px solid #dce5e2;
+  border-radius: 4px;
+  background: #fff;
   cursor: pointer;
+}
+
+.minion-solo img,
+.minion-full img {
+  max-height: calc(100vh - 180px);
+}
+
+.minion-metadata {
+  padding: 12px 0;
+}
+
+.minion-related-cards,
+.minion-file-actions,
+.card-filter-results,
+.card-representative {
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e9e7;
+}
+
+.minion-related-cards ul {
+  padding-left: 22px;
+}
+
+.accordion-screen {
+  padding-top: 24px;
+}
+
+.accordion-screen > .spacer {
+  height: 16px;
+}
+
+.accordion-box {
+  padding-left: clamp(12px, 4vw, 48px);
+}
+
+.accordion-main-header {
+  display: block;
+  margin: 0;
+  line-height: 1.35;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.accordion-header {
+  display: inline-block;
+  margin: 4px 8px 0 0;
+  font-size: 0.85rem;
+}
+
+.category-icon {
+  margin-right: 6px;
+}
+
+.action {
+  color: #176b63;
+  text-align: left;
+  cursor: pointer;
+}
+
+.action:hover {
   text-decoration: underline;
 }
 
-span.disabled {
-  color: #666666;
-}
-
-span.disabled:hover {
+.disabled,
+.disabled:hover {
+  color: #8a9693;
   cursor: default;
   text-decoration: none;
 }
 
-span.MuiAccordionSummary-content {
-  margin: 5px 0;
-}
-
-div.MuiAccordionDetails-root {
-  padding-top: 5px;
-  padding-bottom: 0;
-}
-
-span.accordion-main-header {
-  display: block;
-  margin: 0;
-  margin-block: 0;
-  line-height: normal;
-  font-size: 2rem;
-}
-
-span.accordion-header {
-  display: inline-block;
-  padding: 0 5px;
-  margin-block: 0;
-}
-
-div.accordion-screen input {
-  padding: 10px 14px;
-  border: 2px solid #b568c7;
-  font-size: 2rem;
-}
-
-div.accordion-screen div.spacer {
-  height: 10px;
-}
-
-span.category-icon {
-  transform: translateY(8px);
-}
-
-div.filter-main,
-div.filter-row {
+.filter-main,
+.filter-row {
+  padding: 4px 0;
   text-align: left;
-  padding: 0 10px;
 }
 
-div.filter-main > div.filter-main {
-  padding: 0 30px;
+.filter-main > .filter-main {
+  padding-left: 24px;
 }
 
-div.filter-main > p,
-div.filter-row > p {
-  margin-bottom: 5px;
+.filter-main > p,
+.filter-row > p {
+  margin: 0 0 8px;
 }
 
-div.filter-main h3 {
-  margin: 15px 0 0 0;
+.filter-main h3,
+.filter-row h4 {
+  margin: 12px 0 8px;
 }
 
-div.filter-row h4 {
-  margin: 15px 0;
-}
-
-div.card-details-screen {
-  overflow-y: scroll;
-  text-align: left;
-  padding: 20px;
-  width: calc(100vw - 140px);
-}
-
-div.filter-subrow {
+.filter-subrow {
   margin-bottom: 10px;
+}
+
+.filter-editor,
+.filter-editor-category {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #dce5e2;
+  border-radius: 6px;
+}
+
+.filter-editor-category {
+  padding: 12px;
+  border-color: #e2e9e7;
+}
+
+.filter-editor legend,
+.filter-editor-category legend {
+  padding: 0 6px;
+  color: #5c6967;
+  font-weight: 600;
+}
+
+.card-details-screen {
+  align-items: flex-start;
+}
+
+.card-screen-contents {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+.card-screen-contents > h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+}
+
+.card-screen-contents > p {
+  color: #5c6967;
+}
+
+.loading {
+  margin: 0 0 12px;
+}
+
+@media (max-width: 720px) {
+  .nav-brand {
+    min-height: 64px;
+  }
+
+  .screen {
+    padding: 16px;
+  }
+
+  .settings-screen {
+    padding: 20px 16px;
+  }
+
+  .minion {
+    max-width: 48%;
+  }
+
+  .minion-list {
+    flex-basis: 160px;
+  }
+
+  .pagination-info {
+    display: none;
+  }
+
+  .screen-pagination {
+    bottom: -16px;
+    margin: auto -16px -16px;
+  }
 }
