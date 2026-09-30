@@ -18,10 +18,7 @@ export interface CategoryProps
     CategoryActionProps {
   expanded?: boolean;
   topCategory?: boolean;
-  handleOpenCategory: (args: {
-    add?: number | undefined;
-    remove?: number | undefined;
-  }) => void;
+  onToggle: (id: number, isExpanded: boolean) => void;
   handleChosenCategory: (id: number) => void;
 }
 
@@ -39,7 +36,7 @@ export const Category: React.FC<CategoryProps> = ({
   globalLabels,
   chosenCategories: chosenCategoriesProps = {},
   openCategories: openCategoriesProps = [],
-  handleOpenCategory,
+  onToggle,
   handleChosenCategory,
 }: CategoryProps) => {
   const chosen = chosenCategoriesProps[id];
@@ -47,7 +44,6 @@ export const Category: React.FC<CategoryProps> = ({
     searchTerm,
     handleNav,
     globalLabels,
-    handleOpenCategory,
     handleChosenCategory,
     actions: actionsProps,
     navActions: navActionsProps,
@@ -55,17 +51,15 @@ export const Category: React.FC<CategoryProps> = ({
   const actionProps = { id, name, total };
 
   const [openSub, setOpenSub] = useState<number | undefined>(
-    openCategoriesProps.find((id) => subs.map((sub) => sub.id).includes(id)),
+    openCategoriesProps.find((openId) =>
+      subs.map((sub) => sub.id).includes(openId),
+    ),
   );
-  const handleOpenSub =
-    (id: number) => (event: React.SyntheticEvent, newExpanded: boolean) => {
-      newExpanded
-        ? handleOpenCategory({ add: id, remove: openSub })
-        : handleOpenCategory({ remove: openSub });
-      setOpenSub(newExpanded ? id : undefined);
-    };
-  const handleChosen = (id: number) => (event: React.SyntheticEvent) =>
-    handleChosenCategory(id);
+  // Each level owns which of its own subs is open, so opening one closes its siblings.
+  const handleSubToggle = (subId: number, isExpanded: boolean) =>
+    setOpenSub(isExpanded ? subId : undefined);
+  const handleChosen = (chosenId: number) => () =>
+    handleChosenCategory(chosenId);
 
   const actions = actionsProps.filter(
     ({ excludeTopCategories }) => !topCategory || !excludeTopCategories,
@@ -73,16 +67,17 @@ export const Category: React.FC<CategoryProps> = ({
   const navActions = navActionsProps.filter(
     ({ excludeTopCategories }) => !topCategory || !excludeTopCategories,
   );
+  const hasSubs = subs.length > 0;
 
   return (
     <Accordion
       disableGutters
       key={name}
-      expanded={expanded}
-      onChange={handleOpenSub(id)}
+      expanded={hasSubs && Boolean(expanded)}
+      onChange={(event, isExpanded) => hasSubs && onToggle(id, isExpanded)}
     >
       <AccordionSummary
-        expandIcon={searchTerm ? undefined : <ExpandMoreIcon />}
+        expandIcon={hasSubs && !searchTerm ? <ExpandMoreIcon /> : undefined}
       >
         {!topCategory && searchTerm && (
           <Icon
@@ -132,7 +127,7 @@ export const Category: React.FC<CategoryProps> = ({
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {subs.length > 0 && (
+        {hasSubs && (
           <div className="accordion-box">
             {subs
               .filter((sub) => satisfiesSearchTerm(sub, searchTerm))
@@ -141,6 +136,7 @@ export const Category: React.FC<CategoryProps> = ({
                   {...sub}
                   {...passableProps}
                   expanded={searchTerm ? true : sub.id === openSub}
+                  onToggle={handleSubToggle}
                   key={sub.id}
                 />
               ))}
